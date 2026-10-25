@@ -1,4 +1,8 @@
 <!-- Lamp glow, a drifting blob and fine grain: the cosy background layer for TV screens. -->
+<script lang="ts">
+  // Purely decorative; no props yet. Later: a `lowPower` prop for weak smart-TV browsers.
+</script>
+
 <div class="ambient" aria-hidden="true">
   <div class="glow"></div>
   <div class="blob"></div>
