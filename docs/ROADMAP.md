@@ -7,8 +7,8 @@ to the **Later** milestone.
 Design reference for every screen: the *Couch Potato — Lobby & Join* canvas.
 
 ## Phase 0 · Foundations — *1 weekend*
-- [ ] Repo scaffold, CI and image publishing (this commit)
-- [ ] `npm install`, commit `package-lock.json`, switch CI to `npm ci`
+- [x] Repo scaffold, CI and image publishing
+- [x] `package-lock.json` committed, CI uses `npm ci`
 - [ ] Run the container on TrueNAS (see `docs/DEPLOY.md`)
 - [ ] Cloudflare tunnel route → `http://<truenas-ip>:3000`
 - [ ] **Done when:** the TV at `/tv` counts taps live from two phones over the tunnel, and survives a phone going to sleep and waking up

@@ -14,9 +14,7 @@ jobs:
         with:
           node-version-file: .nvmrc
           cache: npm
-          cache-dependency-path: package.json
-      # Switch to `npm ci` once package-lock.json is committed.
-      - run: npm install --no-audit --no-fund
+      - run: npm ci --no-audit --no-fund
       - name: Typecheck
         run: |
           set -o pipefail
