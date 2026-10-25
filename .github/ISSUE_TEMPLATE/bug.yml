@@ -1,0 +1,22 @@
+name: Bug
+description: Something broke during a game night
+labels: ["bug"]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: What you did, what you expected, what you got.
+    validations:
+      required: true
+  - type: dropdown
+    id: where
+    attributes:
+      label: Where
+      multiple: true
+      options: [TV, Phone (iPhone), Phone (Android), Host remote, Admin, Server]
+  - type: input
+    id: version
+    attributes:
+      label: Version / image tag
+      placeholder: "sha shown in the container logs, or v0.2.0"

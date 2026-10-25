@@ -1,0 +1,33 @@
+name: Task
+description: A small, one-sitting piece of work (2–4 hours)
+labels: ["task"]
+body:
+  - type: dropdown
+    id: phase
+    attributes:
+      label: Phase
+      options:
+        - "0 · Foundations"
+        - "1 · Join & lobby"
+        - "2 · Trivia"
+        - "3 · Host & admin"
+        - "4 · Game modules + Liar's Dice"
+        - "5 · Polish"
+        - "Later"
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: What
+      description: One or two sentences. Link the canvas artboard if it builds a screen.
+    validations:
+      required: true
+  - type: textarea
+    id: done
+    attributes:
+      label: Done when
+      description: How you'll know it's finished — something you can see or test.
+      placeholder: "- 4 phones join in under 10 s each\n- Refreshing a phone rejoins without retyping the name"
+    validations:
+      required: true

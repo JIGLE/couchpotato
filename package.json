@@ -1,0 +1,22 @@
+{
+  "name": "couchpotato",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Self-hosted, Kahoot-style board-game nights: the TV is the board, phones are the controllers.",
+  "license": "Apache-2.0",
+  "type": "module",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "npm run dev --workspace @couchpotato/server & npm run dev --workspace @couchpotato/web",
+    "build": "npm run build --workspaces --if-present",
+    "start": "node apps/server/dist/index.js",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present"
+  }
+}

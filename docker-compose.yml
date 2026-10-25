@@ -1,0 +1,18 @@
+# Run on TrueNAS SCALE (Apps → Discover → Custom App → "Install via YAML"),
+# or anywhere with `docker compose up -d`.
+services:
+  couchpotato:
+    image: ghcr.io/jigle/couchpotato:latest
+    # build: .            # uncomment to build locally instead of pulling
+    container_name: couchpotato
+    restart: unless-stopped
+    ports:
+      - "3000:3000"       # point your Cloudflare tunnel at http://<truenas-ip>:3000
+    environment:
+      LOG_LEVEL: info
+      # ADMIN_PASSWORD: change-me   # used from Phase 3 (host sign-in)
+    volumes:
+      - couchpotato-data:/data      # from Phase 3: hosts, invites, question packs
+
+volumes:
+  couchpotato-data:

@@ -1,0 +1,106 @@
+/* Couch Potato design tokens — mirrors the design system's tokens.json.
+   Moods swap via <html data-mood="...">. Lamp Light is the default. */
+
+:root,
+:root[data-mood='lamp'] {
+  --surface-0: #12100e;
+  --surface-1: #1c1916;
+  --surface-2: #28241f;
+  --ink: #f2ede4;
+  --ink-muted: #a89f92;
+  --spud: #f0a63a;
+  --ink-on-spud: #1c1916;
+  --sofa: #2f6f6a;
+  --glow: rgba(240, 166, 58, 0.24);
+  --blob: rgba(47, 111, 106, 0.5);
+  --edge-light: rgba(255, 240, 220, 0.06);
+  --edge-dark: rgba(0, 0, 0, 0.55);
+  --tile-a: #f0a63a; --tile-a-ink: #1c1916;
+  --tile-b: #2f6f6a; --tile-b-ink: #f2ede4;
+  --tile-c: #e9e2d4; --tile-c-ink: #1c1916;
+  --tile-d: #b5523b; --tile-d-ink: #f2ede4;
+  --correct: #7fc79a;
+  --wrong: #e07a5f;
+  --focus: #f2ede4;
+  color-scheme: dark;
+}
+
+:root[data-mood='velvet'] {
+  --surface-0: #1a0f12; --surface-1: #26171b; --surface-2: #331f24;
+  --ink: #f6e9e4; --ink-muted: #bfa5a0;
+  --spud: #e8b64c; --ink-on-spud: #1a0f12; --sofa: #8e2f45;
+  --glow: rgba(196, 72, 92, 0.32); --blob: rgba(232, 182, 76, 0.4);
+  --edge-light: rgba(255, 230, 230, 0.06); --edge-dark: rgba(0, 0, 0, 0.6);
+  --tile-a: #e8b64c; --tile-a-ink: #1a0f12;
+  --tile-b: #8e2f45; --tile-b-ink: #f6e9e4;
+  --tile-c: #f1d9cf; --tile-c-ink: #1a0f12;
+  --tile-d: #3e6b5a; --tile-d-ink: #f6e9e4;
+}
+
+:root[data-mood='midnight'] {
+  --surface-0: #0f141c; --surface-1: #172030; --surface-2: #1f2a3d;
+  --ink: #eef2f7; --ink-muted: #9aa8bc;
+  --spud: #ff9e5e; --ink-on-spud: #0f141c; --sofa: #2b5da8;
+  --glow: rgba(90, 140, 220, 0.3); --blob: rgba(255, 158, 94, 0.35);
+  --edge-light: rgba(220, 230, 255, 0.06); --edge-dark: rgba(0, 0, 0, 0.6);
+  --tile-a: #ff9e5e; --tile-a-ink: #0f141c;
+  --tile-b: #2b5da8; --tile-b-ink: #eef2f7;
+  --tile-c: #cfe3f0; --tile-c-ink: #0f141c;
+  --tile-d: #c24e6e; --tile-d-ink: #eef2f7;
+}
+
+:root[data-mood='sunday'] {
+  --surface-0: #f2ebdf; --surface-1: #faf6ef; --surface-2: #e6dccb;
+  --ink: #2a221b; --ink-muted: #6a5d50;
+  --spud: #a8492a; --ink-on-spud: #faf6ef; --sofa: #4f7a63;
+  --glow: rgba(233, 162, 59, 0.35); --blob: rgba(79, 122, 99, 0.35);
+  --edge-light: rgba(255, 255, 255, 0.9); --edge-dark: rgba(90, 70, 40, 0.2);
+  --tile-a: #e9a23b; --tile-a-ink: #2a221b;
+  --tile-b: #4f7a63; --tile-b-ink: #faf6ef;
+  --tile-c: #2a221b; --tile-c-ink: #faf6ef;
+  --tile-d: #b04a2e; --tile-d-ink: #faf6ef;
+  --focus: #2a221b;
+  color-scheme: light;
+}
+
+:root {
+  --font-display: 'Unbounded', system-ui, sans-serif;
+  --font-sans: 'Manrope', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+
+  --space-1: 8px;
+  --space-2: 16px;
+  --space-3: 32px;
+  --space-4: 64px;
+
+  --radius-sm: 12px;
+  --radius-md: 24px;
+  --radius-pill: 999px;
+
+  --morph-raised: -6px -6px 14px var(--edge-light), 8px 8px 20px var(--edge-dark);
+  --morph-inset: inset -4px -4px 10px var(--edge-light), inset 5px 5px 12px var(--edge-dark);
+
+  --dur-press: 120ms;
+  --dur-screen: 280ms;
+  --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+*,
+*::before,
+*::after { box-sizing: border-box; }
+
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+  background: var(--surface-0);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+:focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 150ms !important; transition-duration: 150ms !important; }
+}
