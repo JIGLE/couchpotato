@@ -17,5 +17,12 @@ jobs:
           cache-dependency-path: package.json
       # Switch to `npm ci` once package-lock.json is committed.
       - run: npm install --no-audit --no-fund
-      - run: npm run typecheck
+      - name: Typecheck
+        run: |
+          set -o pipefail
+          npm run typecheck 2>&1 | tee typecheck.log || {
+            # Surface errors as annotations so they show on the PR / run page.
+            grep -E "error|Error" typecheck.log | head -30 | while IFS= read -r line; do echo "::error::$line"; done
+            exit 1
+          }
       - run: npm run build
