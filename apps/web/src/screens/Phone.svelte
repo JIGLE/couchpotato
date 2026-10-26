@@ -4,25 +4,38 @@
   import Logo from '../lib/Logo.svelte';
 
   let name = $state(localStorage.getItem('cp:name') ?? '');
+  let code = $state((new URLSearchParams(location.search).get('code') ?? '').toUpperCase());
   let joined = $state(false);
   let online = $state(false);
   let count = $state(0);
+  let error = $state('');
 
   const socket = connect();
   socket.on('connect', () => {
     online = true;
-    if (joined) socket.emit('hello', { screen: 'phone', name }); // silent rejoin after a blip
+    if (joined) socket.emit('hello', { screen: 'phone', code, name }); // silent rejoin after a blip
   });
   socket.on('disconnect', () => (online = false));
+  socket.on('room:joined', (p) => {
+    code = p.code;
+    joined = true;
+    error = '';
+  });
+  socket.on('room:error', (p) => {
+    joined = false;
+    error = p.reason === 'not-found' ? `No room called ${p.code}. Check the code on the TV.` : 'Enter the code shown on the TV.';
+  });
   socket.on('tap:count', (p) => (count = p.count));
   onDestroy(() => socket.disconnect());
 
   function join(e: SubmitEvent) {
     e.preventDefault();
     name = name.trim() || 'Potato';
+    code = code.trim().toUpperCase();
     localStorage.setItem('cp:name', name);
-    joined = true;
-    socket.emit('hello', { screen: 'phone', name });
+    // A fresh connection per attempt, so a wrong code can be retried cleanly.
+    socket.disconnect().connect();
+    socket.once('connect', () => socket.emit('hello', { screen: 'phone', code, name }));
   }
 
   function tap() {
@@ -37,6 +50,19 @@
   {#if !joined}
     <form onsubmit={join}>
       <h1>Pull up a seat.</h1>
+      <label for="code">ROOM CODE</label>
+      <input
+        id="code"
+        class="code"
+        bind:value={code}
+        maxlength="4"
+        autocapitalize="characters"
+        autocomplete="off"
+        spellcheck="false"
+        placeholder="SPUD"
+        aria-describedby="code-error"
+      />
+      {#if error}<p id="code-error" class="error" role="alert">{error}</p>{/if}
       <label for="name">YOUR NAME</label>
       <input id="name" bind:value={name} maxlength="20" autocomplete="nickname" placeholder="Nickname" />
       <button class="primary" type="submit">Join</button>
@@ -61,6 +87,8 @@
     appearance: none; border: 0; height: 56px; padding: 0 20px; border-radius: 16px;
     background: var(--surface-1); color: var(--ink); font: 600 18px var(--font-sans); box-shadow: var(--morph-inset);
   }
+  input.code { font: 700 28px var(--font-mono); letter-spacing: 0.2em; color: var(--spud); text-transform: uppercase; height: 64px; }
+  .error { margin: 0; font-size: 15px; font-weight: 600; color: var(--wrong); }
   button { border: 0; cursor: pointer; font: 700 18px var(--font-sans); transition: transform var(--dur-press), box-shadow var(--dur-press); }
   button:active { transform: scale(0.96); box-shadow: var(--morph-inset); }
   .primary { margin-top: auto; height: 60px; border-radius: var(--radius-pill); background: var(--spud); color: var(--ink-on-spud); box-shadow: 6px 8px 18px var(--edge-dark); }

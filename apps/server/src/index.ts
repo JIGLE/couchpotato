@@ -5,6 +5,7 @@ import { existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import type { ClientToServer, ServerToClient, Screen } from '@couchpotato/shared';
+import { RoomStore } from './rooms.js';
 
 const PORT = Number(process.env.PORT ?? 3000);
 const HOST = process.env.HOST ?? '0.0.0.0';
@@ -35,37 +36,67 @@ const io = new Server<ClientToServer, ServerToClient>(app.server, {
   cors: { origin: process.env.CORS_ORIGIN ?? false },
 });
 
-// ---- Phase 0 smoke test: phones tap, the TV counts. ----
-let count = 0;
-let lastBy: string | null = null;
-const screens = new Map<string, { screen: Screen; name?: string }>();
+// ---- Rooms: each TV gets its own 4-letter room; phones join by code. ----
+const rooms = new RoomStore();
+const members = new Map<string, { screen: Screen; name?: string; code: string }>();
 
-function broadcastPresence() {
+function broadcastPresence(code: string) {
   let tvs = 0;
   let phones = 0;
-  for (const s of screens.values()) s.screen === 'tv' ? tvs++ : phones++;
-  io.emit('presence', { tvs, phones });
+  for (const m of members.values()) {
+    if (m.code !== code) continue;
+    if (m.screen === 'tv') tvs++;
+    else phones++;
+  }
+  io.to(code).emit('presence', { tvs, phones });
 }
 
 io.on('connection', (socket) => {
-  socket.on('hello', ({ screen, name }) => {
-    screens.set(socket.id, { screen, name: name?.slice(0, 20) });
-    socket.emit('tap:count', { count, lastBy });
-    broadcastPresence();
+  socket.on('hello', ({ screen, code, name }) => {
+    if (members.has(socket.id)) return; // one hello per connection
+    if (screen !== 'tv' && screen !== 'phone') return;
+
+    let room = code ? rooms.get(code) : undefined;
+    if (screen === 'tv' && !room) {
+      room = rooms.create();
+      socket.emit('room:created', { code: room.code });
+    }
+    if (!room) {
+      socket.emit('room:error', { reason: code ? 'not-found' : 'bad-request', code: code ?? '' });
+      return;
+    }
+
+    rooms.join(room.code, socket.id);
+    members.set(socket.id, { screen, name: name?.trim().slice(0, 20) || undefined, code: room.code });
+    socket.join(room.code);
+    socket.emit('room:joined', { code: room.code });
+    socket.emit('tap:count', { count: room.taps, lastBy: room.lastTapBy });
+    broadcastPresence(room.code);
   });
 
   socket.on('tap', () => {
-    const me = screens.get(socket.id);
+    const me = members.get(socket.id);
     if (me?.screen !== 'phone') return;
-    count += 1;
-    lastBy = me.name ?? 'someone';
-    io.emit('tap:count', { count, lastBy });
+    const room = rooms.get(me.code);
+    if (!room) return;
+    room.taps += 1;
+    room.lastTapBy = me.name ?? 'someone';
+    io.to(room.code).emit('tap:count', { count: room.taps, lastBy: room.lastTapBy });
   });
 
   socket.on('disconnect', () => {
-    screens.delete(socket.id);
-    broadcastPresence();
+    const me = members.get(socket.id);
+    if (!me) return;
+    members.delete(socket.id);
+    rooms.leave(me.code, socket.id);
+    broadcastPresence(me.code);
   });
 });
+
+// Clear out rooms nobody has used for 30 minutes.
+setInterval(() => {
+  const removed = rooms.sweep();
+  if (removed.length) app.log.info({ removed }, 'expired empty rooms');
+}, 60_000).unref();
 
 await app.listen({ port: PORT, host: HOST });
