@@ -7,9 +7,21 @@ The `Release image` workflow publishes `ghcr.io/jigle/couchpotato:latest` on eve
 1. TrueNAS → **Apps → Discover Apps → Custom App → Install via YAML**.
 2. Paste `docker-compose.yml` from this repo.
 3. If the repo is private, make the package public in GitHub (*Packages → couchpotato → Package settings → Change visibility*) or add GHCR credentials in TrueNAS.
-4. Check `http://<truenas-ip>:3000/healthz` returns `{"ok":true}`.
+4. Check `http://<truenas-ip>:3000/healthz` returns `{"ok":true,"version":"…"}`.
 
-Updating: TrueNAS → the app → **Update / Pull image**. Roll back by pinning a sha or `v*` tag.
+### Updating (no reinstall)
+
+TrueNAS keeps using the image it already has unless told to look again. The compose file sets
+`pull_policy: always`, so:
+
+1. Merge to `main` and wait for **Actions → Release image** to go green (~3 min).
+2. TrueNAS → **Apps** → couchpotato → **Stop**, then **Start**.
+3. Open `/healthz`: `version` should match the first characters of the merged commit on GitHub.
+
+If the app was installed before `pull_policy` was added, do this once: **Apps → couchpotato → Edit**,
+replace the YAML with the current `docker-compose.yml`, **Save**. Editing keeps the app and its data.
+
+Roll back by changing `:latest` to a commit sha or `v*` tag in the YAML (Edit → Save).
 
 ## 2. The tunnel
 

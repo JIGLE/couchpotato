@@ -13,7 +13,9 @@ RUN npm run build
 
 # ---- runtime: only what the server needs ----
 FROM node:22-alpine AS runtime
-ENV NODE_ENV=production PORT=3000 WEB_DIR=/app/web
+# Set by the release workflow; shown at /healthz so you can see which build is running.
+ARG APP_VERSION=dev
+ENV NODE_ENV=production PORT=3000 WEB_DIR=/app/web APP_VERSION=$APP_VERSION
 WORKDIR /app
 COPY --from=build /app/package.json /app/package-lock.json* ./
 COPY packages/shared/package.json packages/shared/
