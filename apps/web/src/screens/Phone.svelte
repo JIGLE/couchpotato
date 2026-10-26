@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onDestroy } from 'svelte';
+  import type { CushionColour } from '@couchpotato/shared';
   import { connect } from '../lib/socket';
   import Logo from '../lib/Logo.svelte';
   import { seatColour, initial } from '../lib/seats';
@@ -11,11 +12,19 @@
   let count = $state(0);
   let error = $state('');
   let seat = $state<number | null>(null);
+  const COLOURS: { value: CushionColour; label: string }[] = [
+    { value: 0, label: 'Gold' },
+    { value: 1, label: 'Teal' },
+    { value: 2, label: 'Cream' },
+    { value: 3, label: 'Rust' },
+  ];
+  const saved = Number(localStorage.getItem('cp:colour'));
+  let colour = $state<CushionColour>(([0, 1, 2, 3] as const).find((c) => c === saved) ?? 0);
 
   const socket = connect();
   socket.on('connect', () => {
     online = true;
-    if (joined) socket.emit('hello', { screen: 'phone', code, name }); // silent rejoin after a blip
+    if (joined) socket.emit('hello', { screen: 'phone', code, name, colour }); // silent rejoin after a blip
   });
   socket.on('disconnect', () => (online = false));
   socket.on('room:joined', (p) => {
@@ -41,9 +50,10 @@
     name = name.trim() || 'Potato';
     code = code.trim().toUpperCase();
     localStorage.setItem('cp:name', name);
+    localStorage.setItem('cp:colour', String(colour));
     // A fresh connection per attempt, so a wrong code can be retried cleanly.
     socket.disconnect().connect();
-    socket.once('connect', () => socket.emit('hello', { screen: 'phone', code, name }));
+    socket.once('connect', () => socket.emit('hello', { screen: 'phone', code, name, colour }));
   }
 
   function tap() {
@@ -73,12 +83,24 @@
       {#if error}<p id="code-error" class="error" role="alert">{error}</p>{/if}
       <label for="name">YOUR NAME</label>
       <input id="name" bind:value={name} maxlength="20" autocomplete="nickname" placeholder="Nickname" />
+      <fieldset class="cushions">
+        <legend>PICK A CUSHION</legend>
+        <div class="swatches">
+          {#each COLOURS as c (c.value)}
+            {@const sw = seatColour(c.value)}
+            <label class="swatch" class:picked={colour === c.value} style:background={sw.bg}>
+              <input type="radio" name="colour" value={c.value} bind:group={colour} />
+              <span class="sr">{c.label}</span>
+            </label>
+          {/each}
+        </div>
+      </fieldset>
       <button class="primary" type="submit">Join</button>
     </form>
   {:else}
     <div class="me">
       {#if seat !== null}
-        {@const c = seatColour(seat)}
+        {@const c = seatColour(colour)}
         <div class="avatar" style:background={c.bg} style:color={c.fg}>{initial(name)}</div>
       {/if}
       <h1>{online ? `You're in, ${name}.` : 'Lost the couch for a sec…'}</h1>
@@ -103,6 +125,18 @@
     background: var(--surface-1); color: var(--ink); font: 600 18px var(--font-sans); box-shadow: var(--morph-inset);
   }
   input.code { font: 700 28px var(--font-mono); letter-spacing: 0.2em; color: var(--spud); text-transform: uppercase; height: 64px; }
+  .cushions { border: 0; margin: 8px 0 0; padding: 0; }
+  .cushions legend { padding: 0; margin-bottom: 12px; font-size: 13px; font-weight: 700; letter-spacing: 0.06em; color: var(--ink-muted); }
+  .swatches { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+  .swatch {
+    position: relative; aspect-ratio: 1; min-height: 56px; border-radius: 50%; cursor: pointer;
+    box-shadow: 6px 8px 18px var(--edge-dark); transition: transform var(--dur-press), box-shadow var(--dur-press);
+  }
+  .swatch:active { transform: scale(0.94); }
+  .swatch.picked { box-shadow: 0 0 0 3px var(--surface-0), 0 0 0 6px var(--ink); }
+  .swatch input { position: absolute; inset: 0; opacity: 0; margin: 0; cursor: pointer; }
+  .swatch:has(input:focus-visible) { outline: 2px solid var(--focus); outline-offset: 8px; }
+  .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
   .error { margin: 0; font-size: 15px; font-weight: 600; color: var(--wrong); }
   button { border: 0; cursor: pointer; font: 700 18px var(--font-sans); transition: transform var(--dur-press), box-shadow var(--dur-press); }
   button:active { transform: scale(0.96); box-shadow: var(--morph-inset); }

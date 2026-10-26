@@ -84,7 +84,7 @@
         {#each seatList as player, seat (player?.id ?? `empty-${seat}`)}
           <li>
             {#if player}
-              {@const c = seatColour(seat)}
+              {@const c = seatColour(player.colour)}
               {#key wiggle?.id === player.id ? wiggle?.n : 0}
                 <div class="avatar" class:wiggle={wiggle?.id === player.id} style:background={c.bg} style:color={c.fg}>
                   {initial(player.name)}

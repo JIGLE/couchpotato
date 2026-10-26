@@ -1,3 +1,5 @@
+import type { CushionColour } from '@couchpotato/shared';
+
 // Room bookkeeping, kept free of Socket.IO so it can be unit-tested.
 
 /** No 0/O or 1/I — they are easy to misread on a TV across the room. */
@@ -11,6 +13,13 @@ export function freeSeat(taken: Iterable<number>, max = MAX_SEATS): number {
   const used = new Set(taken);
   for (let seat = 0; seat < max; seat++) if (!used.has(seat)) return seat;
   return -1;
+}
+
+/** Trust nothing from the phone: anything that isn't 0–3 falls back to a colour based on the seat. */
+export function cushion(colour: unknown, seat: number): CushionColour {
+  return Number.isInteger(colour) && (colour as number) >= 0 && (colour as number) <= 3
+    ? (colour as CushionColour)
+    : ((Math.max(seat, 0) % 4) as CushionColour);
 }
 
 /** A room with nobody in it is removed after this long. */
