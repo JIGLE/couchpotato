@@ -23,6 +23,22 @@ replace the YAML with the current `docker-compose.yml`, **Save**. Editing keeps 
 
 Roll back by changing `:latest` to a commit sha or `v*` tag in the YAML (Edit → Save).
 
+### App icon in TrueNAS (optional)
+
+TrueNAS has no setting for a custom app's icon, so it shows a grey box. The community workaround is to
+point the app's metadata at an image. TrueNAS can reset it when you **Edit** the app's YAML; just repeat it.
+
+1. TrueNAS → **System → Shell**.
+2. Run (one line):
+   ```
+   sudo sed -i '/^couchpotato:/,/^[^ ]/ s#^\(\s*icon:\).*#\1 https://raw.githubusercontent.com/JIGLE/couchpotato/main/apps/web/public/icon-512.png#' /mnt/.ix-apps/metadata.yaml
+   ```
+3. Check it worked: `sudo grep -A15 '^couchpotato:' /mnt/.ix-apps/metadata.yaml | grep icon`
+   should print the GitHub URL. Reload the TrueNAS Apps page.
+
+If the `grep` shows nothing, the app's entry has no `icon:` line on your TrueNAS version; send the
+output of `sudo grep -A15 '^couchpotato:' /mnt/.ix-apps/metadata.yaml` and we'll adjust the command.
+
 ## 2. The tunnel
 
 In the Cloudflare Zero Trust dashboard → **Networks → Tunnels → your tunnel → Public hostnames**:
