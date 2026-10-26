@@ -23,4 +23,5 @@ jobs:
             grep -E "error|Error" typecheck.log | head -30 | while IFS= read -r line; do echo "::error::$line"; done
             exit 1
           }
+      - run: npm test
       - run: npm run build

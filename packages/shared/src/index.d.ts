@@ -3,18 +3,31 @@
 
 export type Screen = 'tv' | 'phone';
 
+export type RoomError = 'not-found' | 'bad-request';
+
 /** Events the server sends to clients. */
 export interface ServerToClient {
-  /** Phase 0 smoke test: total taps across all phones. */
+  /** A TV asked for a room; this is its code. */
+  'room:created': (payload: { code: string }) => void;
+  /** A phone (or a reconnecting TV) is now in the room. */
+  'room:joined': (payload: { code: string }) => void;
+  /** Joining failed, e.g. a mistyped code. */
+  'room:error': (payload: { reason: RoomError; code: string }) => void;
+  /** Phase 0 smoke test: taps in this room. */
   'tap:count': (payload: { count: number; lastBy: string | null }) => void;
-  /** How many phones and TVs are connected right now. */
+  /** How many phones and TVs are in this room right now. */
   'presence': (payload: { tvs: number; phones: number }) => void;
 }
 
 /** Events clients send to the server. */
 export interface ClientToServer {
-  /** A client announces what it is right after connecting. */
-  'hello': (payload: { screen: Screen; name?: string }) => void;
+  /**
+   * A client announces itself right after connecting.
+   * - TV without `code`: create a new room.
+   * - TV with `code`: reconnect to its room (a new room is made if it expired).
+   * - Phone: must send the `code` it wants to join.
+   */
+  'hello': (payload: { screen: Screen; code?: string; name?: string }) => void;
   /** Phase 0 smoke test: a phone taps the big button. */
   'tap': () => void;
 }
