@@ -4,6 +4,8 @@
   import { connect } from '../lib/socket';
   import Logo from '../lib/Logo.svelte';
   import { seatColour, initial } from '../lib/seats';
+  import type { GameView } from '@couchpotato/shared';
+  import PhoneGame from './phone/PhoneGame.svelte';
 
   /** The seat this phone last sat in. The token lets the server give it back after a refresh. */
   type SavedSeat = { code: string; token: string };
@@ -86,6 +88,12 @@
     me = p.players.find((pl) => pl.id === playerId) ?? null;
   });
   socket.on('tap:count', (p) => (count = p.count));
+  let game = $state<GameView | null>(null);
+  let offset = $state(0);
+  socket.on('game:state', (view) => {
+    game = view;
+    if (view) offset = Date.now() - view.serverNow;
+  });
   onDestroy(() => socket.disconnect());
 
   function join(e: SubmitEvent) {
@@ -106,6 +114,7 @@
     joined = false;
     me = null;
     playerId = null;
+    game = null;
   }
 
   function tap() {
@@ -154,6 +163,8 @@
       </fieldset>
       <button class="primary" type="submit">Join</button>
     </form>
+  {:else if game}
+    <PhoneGame view={game} {offset} {playerId} onAnswer={(choice) => socket.emit('game:answer', { choice })} />
   {:else}
     <div class="me">
       {#if me}

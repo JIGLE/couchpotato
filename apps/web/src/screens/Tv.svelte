@@ -1,7 +1,10 @@
 <script lang="ts">
   import { onDestroy } from 'svelte';
   import QRCode from 'qrcode';
-  import type { Player } from '@couchpotato/shared';
+  import type { GameSettings, GameView, Player } from '@couchpotato/shared';
+  import { loadSettings, saveSettings } from '../lib/game';
+  import TvSetup from './tv/TvSetup.svelte';
+  import TvGame from './tv/TvGame.svelte';
   import { connect } from '../lib/socket';
   import { seatColour, initial } from '../lib/seats';
   import Logo from '../lib/Logo.svelte';
@@ -14,6 +17,11 @@
   let seats = $state(8);
   let wiggle = $state<{ id: string; n: number } | null>(null);
   let qrSvg = $state('');
+  let game = $state<GameView | null>(null);
+  let offset = $state(0);
+  let setup = $state(false);
+  let settings = $state<GameSettings>(loadSettings());
+  let notice = $state('');
 
   const socket = connect();
   socket.on('connect', () => {
@@ -32,7 +40,25 @@
   socket.on('tap:count', (p) => {
     if (p.lastById) wiggle = { id: p.lastById, n: (wiggle?.n ?? 0) + 1 };
   });
+  socket.on('game:state', (view) => {
+    game = view;
+    if (view) {
+      offset = Date.now() - view.serverNow;
+      setup = false;
+    }
+  });
+  socket.on('game:error', (p) => {
+    notice = p.reason === 'no-players' ? 'Nobody on the couch yet.' : 'No questions match these settings. Try another language or age.';
+    setup = true;
+  });
   onDestroy(() => socket.disconnect());
+
+  function startGame() {
+    saveSettings(settings);
+    notice = '';
+    socket.emit('game:start', $state.snapshot(settings));
+  }
+  const endGame = () => socket.emit('game:end');
 
   const host = location.host;
   const joinUrl = $derived(code ? `${location.origin}/?code=${code}` : '');
@@ -59,58 +85,65 @@
     {#if !online}<div class="status">Reconnecting…</div>{/if}
   </header>
 
+  {#if game}
+    <TvGame view={game} {offset} {players} onPlayAgain={startGame} onEnd={endGame} />
+  {:else if setup}
+    <TvSetup bind:settings players={players.length} onStart={startGame} onBack={() => (setup = false)} />
+    {#if notice}<p class="notice" role="alert">{notice}</p>{/if}
+  {:else}
   <div class="body">
-    <section class="join">
-      <h1>Grab the snacks.<br />Join on your phone.</h1>
-      <div class="qr-row">
-        <div class="qr" role="img" aria-label="QR code to join this room">
-          {#if qrSvg}{@html qrSvg}{/if}
+      <section class="join">
+        <h1>Grab the snacks.<br />Join on your phone.</h1>
+        <div class="qr-row">
+          <div class="qr" role="img" aria-label="QR code to join this room">
+            {#if qrSvg}{@html qrSvg}{/if}
+          </div>
+          <div class="how">
+            <span class="muted">or go to</span>
+            <span class="mono">{host}</span>
+            <span class="muted">room code</span>
+          </div>
         </div>
-        <div class="how">
-          <span class="muted">or go to</span>
-          <span class="mono">{host}</span>
-          <span class="muted">room code</span>
+        <div class="code" aria-label="Room code {code.split('').join(' ')}">{code || '····'}</div>
+      </section>
+  
+      <section class="couch">
+        <div class="couch-head">
+          <h2>On the couch</h2>
+          <span class="count">{players.length} / {seats}</span>
         </div>
-      </div>
-      <div class="code" aria-label="Room code {code.split('').join(' ')}">{code || '····'}</div>
-    </section>
-
-    <section class="couch">
-      <div class="couch-head">
-        <h2>On the couch</h2>
-        <span class="count">{players.length} / {seats}</span>
-      </div>
-      <ul class="seats">
-        {#each seatList as player, seat (player?.id ?? `empty-${seat}`)}
-          <li>
-            {#if player}
-              {@const c = seatColour(player.colour)}
-              {#key wiggle?.id === player.id ? wiggle?.n : 0}
-                <div
-                  class="avatar"
-                  class:wiggle={wiggle?.id === player.id}
-                  class:away={player.away}
-                  style:background={c.bg}
-                  style:color={c.fg}
-                >
-                  {initial(player.name)}
-                </div>
-              {/key}
-              <span class="name" class:muted={player.away}>{player.name}</span>
-              {#if player.away}<span class="sr">is reconnecting</span>{/if}
-            {:else}
-              <div class="avatar empty" aria-hidden="true">+</div>
-              <span class="name muted">Open seat</span>
-            {/if}
-          </li>
-        {/each}
-      </ul>
-      <div class="couch-foot">
-        <span class="muted">{players.length ? 'Tap your phone to wave' : 'Waiting for players…'}</span>
-        <button class="start" disabled={players.length === 0} title="Games arrive in Phase 2">Start game</button>
-      </div>
-    </section>
-  </div>
+        <ul class="seats">
+          {#each seatList as player, seat (player?.id ?? `empty-${seat}`)}
+            <li>
+              {#if player}
+                {@const c = seatColour(player.colour)}
+                {#key wiggle?.id === player.id ? wiggle?.n : 0}
+                  <div
+                    class="avatar"
+                    class:wiggle={wiggle?.id === player.id}
+                    class:away={player.away}
+                    style:background={c.bg}
+                    style:color={c.fg}
+                  >
+                    {initial(player.name)}
+                  </div>
+                {/key}
+                <span class="name" class:muted={player.away}>{player.name}</span>
+                {#if player.away}<span class="sr">is reconnecting</span>{/if}
+              {:else}
+                <div class="avatar empty" aria-hidden="true">+</div>
+                <span class="name muted">Open seat</span>
+              {/if}
+            </li>
+          {/each}
+        </ul>
+        <div class="couch-foot">
+          <span class="muted">{players.length ? 'Tap your phone to wave' : 'Waiting for players…'}</span>
+          <button class="start" disabled={players.length === 0} onclick={() => (setup = true)}>Start game</button>
+        </div>
+      </section>
+    </div>
+  {/if}
 </main>
 
 <style>
@@ -122,6 +155,7 @@
   .brand { display: flex; align-items: center; gap: 14px; }
   .brand span { font-family: var(--font-display); font-weight: 600; font-size: 26px; line-height: 26px; letter-spacing: -0.03em; }
   .status { font-size: 32px; font-weight: 600; color: var(--spud); }
+  .notice { margin: 0; font-size: 32px; font-weight: 600; color: var(--wrong); }
   .muted { color: var(--ink-muted); }
   .mono { font-family: var(--font-mono); font-size: 32px; font-weight: 500; }
 
