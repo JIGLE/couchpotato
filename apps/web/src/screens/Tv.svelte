@@ -2,13 +2,15 @@
   import { onDestroy } from 'svelte';
   import QRCode from 'qrcode';
   import type { GameSettings, GameView, Player } from '@couchpotato/shared';
-  import { loadSettings, saveSettings } from '../lib/game';
+  import type { Mood } from '@couchpotato/shared';
+  import { LANGUAGE_NAMES, applyMood, currentMood, loadSettings, saveSettings } from '../lib/game';
   import TvSetup from './tv/TvSetup.svelte';
   import TvGame from './tv/TvGame.svelte';
   import { connect } from '../lib/socket';
   import { seatColour, initial } from '../lib/seats';
   import Logo from '../lib/Logo.svelte';
   import Ambient from '../lib/Ambient.svelte';
+  import Stage from '../lib/Stage.svelte';
 
   let online = $state(false);
   // Remember the room for this tab so a reconnect lands in the same room.
@@ -22,11 +24,12 @@
   let setup = $state(false);
   let settings = $state<GameSettings>(loadSettings());
   let notice = $state('');
+  let mood = $state<Mood>(currentMood());
 
   const socket = connect();
   socket.on('connect', () => {
     online = true;
-    socket.emit('hello', { screen: 'tv', code: code || undefined });
+    socket.emit('hello', { screen: 'tv', code: code || undefined, mood });
   });
   socket.on('disconnect', () => (online = false));
   socket.on('room:joined', (p) => {
@@ -40,6 +43,15 @@
   socket.on('tap:count', (p) => {
     if (p.lastById) wiggle = { id: p.lastById, n: (wiggle?.n ?? 0) + 1 };
   });
+  socket.on('room:mood', (p) => {
+    mood = p.mood;
+    applyMood(p.mood);
+  });
+  function changeMood(m: Mood) {
+    mood = m;
+    applyMood(m);
+    socket.emit('room:mood', { mood: m });
+  }
   socket.on('game:state', (view) => {
     game = view;
     if (view) {
@@ -79,34 +91,33 @@
 </script>
 
 <Ambient />
+<Stage>
 <main>
   <header>
-    <div class="brand"><Logo size={64} /><span>couch<br />potato</span></div>
-    {#if !online}<div class="status">Reconnecting…</div>{/if}
+    <div class="brand"><Logo size={56} /><span>couch<br />potato</span></div>
+    {#if !online}
+      <div class="status" role="status">Reconnecting…</div>
+    {:else if !game}
+      <div class="chip">Trivia · {LANGUAGE_NAMES[settings.language]} · {settings.rounds} questions</div>
+    {/if}
   </header>
 
   {#if game}
     <TvGame view={game} {offset} {players} onPlayAgain={startGame} onEnd={endGame} />
   {:else if setup}
-    <TvSetup bind:settings players={players.length} onStart={startGame} onBack={() => (setup = false)} />
+    <TvSetup bind:settings players={players.length} {mood} onMood={changeMood} onStart={startGame} onBack={() => (setup = false)} />
     {#if notice}<p class="notice" role="alert">{notice}</p>{/if}
   {:else}
-  <div class="body">
-      <section class="join">
-        <h1>Grab the snacks.<br />Join on your phone.</h1>
-        <div class="qr-row">
-          <div class="qr" role="img" aria-label="QR code to join this room">
-            {#if qrSvg}{@html qrSvg}{/if}
-          </div>
-          <div class="how">
-            <span class="muted">or go to</span>
-            <span class="mono">{host}</span>
-            <span class="muted">room code</span>
-          </div>
+    <div class="lobby">
+      <section class="join" aria-label="How to join">
+        <span class="label">SCAN TO JOIN</span>
+        <div class="qr" role="img" aria-label="QR code to join this room">
+          {#if qrSvg}{@html qrSvg}{/if}
         </div>
+        <span class="or">or go to <span class="mono">{host}</span></span>
         <div class="code" aria-label="Room code {code.split('').join(' ')}">{code || '····'}</div>
       </section>
-  
+
       <section class="couch">
         <div class="couch-head">
           <h2>On the couch</h2>
@@ -138,54 +149,65 @@
           {/each}
         </ul>
         <div class="couch-foot">
-          <span class="muted">{players.length ? 'Tap your phone to wave' : 'Waiting for players…'}</span>
+          <span class="muted">{players.length ? 'Everyone in? Start when ready.' : 'Grab the snacks…'}</span>
           <button class="start" disabled={players.length === 0} onclick={() => (setup = true)}>Start game</button>
         </div>
       </section>
     </div>
   {/if}
 </main>
+</Stage>
 
 <style>
   main {
-    position: relative; z-index: 1; min-height: 100vh; padding: 48px var(--space-4);
-    display: flex; flex-direction: column; gap: 36px;
+    height: 100%; box-sizing: border-box; padding: 36px 56px 40px;
+    display: flex; flex-direction: column; gap: 28px;
   }
-  header { display: flex; justify-content: space-between; align-items: center; }
-  .brand { display: flex; align-items: center; gap: 14px; }
-  .brand span { font-family: var(--font-display); font-weight: 600; font-size: 26px; line-height: 26px; letter-spacing: -0.03em; }
+  header { height: 56px; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
+  .brand { display: flex; align-items: center; gap: 12px; }
+  .brand span { font-family: var(--font-display); font-weight: 600; font-size: 24px; line-height: 24px; letter-spacing: -0.03em; }
   .status { font-size: 32px; font-weight: 600; color: var(--spud); }
+  .chip {
+    font-size: 32px; font-weight: 600; color: var(--ink-muted); padding: 6px 22px; border-radius: var(--radius-pill);
+    background: var(--surface-1); box-shadow: var(--morph-inset);
+  }
   .notice { margin: 0; font-size: 32px; font-weight: 600; color: var(--wrong); }
   .muted { color: var(--ink-muted); }
-  .mono { font-family: var(--font-mono); font-size: 32px; font-weight: 500; }
+  .mono { font-family: var(--font-mono); font-weight: 500; color: var(--ink); }
+  .label { font-size: 32px; font-weight: 700; letter-spacing: 0.08em; color: var(--ink-muted); }
 
-  .body { flex: 1; display: flex; gap: 48px; }
-  .join { width: 34%; min-width: 420px; display: flex; flex-direction: column; gap: 28px; }
-  h1 { margin: 0; font-family: var(--font-display); font-weight: 600; font-size: 44px; line-height: 52px; letter-spacing: -0.02em; }
-  .qr-row { display: flex; gap: 24px; align-items: center; }
+  .lobby { flex: 1; min-height: 0; display: flex; gap: 32px; }
+
+  .join {
+    width: 400px; flex-shrink: 0; box-sizing: border-box; padding: 24px 28px; border-radius: 32px;
+    background: var(--surface-1); box-shadow: var(--morph-raised);
+    display: flex; flex-direction: column; align-items: center; justify-content: space-between;
+  }
   .qr {
-    width: 180px; height: 180px; padding: 18px; flex-shrink: 0; border-radius: var(--radius-md);
-    background: #f2ede4; /* fixed light ground for the QR, see script */ box-shadow: var(--morph-raised);
+    width: 236px; height: 236px; padding: 16px; box-sizing: border-box; border-radius: var(--radius-md);
+    background: #f2ede4; /* fixed light ground for the QR, see script */
+    box-shadow: 0 0 60px var(--glow), 6px 8px 18px var(--edge-dark);
   }
   .qr :global(svg) { width: 100%; height: 100%; display: block; }
-  .how { display: flex; flex-direction: column; gap: 10px; font-size: 32px; font-weight: 600; }
+  .or { font-size: 32px; font-weight: 600; color: var(--ink-muted); text-align: center; overflow-wrap: anywhere; }
   .code {
-    align-self: flex-start; font-family: var(--font-mono); font-weight: 700; font-size: 72px; line-height: 1;
-    letter-spacing: 0.18em; color: var(--ink-on-spud); background: var(--spud); padding: 22px 36px;
+    font-family: var(--font-mono); font-weight: 700; font-size: 64px; line-height: 1; letter-spacing: 0.18em;
+    color: var(--ink-on-spud); background: var(--spud); padding: 16px 28px 16px 40px;
     border-radius: var(--radius-pill); box-shadow: 0 0 50px var(--glow), 6px 8px 18px var(--edge-dark);
   }
 
   .couch {
-    flex: 1; background: var(--surface-1); border-radius: 32px; padding: 36px; box-shadow: var(--morph-raised);
-    display: flex; flex-direction: column; gap: 28px;
+    flex: 1; min-width: 0; box-sizing: border-box; padding: 24px 32px; border-radius: 32px;
+    background: var(--surface-1); box-shadow: var(--morph-raised);
+    display: flex; flex-direction: column; gap: 20px;
   }
   .couch-head { display: flex; justify-content: space-between; align-items: baseline; }
   h2 { margin: 0; font-family: var(--font-display); font-weight: 500; font-size: 32px; }
   .count { font-family: var(--font-mono); font-size: 32px; font-weight: 700; color: var(--spud); }
-  .seats { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 24px; }
-  .seats li { position: relative; display: flex; flex-direction: column; align-items: center; gap: 12px; min-width: 0; }
+  .seats { flex: 1; list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); align-content: center; gap: 20px 16px; }
+  .seats li { position: relative; display: flex; flex-direction: column; align-items: center; gap: 8px; min-width: 0; }
   .avatar {
-    width: 96px; height: 96px; border-radius: 50%; display: grid; place-items: center;
+    width: 92px; height: 92px; border-radius: 50%; display: grid; place-items: center;
     font-family: var(--font-display); font-size: 36px; font-weight: 700; box-shadow: 6px 8px 18px var(--edge-dark);
     animation: pop 320ms var(--ease-out);
   }
@@ -194,9 +216,9 @@
   .avatar.away { opacity: 0.4; box-shadow: none; animation: breathe 1.6s ease-in-out infinite; }
   .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
   .name { font-size: 32px; font-weight: 700; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .couch-foot { margin-top: auto; display: flex; justify-content: space-between; align-items: center; font-size: 32px; font-weight: 600; }
+  .couch-foot { display: flex; justify-content: space-between; align-items: center; gap: 16px; font-size: 32px; font-weight: 600; }
   .start {
-    border: 0; cursor: pointer; font: 700 32px var(--font-sans); padding: 24px 48px; border-radius: var(--radius-pill);
+    flex-shrink: 0; border: 0; cursor: pointer; font: 700 32px var(--font-sans); padding: 18px 40px; border-radius: var(--radius-pill);
     background: var(--spud); color: var(--ink-on-spud); box-shadow: 0 0 50px var(--glow), 6px 8px 18px var(--edge-dark);
   }
   .start:disabled { opacity: 0.45; cursor: default; box-shadow: none; }

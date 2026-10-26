@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { CODE_ALPHABET, CODE_LENGTH, EMPTY_TTL_MS, MAX_SEATS, RoomStore, cushion, freeSeat, generateCode, normaliseCode } from './rooms.ts';
+import { CODE_ALPHABET, CODE_LENGTH, EMPTY_TTL_MS, MAX_SEATS, RoomStore, cushion, freeSeat, isMood, generateCode, normaliseCode } from './rooms.ts';
 
 test('codes are 4 characters from the safe alphabet', () => {
   for (let i = 0; i < 500; i++) {
@@ -88,4 +88,11 @@ test('cushion keeps a valid pick and falls back for anything else', () => {
   assert.equal(cushion(1.5, 3), 3);
   assert.equal(cushion('0', 0), 0);
   assert.equal(cushion(-1, -1), 0);
+});
+
+test('rooms start in Lamp Light and only accept known moods', () => {
+  assert.equal(new RoomStore().create().mood, 'lamp');
+  assert.ok(isMood('velvet'));
+  assert.equal(isMood('disco'), false);
+  assert.equal(isMood(undefined), false);
 });

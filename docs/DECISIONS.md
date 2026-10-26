@@ -21,3 +21,5 @@ write a new line that supersedes it instead.
 - 2026-10-26 · Audience filters are youngest age (`minAge`) and countries (`regions`); global questions always count · simple for the host, enough to make games fit the group
 - 2026-10-26 · AI-written questions (`source: "ai"`) are never played until a person marks them reviewed · AI makes mistakes; a wrong answer on the TV spoils the game
 - 2026-10-26 · Shared packs need a license · other hosts must know what they may do with them
+- 2026-10-26 · The mood belongs to the room: the TV sets it, phones follow · answer tiles must be the same colours on every screen
+- 2026-10-26 · TV screens are laid out on a fixed 1280×720 stage scaled to fit the display · identical layout on any TV, projector or laptop, nothing cropped

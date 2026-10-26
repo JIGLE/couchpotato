@@ -6,6 +6,7 @@
   import { seatColour, initial } from '../lib/seats';
   import type { GameView } from '@couchpotato/shared';
   import PhoneGame from './phone/PhoneGame.svelte';
+  import { applyMood } from '../lib/game';
 
   /** The seat this phone last sat in. The token lets the server give it back after a refresh. */
   type SavedSeat = { code: string; token: string };
@@ -88,6 +89,8 @@
     me = p.players.find((pl) => pl.id === playerId) ?? null;
   });
   socket.on('tap:count', (p) => (count = p.count));
+  // Tile colours must match the TV exactly, so phones always wear the room's mood.
+  socket.on('room:mood', (p) => applyMood(p.mood, false));
   let game = $state<GameView | null>(null);
   let offset = $state(0);
   socket.on('game:state', (view) => {
