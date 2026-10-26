@@ -86,11 +86,18 @@
             {#if player}
               {@const c = seatColour(player.colour)}
               {#key wiggle?.id === player.id ? wiggle?.n : 0}
-                <div class="avatar" class:wiggle={wiggle?.id === player.id} style:background={c.bg} style:color={c.fg}>
+                <div
+                  class="avatar"
+                  class:wiggle={wiggle?.id === player.id}
+                  class:away={player.away}
+                  style:background={c.bg}
+                  style:color={c.fg}
+                >
                   {initial(player.name)}
                 </div>
               {/key}
-              <span class="name">{player.name}</span>
+              <span class="name" class:muted={player.away}>{player.name}</span>
+              {#if player.away}<span class="sr">is reconnecting</span>{/if}
             {:else}
               <div class="avatar empty" aria-hidden="true">+</div>
               <span class="name muted">Open seat</span>
@@ -142,7 +149,7 @@
   h2 { margin: 0; font-family: var(--font-display); font-weight: 500; font-size: 32px; }
   .count { font-family: var(--font-mono); font-size: 32px; font-weight: 700; color: var(--spud); }
   .seats { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 24px; }
-  .seats li { display: flex; flex-direction: column; align-items: center; gap: 12px; min-width: 0; }
+  .seats li { position: relative; display: flex; flex-direction: column; align-items: center; gap: 12px; min-width: 0; }
   .avatar {
     width: 96px; height: 96px; border-radius: 50%; display: grid; place-items: center;
     font-family: var(--font-display); font-size: 36px; font-weight: 700; box-shadow: 6px 8px 18px var(--edge-dark);
@@ -150,6 +157,8 @@
   }
   .avatar.empty { background: var(--surface-2); color: var(--ink-muted); box-shadow: var(--morph-inset); animation: none; }
   .avatar.wiggle { animation: wiggle 420ms var(--ease-out); }
+  .avatar.away { opacity: 0.4; box-shadow: none; animation: breathe 1.6s ease-in-out infinite; }
+  .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
   .name { font-size: 32px; font-weight: 700; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .couch-foot { margin-top: auto; display: flex; justify-content: space-between; align-items: center; font-size: 32px; font-weight: 600; }
   .start {
@@ -159,5 +168,6 @@
   .start:disabled { opacity: 0.45; cursor: default; box-shadow: none; }
 
   @keyframes pop { from { transform: scale(0.6); } 60% { transform: scale(1.06); } }
+  @keyframes breathe { 50% { opacity: 0.2; } }
   @keyframes wiggle { 25% { transform: rotate(-8deg) scale(1.08); } 75% { transform: rotate(8deg) scale(1.08); } }
 </style>
