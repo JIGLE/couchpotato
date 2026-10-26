@@ -7,7 +7,8 @@ import path from 'node:path';
 import type { ClientToServer, ServerToClient, Screen } from '@couchpotato/shared';
 import { MAX_SEATS, RoomStore } from './rooms.js';
 import { Couch } from './couch.js';
-import { loadPacks, summarize } from './packs.js';
+import { loadPacks, pickQuestions, summarize } from './packs.js';
+import { TriviaGame, parseSettings } from './trivia.js';
 
 const PORT = Number(process.env.PORT ?? 3000);
 const HOST = process.env.HOST ?? '0.0.0.0';
@@ -52,6 +53,10 @@ const couches = new Map<string, Couch>();
 /** What each live socket is: a TV or a phone, and in which room. */
 const members = new Map<string, { screen: Screen; code: string }>();
 
+/** The game running in each room, plus question ids already played there (so the next game feels fresh). */
+const games = new Map<string, TriviaGame>();
+const played = new Map<string, Set<string>>();
+
 function couchFor(code: string): Couch {
   let couch = couches.get(code);
   if (!couch) couches.set(code, (couch = new Couch()));
@@ -67,7 +72,36 @@ function broadcastRoom(code: string) {
     else phones++;
   }
   io.to(code).emit('presence', { tvs, phones });
-  io.to(code).emit('room:players', { players: couchFor(code).list(), seats: MAX_SEATS });
+  const players = couchFor(code).list();
+  io.to(code).emit('room:players', { players, seats: MAX_SEATS });
+
+  const game = games.get(code);
+  if (game) {
+    const now = Date.now();
+    for (const p of players) game.addPlayer(p.id, p.name, now);
+    game.setPresent(players.filter((p) => !p.away).map((p) => p.id), now);
+    broadcastGame(code);
+  }
+}
+
+/** Send every screen in the room its own view of the game: the TV sees the question, each phone only its part. */
+function broadcastGame(code: string, only?: string) {
+  const game = games.get(code);
+  const now = Date.now();
+  const ids = only ? [only] : [...(io.sockets.adapter.rooms.get(code) ?? [])];
+  for (const socketId of ids) {
+    const socket = io.sockets.sockets.get(socketId);
+    const member = members.get(socketId);
+    if (!socket || !member) continue;
+    if (!game) {
+      socket.emit('game:state', null);
+    } else if (member.screen === 'tv') {
+      socket.emit('game:state', game.tvView(now));
+    } else {
+      const player = couchFor(code).player(socketId);
+      socket.emit('game:state', player ? game.phoneView(player.id, now) : null);
+    }
+  }
 }
 
 io.on('connection', (socket) => {
@@ -101,6 +135,48 @@ io.on('connection', (socket) => {
     socket.emit('room:joined', joined);
     socket.emit('tap:count', { count: room.taps, lastBy: room.lastTapBy, lastById: null });
     broadcastRoom(room.code);
+    broadcastGame(room.code, socket.id);
+  });
+
+  socket.on('game:start', (raw) => {
+    const me = members.get(socket.id);
+    if (me?.screen !== 'tv') return; // Phase 3: only a signed-in host
+    const settings = parseSettings(raw);
+    const players = couchFor(me.code).list();
+    if (!players.length) return void socket.emit('game:error', { reason: 'no-players' });
+
+    const seen = played.get(me.code) ?? new Set<string>();
+    const audience = { language: settings.language, youngest: settings.youngest, regions: settings.regions };
+    let questions = pickQuestions(packs, { ...audience, exclude: seen }, settings.rounds);
+    if (questions.length < settings.rounds) {
+      // Ran out of fresh questions: start the cycle again rather than play a short game.
+      seen.clear();
+      questions = pickQuestions(packs, audience, settings.rounds);
+    }
+    if (!questions.length) return void socket.emit('game:error', { reason: 'no-questions' });
+
+    const now = Date.now();
+    const game = new TriviaGame(questions, settings, players, now);
+    game.setPresent(players.filter((p) => !p.away).map((p) => p.id), now);
+    games.set(me.code, game);
+    played.set(me.code, seen);
+    app.log.info({ room: me.code, ...settings, questions: questions.length }, 'game started');
+    broadcastGame(me.code);
+  });
+
+  socket.on('game:answer', (payload) => {
+    const me = members.get(socket.id);
+    if (me?.screen !== 'phone') return;
+    const game = games.get(me.code);
+    const player = couchFor(me.code).player(socket.id);
+    if (!game || !player) return;
+    if (game.answer(player.id, Number(payload?.choice), Date.now())) broadcastGame(me.code);
+  });
+
+  socket.on('game:end', () => {
+    const me = members.get(socket.id);
+    if (me?.screen !== 'tv' || !games.has(me.code)) return;
+    endGame(me.code);
   });
 
   socket.on('tap', () => {
@@ -134,13 +210,35 @@ io.on('connection', (socket) => {
   });
 });
 
+function endGame(code: string) {
+  const game = games.get(code);
+  if (game) for (const id of game.playedIds) played.get(code)?.add(id);
+  games.delete(code);
+  broadcastGame(code);
+}
+
+// Move every running game along. Cheap: most ticks change nothing.
+setInterval(() => {
+  const now = Date.now();
+  for (const [code, game] of games) {
+    if (game.advance(now)) {
+      broadcastGame(code);
+      if (game.over) for (const id of game.playedIds) played.get(code)?.add(id);
+    }
+  }
+}, 200).unref();
+
 // Free seats whose phones have been gone too long, and clear out rooms nobody has used for 30 minutes.
 setInterval(() => {
   for (const [code, couch] of couches) if (couch.sweep()) broadcastRoom(code);
 }, 10_000).unref();
 setInterval(() => {
   const removed = rooms.sweep();
-  for (const code of removed) couches.delete(code);
+  for (const code of removed) {
+    couches.delete(code);
+    games.delete(code);
+    played.delete(code);
+  }
   if (removed.length) app.log.info({ removed }, 'expired empty rooms');
 }, 60_000).unref();
 

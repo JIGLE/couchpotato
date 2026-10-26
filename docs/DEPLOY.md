@@ -29,15 +29,15 @@ TrueNAS has no setting for a custom app's icon, so it shows a grey box. The comm
 point the app's metadata at an image. TrueNAS can reset it when you **Edit** the app's YAML; just repeat it.
 
 1. TrueNAS → **System → Shell**.
-2. Run (one line):
+2. Run (one line). It adds an `icon:` line right after the app's `home:` line:
    ```
-   sudo sed -i '/^couchpotato:/,/^[^ ]/ s#^\(\s*icon:\).*#\1 https://raw.githubusercontent.com/JIGLE/couchpotato/main/apps/web/public/icon-512.png#' /mnt/.ix-apps/metadata.yaml
+   sudo sed -i "/^couchpotato:/,/^[^ ]/ s#^    home: ''#    home: ''\n    icon: https://raw.githubusercontent.com/JIGLE/couchpotato/main/apps/web/public/icon-512.png#" /mnt/.ix-apps/metadata.yaml
    ```
-3. Check it worked: `sudo grep -A15 '^couchpotato:' /mnt/.ix-apps/metadata.yaml | grep icon`
-   should print the GitHub URL. Reload the TrueNAS Apps page.
+3. Check: `sudo grep -A15 '^couchpotato:' /mnt/.ix-apps/metadata.yaml | grep icon` prints the line.
+   Hard-refresh the TrueNAS Apps page (browsers cache icons).
 
-If the `grep` shows nothing, the app's entry has no `icon:` line on your TrueNAS version; send the
-output of `sudo grep -A15 '^couchpotato:' /mnt/.ix-apps/metadata.yaml` and we'll adjust the command.
+If the icon disappears after editing the app's YAML, run step 2 again. If `grep` shows two `icon:`
+lines, open the file with `sudo nano /mnt/.ix-apps/metadata.yaml` and delete one.
 
 ## 2. The tunnel
 
