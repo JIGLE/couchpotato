@@ -5,7 +5,7 @@ import { existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import type { ClientToServer, ServerToClient, Screen } from '@couchpotato/shared';
-import { MAX_SEATS, RoomStore } from './rooms.js';
+import { MAX_SEATS, RoomStore, isMood } from './rooms.js';
 import { Couch } from './couch.js';
 import { loadPacks, pickQuestions, summarize } from './packs.js';
 import { TriviaGame, parseSettings } from './trivia.js';
@@ -105,7 +105,7 @@ function broadcastGame(code: string, only?: string) {
 }
 
 io.on('connection', (socket) => {
-  socket.on('hello', ({ screen, code, name, colour, token }) => {
+  socket.on('hello', ({ screen, code, name, colour, token, mood }) => {
     if (members.has(socket.id)) return; // one hello per connection
     if (screen !== 'tv' && screen !== 'phone') return;
 
@@ -132,10 +132,24 @@ io.on('connection', (socket) => {
     rooms.join(room.code, socket.id);
     members.set(socket.id, { screen, code: room.code });
     socket.join(room.code);
+    // A TV brings its own mood (the one it used last time); phones follow the room.
+    if (screen === 'tv' && isMood(mood) && mood !== room.mood) {
+      room.mood = mood;
+      io.to(room.code).emit('room:mood', { mood });
+    }
     socket.emit('room:joined', joined);
+    socket.emit('room:mood', { mood: room.mood });
     socket.emit('tap:count', { count: room.taps, lastBy: room.lastTapBy, lastById: null });
     broadcastRoom(room.code);
     broadcastGame(room.code, socket.id);
+  });
+
+  socket.on('room:mood', (payload) => {
+    const me = members.get(socket.id);
+    const room = me && rooms.get(me.code);
+    if (me?.screen !== 'tv' || !room || !isMood(payload?.mood)) return;
+    room.mood = payload.mood;
+    io.to(room.code).emit('room:mood', { mood: room.mood });
   });
 
   socket.on('game:start', (raw) => {

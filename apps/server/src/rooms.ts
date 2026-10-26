@@ -1,4 +1,4 @@
-import type { CushionColour } from '@couchpotato/shared';
+import type { CushionColour, Mood } from '@couchpotato/shared';
 
 // Room bookkeeping, kept free of Socket.IO so it can be unit-tested.
 
@@ -22,6 +22,11 @@ export function cushion(colour: unknown, seat: number): CushionColour {
     : ((Math.max(seat, 0) % 4) as CushionColour);
 }
 
+export const MOODS: readonly Mood[] = ['lamp', 'velvet', 'midnight', 'sunday'];
+export function isMood(v: unknown): v is Mood {
+  return typeof v === 'string' && (MOODS as readonly string[]).includes(v);
+}
+
 /** A room with nobody in it is removed after this long. */
 export const EMPTY_TTL_MS = 30 * 60 * 1000;
 
@@ -35,6 +40,8 @@ export interface Room {
   /** Phase 0 tap counter, now per room. */
   taps: number;
   lastTapBy: string | null;
+  /** Colour mood every screen in the room uses. */
+  mood: Mood;
 }
 
 export type Rng = () => number;
@@ -60,7 +67,7 @@ export class RoomStore {
 
   create(): Room {
     const code = generateCode((c) => this.rooms.has(c), this.rng);
-    const room: Room = { code, createdAt: this.now(), members: new Set(), emptySince: this.now(), taps: 0, lastTapBy: null };
+    const room: Room = { code, createdAt: this.now(), members: new Set(), emptySince: this.now(), taps: 0, lastTapBy: null, mood: 'lamp' };
     this.rooms.set(code, room);
     return room;
   }

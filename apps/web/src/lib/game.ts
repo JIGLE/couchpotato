@@ -1,4 +1,4 @@
-import type { GameSettings, Language } from '@couchpotato/shared';
+import type { GameSettings, Language, Mood } from '@couchpotato/shared';
 
 /** The four answer shapes, the same on the TV and the phones. */
 export const SHAPES = ['●', '▲', '■', '◆'] as const;
@@ -12,13 +12,17 @@ export function tile(i: number) {
 
 export const LANGUAGE_NAMES: Record<Language, string> = { en: 'English', 'pt-PT': 'Português', 'es-ES': 'Español' };
 
-export const MOODS = [
+export const MOODS: { id: Mood; name: string }[] = [
   { id: 'lamp', name: 'Lamp Light' },
   { id: 'velvet', name: 'Velvet' },
   { id: 'midnight', name: 'Midnight' },
   { id: 'sunday', name: 'Sunday' },
-] as const;
-export type MoodId = (typeof MOODS)[number]['id'];
+];
+
+export function currentMood(): Mood {
+  const m = document.documentElement.dataset.mood;
+  return MOODS.some((x) => x.id === m) ? (m as Mood) : 'lamp';
+}
 
 const DEFAULT_SETTINGS: GameSettings = { language: 'en', rounds: 10, seconds: 20 };
 
@@ -39,8 +43,10 @@ export function saveSettings(s: GameSettings): void {
   }
 }
 
-export function applyMood(mood: string): void {
+/** Restyle this screen. The TV remembers its mood for next time; phones just follow the room. */
+export function applyMood(mood: Mood, remember = true): void {
   document.documentElement.dataset.mood = mood;
+  if (!remember) return;
   try {
     localStorage.setItem('cp:mood', mood);
   } catch {

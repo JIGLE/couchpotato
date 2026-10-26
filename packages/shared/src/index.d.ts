@@ -5,6 +5,9 @@ export type Screen = 'tv' | 'phone';
 
 export type RoomError = 'not-found' | 'full' | 'bad-request';
 
+/** The room's colour mood. Set on the TV; every phone in the room follows it so tile colours always match. */
+export type Mood = 'lamp' | 'velvet' | 'midnight' | 'sunday';
+
 /** Number of cushion colours a player can pick (the four tile colours of the mood). */
 export type CushionColour = 0 | 1 | 2 | 3;
 
@@ -30,6 +33,8 @@ export interface ServerToClient {
   'room:joined': (payload: { code: string; playerId?: string; token?: string }) => void;
   /** Joining failed, e.g. a mistyped code. */
   'room:error': (payload: { reason: RoomError; code: string }) => void;
+  /** The room's mood changed (or you just joined). Phones restyle to match the TV. */
+  'room:mood': (payload: { mood: Mood }) => void;
   /** Everyone on the couch, in seat order, plus how many seats the room has. */
   'room:players': (payload: { players: Player[]; seats: number }) => void;
   /** Phase 0 smoke test: taps in this room. `lastById` lets the TV wiggle that player's avatar. */
@@ -50,7 +55,9 @@ export interface ClientToServer {
    * - TV with `code`: reconnect to its room (a new room is made if it expired).
    * - Phone: must send the `code` it wants to join.
    */
-  'hello': (payload: { screen: Screen; code?: string; name?: string; colour?: CushionColour; token?: string }) => void;
+  'hello': (payload: { screen: Screen; code?: string; name?: string; colour?: CushionColour; token?: string; mood?: Mood }) => void;
+  /** The TV changes the room's mood. */
+  'room:mood': (payload: { mood: Mood }) => void;
   /** A phone gets up from the couch on purpose; its seat frees straight away. */
   'leave': () => void;
   /** Phase 0 smoke test: a phone taps the big button. */

@@ -1,16 +1,23 @@
 <!-- Game setup on the TV, from the "TV · Game setup" artboard. Big pills that work with a mouse or a TV remote. -->
 <script lang="ts">
-  import type { GameSettings, Language } from '@couchpotato/shared';
-  import { LANGUAGE_NAMES, MOODS, applyMood } from '../../lib/game';
+  import type { GameSettings, Language, Mood } from '@couchpotato/shared';
+  import { LANGUAGE_NAMES, MOODS } from '../../lib/game';
 
   let {
     settings = $bindable(),
     players,
+    mood,
+    onMood,
     onStart,
     onBack,
-  }: { settings: GameSettings; players: number; onStart: () => void; onBack: () => void } = $props();
-
-  let mood = $state(document.documentElement.dataset.mood ?? 'lamp');
+  }: {
+    settings: GameSettings;
+    players: number;
+    mood: Mood;
+    onMood: (mood: Mood) => void;
+    onStart: () => void;
+    onBack: () => void;
+  } = $props();
 
   const languages = Object.entries(LANGUAGE_NAMES) as [Language, string][];
   const rounds = [5, 10, 15, 20];
@@ -100,7 +107,7 @@
       <span class="label" id="l-mood">Mood</span>
       <div class="pills" role="radiogroup" aria-labelledby="l-mood">
         {#each MOODS as m (m.id)}
-          <button role="radio" aria-checked={mood === m.id} class:on={mood === m.id} onclick={() => { mood = m.id; applyMood(m.id); }}>{m.name}</button>
+          <button role="radio" aria-checked={mood === m.id} class:on={mood === m.id} onclick={() => onMood(m.id)}>{m.name}</button>
         {/each}
       </div>
     </div>
@@ -113,7 +120,7 @@
   aside { width: 300px; flex-shrink: 0; display: flex; flex-direction: column; gap: 18px; }
   .back { align-self: flex-start; background: none; border: 0; padding: 8px 0; color: var(--ink-muted); font: 700 32px var(--font-sans); cursor: pointer; }
   .badge {
-    width: 132px; height: 132px; border-radius: 36px; display: grid; place-items: center;
+    width: 112px; height: 112px; border-radius: 36px; display: grid; place-items: center;
     background: var(--spud); color: var(--ink-on-spud); font: 700 72px var(--font-display);
     box-shadow: 0 0 60px var(--glow), 8px 10px 22px var(--edge-dark);
   }
@@ -129,23 +136,23 @@
   .summary .label { color: var(--ink-muted); letter-spacing: 0.06em; }
 
   .card {
-    flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 14px; padding: 28px 32px;
+    flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 10px; padding: 22px 28px;
     border-radius: 32px; background: var(--surface-1); box-shadow: var(--morph-raised);
   }
   .row { display: flex; align-items: center; gap: 20px; }
   .row .label { width: 220px; flex-shrink: 0; }
   .pills {
-    display: flex; gap: 6px; padding: 6px; border-radius: var(--radius-pill);
+    display: flex; gap: 4px; padding: 4px; border-radius: var(--radius-pill);
     background: var(--surface-0); box-shadow: var(--morph-inset); flex-wrap: wrap;
   }
   .pills button {
-    border: 0; cursor: pointer; padding: 8px 20px; border-radius: var(--radius-pill);
+    border: 0; cursor: pointer; padding: 4px 18px; border-radius: var(--radius-pill);
     background: transparent; color: var(--ink); font: 700 32px var(--font-sans);
   }
   .pills button.on { background: var(--spud); color: var(--ink-on-spud); box-shadow: 3px 4px 10px var(--edge-dark); }
   .go {
-    margin-top: auto; align-self: flex-end; border: 0; cursor: pointer; padding: 22px 48px; border-radius: var(--radius-pill);
-    background: var(--spud); color: var(--ink-on-spud); font: 700 36px var(--font-sans);
+    margin-top: auto; align-self: flex-end; border: 0; cursor: pointer; padding: 16px 40px; border-radius: var(--radius-pill);
+    background: var(--spud); color: var(--ink-on-spud); font: 700 32px var(--font-sans);
     box-shadow: 0 0 40px var(--glow), 6px 8px 18px var(--edge-dark);
   }
   .go:disabled { opacity: 0.45; cursor: default; }
