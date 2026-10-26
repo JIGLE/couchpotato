@@ -7,6 +7,7 @@ import path from 'node:path';
 import type { ClientToServer, ServerToClient, Screen } from '@couchpotato/shared';
 import { MAX_SEATS, RoomStore } from './rooms.js';
 import { Couch } from './couch.js';
+import { loadPacks, summarize } from './packs.js';
 
 const PORT = Number(process.env.PORT ?? 3000);
 const HOST = process.env.HOST ?? '0.0.0.0';
@@ -15,6 +16,11 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 const WEB_DIR = process.env.WEB_DIR ?? path.resolve(here, '../../web/dist');
 
 const app = Fastify({ logger: { level: process.env.LOG_LEVEL ?? 'info' } });
+
+// Question packs bundled with the app; from Phase 3 also the host's own packs in /data.
+const PACKS_DIR = process.env.PACKS_DIR ?? path.resolve(here, '../packs');
+const packs = await loadPacks(PACKS_DIR, app.log);
+app.get('/api/packs', async () => packs.map(summarize));
 
 const VERSION = (process.env.APP_VERSION ?? 'dev').slice(0, 12);
 app.get('/healthz', async () => ({ ok: true, version: VERSION }));

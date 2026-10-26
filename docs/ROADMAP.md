@@ -18,11 +18,11 @@ Design reference for every screen: the *Couch Potato — Lobby & Join* canvas.
 - [x] TV lobby screen (QR + code + avatars + open seats)
 - [x] Phone join: code (pre-filled from QR), name, cushion colour
 - [x] Silent rejoin after refresh or network blip (session token in localStorage)
-- [ ] Edge states: wrong code, room full, joined mid-game
-- [ ] **Done when:** 4 phones join in under 10 s each; refreshing a phone rejoins without retyping
+- [x] Edge states: wrong code, room full (joined mid-game moves to Phase 2)
+- [x] **Done when:** 4 phones join in under 10 s each; refreshing a phone rejoins without retyping
 
 ## Phase 2 · First game: Trivia — *2–3 weeks*
-- [ ] Question pack format (JSON) + one starter pack
+- [x] Question pack format (JSON, en / pt-PT / es-ES, age + region tags) + starter pack — see `docs/PACKS.md`
 - [ ] Server-authoritative timer and scoring (speed bonus)
 - [ ] TV question → reveal → leaderboard → podium
 - [ ] Phone answer grid, lock-in, round result
