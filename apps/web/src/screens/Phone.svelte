@@ -1,46 +1,89 @@
 <script lang="ts">
   import { onDestroy } from 'svelte';
-  import type { CushionColour } from '@couchpotato/shared';
+  import type { CushionColour, Player } from '@couchpotato/shared';
   import { connect } from '../lib/socket';
   import Logo from '../lib/Logo.svelte';
   import { seatColour, initial } from '../lib/seats';
 
+  /** The seat this phone last sat in. The token lets the server give it back after a refresh. */
+  type SavedSeat = { code: string; token: string };
+  function loadSeat(): SavedSeat | null {
+    try {
+      const v = JSON.parse(localStorage.getItem('cp:seat') ?? 'null');
+      return v && typeof v.code === 'string' && typeof v.token === 'string' ? v : null;
+    } catch {
+      return null;
+    }
+  }
+  function saveSeat(v: SavedSeat | null) {
+    if (v) localStorage.setItem('cp:seat', JSON.stringify(v));
+    else localStorage.removeItem('cp:seat');
+  }
+
+  const urlCode = (new URLSearchParams(location.search).get('code') ?? '').toUpperCase();
+  let seatInfo = loadSeat();
   let name = $state(localStorage.getItem('cp:name') ?? '');
-  let code = $state((new URLSearchParams(location.search).get('code') ?? '').toUpperCase());
+  let code = $state(urlCode || seatInfo?.code || '');
+  // Same room as last time (or no room in the link) and we know who we are: sit straight back down.
+  let rejoining = $state(!!seatInfo && !!name && (!urlCode || urlCode === seatInfo.code));
   let joined = $state(false);
   let online = $state(false);
   let count = $state(0);
   let error = $state('');
-  let seat = $state<number | null>(null);
+  let playerId = $state<string | null>(null);
+  let me = $state<Player | null>(null);
   const COLOURS: { value: CushionColour; label: string }[] = [
     { value: 0, label: 'Gold' },
     { value: 1, label: 'Teal' },
     { value: 2, label: 'Cream' },
     { value: 3, label: 'Rust' },
   ];
-  const saved = Number(localStorage.getItem('cp:colour'));
-  let colour = $state<CushionColour>(([0, 1, 2, 3] as const).find((c) => c === saved) ?? 0);
+  const savedColour = Number(localStorage.getItem('cp:colour'));
+  let colour = $state<CushionColour>(([0, 1, 2, 3] as const).find((c) => c === savedColour) ?? 0);
+
+  function hello() {
+    const token = seatInfo && seatInfo.code === code ? seatInfo.token : undefined;
+    socket.emit('hello', { screen: 'phone', code, name, colour, token });
+  }
 
   const socket = connect();
   socket.on('connect', () => {
     online = true;
-    if (joined) socket.emit('hello', { screen: 'phone', code, name, colour }); // silent rejoin after a blip
+    if (joined || rejoining) hello(); // after a refresh or a Wi-Fi blip
   });
   socket.on('disconnect', () => (online = false));
   socket.on('room:joined', (p) => {
     code = p.code;
     joined = true;
+    rejoining = false;
     error = '';
+    playerId = p.playerId ?? null;
+    if (p.token) {
+      seatInfo = { code: p.code, token: p.token };
+      saveSeat(seatInfo);
+    }
   });
   socket.on('room:error', (p) => {
+    const wasRejoining = rejoining;
     joined = false;
+    rejoining = false;
+    if (seatInfo?.code === p.code || p.reason === 'not-found') {
+      seatInfo = null;
+      saveSeat(null);
+    }
+    // A room that ended since last time isn't the player's fault: just show the form.
+    if (wasRejoining && p.reason === 'not-found') {
+      code = urlCode;
+      error = '';
+      return;
+    }
     error =
       p.reason === 'not-found' ? `No room called ${p.code}. Check the code on the TV.`
       : p.reason === 'full' ? 'The couch is full — all 8 seats are taken.'
       : 'Enter the code shown on the TV.';
   });
   socket.on('room:players', (p) => {
-    seat = p.players.find((pl) => pl.id === socket.id)?.seat ?? null;
+    me = p.players.find((pl) => pl.id === playerId) ?? null;
   });
   socket.on('tap:count', (p) => (count = p.count));
   onDestroy(() => socket.disconnect());
@@ -53,7 +96,16 @@
     localStorage.setItem('cp:colour', String(colour));
     // A fresh connection per attempt, so a wrong code can be retried cleanly.
     socket.disconnect().connect();
-    socket.once('connect', () => socket.emit('hello', { screen: 'phone', code, name, colour }));
+    socket.once('connect', hello);
+  }
+
+  function leave() {
+    socket.emit('leave');
+    seatInfo = null;
+    saveSeat(null);
+    joined = false;
+    me = null;
+    playerId = null;
   }
 
   function tap() {
@@ -65,7 +117,12 @@
 <main>
   <div class="brand"><Logo iconOnly size={34} /><span>couch potato</span></div>
 
-  {#if !joined}
+  {#if rejoining}
+    <div class="me" role="status">
+      <h1>Finding your seat…</h1>
+      <p class="hint">Room {code}</p>
+    </div>
+  {:else if !joined}
     <form onsubmit={join}>
       <h1>Pull up a seat.</h1>
       <label for="code">ROOM CODE</label>
@@ -99,15 +156,16 @@
     </form>
   {:else}
     <div class="me">
-      {#if seat !== null}
-        {@const c = seatColour(colour)}
-        <div class="avatar" style:background={c.bg} style:color={c.fg}>{initial(name)}</div>
+      {#if me}
+        {@const c = seatColour(me.colour)}
+        <div class="avatar" style:background={c.bg} style:color={c.fg}>{initial(me.name)}</div>
       {/if}
       <h1>{online ? `You're in, ${name}.` : 'Lost the couch for a sec…'}</h1>
       <p class="hint">{online ? 'Look at the TV. The host starts when everyone’s comfy.' : 'Reconnecting…'}</p>
     </div>
     <button class="tap" onclick={tap} disabled={!online}>Wave at the TV</button>
     <p class="mono">Room {code} · {count} waves</p>
+    <button class="leave" onclick={leave}>Leave the couch</button>
   {/if}
 </main>
 
@@ -153,5 +211,9 @@
     font-family: var(--font-display); font-size: 28px; box-shadow: var(--morph-raised);
   }
   .tap:disabled { opacity: 0.4; }
+  .leave {
+    min-height: 56px; border-radius: var(--radius-pill); background: transparent; color: var(--ink-muted);
+    font-size: 15px; box-shadow: none;
+  }
   .mono { margin: 0; text-align: center; font-family: var(--font-mono); color: var(--ink-muted); }
 </style>

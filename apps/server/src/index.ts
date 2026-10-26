@@ -4,8 +4,9 @@ import { Server } from 'socket.io';
 import { existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
-import type { ClientToServer, CushionColour, ServerToClient, Screen } from '@couchpotato/shared';
-import { MAX_SEATS, RoomStore, cushion, freeSeat } from './rooms.js';
+import type { ClientToServer, ServerToClient, Screen } from '@couchpotato/shared';
+import { MAX_SEATS, RoomStore } from './rooms.js';
+import { Couch } from './couch.js';
 
 const PORT = Number(process.env.PORT ?? 3000);
 const HOST = process.env.HOST ?? '0.0.0.0';
@@ -40,10 +41,18 @@ const io = new Server<ClientToServer, ServerToClient>(app.server, {
 
 // ---- Rooms: each TV gets its own 4-letter room; phones join by code. ----
 const rooms = new RoomStore();
-const members = new Map<string, { screen: Screen; name?: string; code: string; seat: number; colour: CushionColour }>();
+/** Seats per room. A seat survives the phone's connection; see couch.ts. */
+const couches = new Map<string, Couch>();
+/** What each live socket is: a TV or a phone, and in which room. */
+const members = new Map<string, { screen: Screen; code: string }>();
 
+function couchFor(code: string): Couch {
+  let couch = couches.get(code);
+  if (!couch) couches.set(code, (couch = new Couch()));
+  return couch;
+}
 
-function broadcastPresence(code: string) {
+function broadcastRoom(code: string) {
   let tvs = 0;
   let phones = 0;
   for (const m of members.values()) {
@@ -52,22 +61,11 @@ function broadcastPresence(code: string) {
     else phones++;
   }
   io.to(code).emit('presence', { tvs, phones });
-
-  const players = [...members.entries()]
-    .filter(([, m]) => m.code === code && m.screen === 'phone')
-    .map(([id, m]) => ({ id, name: m.name ?? 'Potato', seat: m.seat, colour: m.colour }))
-    .sort((a, b) => a.seat - b.seat);
-  io.to(code).emit('room:players', { players, seats: MAX_SEATS });
-}
-
-function seatsTaken(code: string): number[] {
-  const seats: number[] = [];
-  for (const m of members.values()) if (m.code === code && m.screen === 'phone') seats.push(m.seat);
-  return seats;
+  io.to(code).emit('room:players', { players: couchFor(code).list(), seats: MAX_SEATS });
 }
 
 io.on('connection', (socket) => {
-  socket.on('hello', ({ screen, code, name, colour }) => {
+  socket.on('hello', ({ screen, code, name, colour, token }) => {
     if (members.has(socket.id)) return; // one hello per connection
     if (screen !== 'tv' && screen !== 'phone') return;
 
@@ -81,31 +79,43 @@ io.on('connection', (socket) => {
       return;
     }
 
-    let seat = -1;
+    let joined: { code: string; playerId?: string; token?: string } = { code: room.code };
     if (screen === 'phone') {
-      seat = freeSeat(seatsTaken(room.code));
-      if (seat === -1) {
+      const sat = couchFor(room.code).sit(token, socket.id, name?.trim().slice(0, 20) || 'Potato', colour);
+      if (!sat.ok) {
         socket.emit('room:error', { reason: 'full', code: room.code });
         return;
       }
+      joined = { code: room.code, playerId: sat.player.id, token: sat.token };
     }
 
     rooms.join(room.code, socket.id);
-    members.set(socket.id, { screen, name: name?.trim().slice(0, 20) || undefined, code: room.code, seat, colour: cushion(colour, seat) });
+    members.set(socket.id, { screen, code: room.code });
     socket.join(room.code);
-    socket.emit('room:joined', { code: room.code });
+    socket.emit('room:joined', joined);
     socket.emit('tap:count', { count: room.taps, lastBy: room.lastTapBy, lastById: null });
-    broadcastPresence(room.code);
+    broadcastRoom(room.code);
   });
 
   socket.on('tap', () => {
     const me = members.get(socket.id);
     if (me?.screen !== 'phone') return;
     const room = rooms.get(me.code);
-    if (!room) return;
+    const player = couchFor(me.code).player(socket.id);
+    if (!room || !player) return;
     room.taps += 1;
-    room.lastTapBy = me.name ?? 'someone';
-    io.to(room.code).emit('tap:count', { count: room.taps, lastBy: room.lastTapBy, lastById: socket.id });
+    room.lastTapBy = player.name;
+    io.to(room.code).emit('tap:count', { count: room.taps, lastBy: room.lastTapBy, lastById: player.id });
+  });
+
+  socket.on('leave', () => {
+    const me = members.get(socket.id);
+    if (me?.screen !== 'phone') return;
+    couchFor(me.code).leave(socket.id);
+    members.delete(socket.id);
+    rooms.leave(me.code, socket.id);
+    socket.leave(me.code);
+    broadcastRoom(me.code);
   });
 
   socket.on('disconnect', () => {
@@ -113,13 +123,18 @@ io.on('connection', (socket) => {
     if (!me) return;
     members.delete(socket.id);
     rooms.leave(me.code, socket.id);
-    broadcastPresence(me.code);
+    if (me.screen === 'phone') couchFor(me.code).drop(socket.id);
+    broadcastRoom(me.code);
   });
 });
 
-// Clear out rooms nobody has used for 30 minutes.
+// Free seats whose phones have been gone too long, and clear out rooms nobody has used for 30 minutes.
+setInterval(() => {
+  for (const [code, couch] of couches) if (couch.sweep()) broadcastRoom(code);
+}, 10_000).unref();
 setInterval(() => {
   const removed = rooms.sweep();
+  for (const code of removed) couches.delete(code);
   if (removed.length) app.log.info({ removed }, 'expired empty rooms');
 }, 60_000).unref();
 

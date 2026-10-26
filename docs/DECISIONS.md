@@ -15,3 +15,4 @@ write a new line that supersedes it instead.
 - 2026-10-25 · Socket.IO ping every 20 s · stays well inside Cloudflare's ~100 s idle timeout
 - 2026-10-25 · Game names are our own; mechanics are borrowed, trademarks are not · avoid IP trouble
 - 2026-10-26 · Compose uses `pull_policy: always`; updating = Stop → Start in TrueNAS · TrueNAS reused the cached `:latest` image and needed a full reinstall
+- 2026-10-26 · A dropped phone keeps its seat for 2 minutes; the server issues a private rejoin token, players are shown by a separate public id · refresh or Wi-Fi blips should not cost a seat, and tokens must never leak to other screens
