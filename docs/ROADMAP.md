@@ -24,8 +24,8 @@ Design reference for every screen: the *Couch Potato — Lobby & Join* canvas.
 ## Phase 2 · First game: Trivia — *2–3 weeks*
 - [x] Question pack format (JSON, en / pt-PT / es-ES, age + region tags) + starter pack — see `docs/PACKS.md`
 - [x] Server-authoritative timer and scoring (speed bonus, streaks, early end when everyone answered)
-- [ ] TV question → reveal → leaderboard → podium
-- [ ] Phone answer grid, lock-in, round result
+- [x] TV question → reveal → leaderboard → podium, plus a setup screen (language, questions, time, youngest, countries, mood)
+- [x] Phone answer grid, lock-in, round result
 - [ ] **Done when:** a full 10-round game with friends, no restarts
 
 ## Phase 3 · Host & admin — *1–2 weeks*
