@@ -36,6 +36,10 @@ export interface ServerToClient {
   'tap:count': (payload: { count: number; lastBy: string | null; lastById: string | null }) => void;
   /** How many phones and TVs are in this room right now. */
   'presence': (payload: { tvs: number; phones: number }) => void;
+  /** The game as this screen should see it. `null` = no game, show the lobby. Each phone gets its own view. */
+  'game:state': (view: GameView | null) => void;
+  /** Starting a game failed. */
+  'game:error': (payload: { reason: 'no-questions' | 'no-players' }) => void;
 }
 
 /** Events clients send to the server. */
@@ -51,6 +55,12 @@ export interface ClientToServer {
   'leave': () => void;
   /** Phase 0 smoke test: a phone taps the big button. */
   'tap': () => void;
+  /** The TV (later: the host) starts a game with these settings; missing ones use defaults. */
+  'game:start': (settings: Partial<GameSettings>) => void;
+  /** A phone picks an answer (index into the question's answers). Only the first pick counts. */
+  'game:answer': (payload: { choice: number }) => void;
+  /** Back to the lobby. */
+  'game:end': () => void;
 }
 
 /** The WebSocket path both sides use. Mirror of the literal '/ws' in server and web. */
@@ -117,3 +127,75 @@ export interface PackSummary {
   regions: string[];
   visibility: 'private' | 'shared';
 }
+
+// ---------------------------------------------------------------------------
+// Trivia game. The server decides everything; screens only render these views.
+// ---------------------------------------------------------------------------
+
+export interface GameSettings {
+  language: Language;
+  /** Number of questions. 1–30, default 10. */
+  rounds: number;
+  /** Seconds to answer: 10, 20 or 30; 0 = no limit (ends when everyone has answered). */
+  seconds: number;
+  /** Youngest player's age; questions for older players are left out. */
+  youngest?: number;
+  /** Countries for regional questions, e.g. ["PT", "ES"]. */
+  regions?: string[];
+}
+
+export interface Standing {
+  id: string;
+  name: string;
+  score: number;
+  /** 1 = first. Players with the same score share a rank. */
+  rank: number;
+  /** Places gained (+) or lost (−) since the previous leaderboard. */
+  moved: number;
+  /** Right answers in a row. */
+  streak: number;
+  /** Points from the last question (0 if wrong or no answer). */
+  lastPoints: number;
+}
+
+/** Timing: `endsAt` and `serverNow` are server clock milliseconds; screens use the difference. */
+interface Timed {
+  endsAt: number | null;
+  serverNow: number;
+}
+
+export type GameView =
+  | (Timed & {
+      phase: 'question';
+      round: number;
+      rounds: number;
+      category: string;
+      /** TV only: phones never show the question. */
+      text?: string;
+      /** TV only. */
+      answers?: string[];
+      /** How many answer tiles to show (2–4). */
+      choices: number;
+      answered: number;
+      players: number;
+      /** Phone only: what this phone picked, or null. Absent on the TV. */
+      myChoice?: number | null;
+      /** Phone only: false for someone who joined mid-question and plays from the next one. */
+      canAnswer?: boolean;
+    })
+  | (Timed & {
+      phase: 'reveal';
+      round: number;
+      rounds: number;
+      text?: string;
+      answers?: string[];
+      choices: number;
+      correct: number;
+      /** For each answer, the public ids of the players who picked it. */
+      pickedBy: string[][];
+      fact?: string;
+      /** Phone only. */
+      me?: Standing & { choice: number | null; correct: boolean };
+    })
+  | (Timed & { phase: 'leaderboard'; round: number; rounds: number; standings: Standing[] })
+  | { phase: 'podium'; rounds: number; standings: Standing[]; serverNow: number };
