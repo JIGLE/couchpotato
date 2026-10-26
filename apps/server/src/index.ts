@@ -4,8 +4,8 @@ import { Server } from 'socket.io';
 import { existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
-import type { ClientToServer, ServerToClient, Screen } from '@couchpotato/shared';
-import { MAX_SEATS, RoomStore, freeSeat } from './rooms.js';
+import type { ClientToServer, CushionColour, ServerToClient, Screen } from '@couchpotato/shared';
+import { MAX_SEATS, RoomStore, cushion, freeSeat } from './rooms.js';
 
 const PORT = Number(process.env.PORT ?? 3000);
 const HOST = process.env.HOST ?? '0.0.0.0';
@@ -40,7 +40,8 @@ const io = new Server<ClientToServer, ServerToClient>(app.server, {
 
 // ---- Rooms: each TV gets its own 4-letter room; phones join by code. ----
 const rooms = new RoomStore();
-const members = new Map<string, { screen: Screen; name?: string; code: string; seat: number }>();
+const members = new Map<string, { screen: Screen; name?: string; code: string; seat: number; colour: CushionColour }>();
+
 
 function broadcastPresence(code: string) {
   let tvs = 0;
@@ -54,7 +55,7 @@ function broadcastPresence(code: string) {
 
   const players = [...members.entries()]
     .filter(([, m]) => m.code === code && m.screen === 'phone')
-    .map(([id, m]) => ({ id, name: m.name ?? 'Potato', seat: m.seat }))
+    .map(([id, m]) => ({ id, name: m.name ?? 'Potato', seat: m.seat, colour: m.colour }))
     .sort((a, b) => a.seat - b.seat);
   io.to(code).emit('room:players', { players, seats: MAX_SEATS });
 }
@@ -66,7 +67,7 @@ function seatsTaken(code: string): number[] {
 }
 
 io.on('connection', (socket) => {
-  socket.on('hello', ({ screen, code, name }) => {
+  socket.on('hello', ({ screen, code, name, colour }) => {
     if (members.has(socket.id)) return; // one hello per connection
     if (screen !== 'tv' && screen !== 'phone') return;
 
@@ -90,7 +91,7 @@ io.on('connection', (socket) => {
     }
 
     rooms.join(room.code, socket.id);
-    members.set(socket.id, { screen, name: name?.trim().slice(0, 20) || undefined, code: room.code, seat });
+    members.set(socket.id, { screen, name: name?.trim().slice(0, 20) || undefined, code: room.code, seat, colour: cushion(colour, seat) });
     socket.join(room.code);
     socket.emit('room:joined', { code: room.code });
     socket.emit('tap:count', { count: room.taps, lastBy: room.lastTapBy, lastById: null });

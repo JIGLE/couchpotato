@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { CODE_ALPHABET, CODE_LENGTH, EMPTY_TTL_MS, MAX_SEATS, RoomStore, freeSeat, generateCode, normaliseCode } from './rooms.ts';
+import { CODE_ALPHABET, CODE_LENGTH, EMPTY_TTL_MS, MAX_SEATS, RoomStore, cushion, freeSeat, generateCode, normaliseCode } from './rooms.ts';
 
 test('codes are 4 characters from the safe alphabet', () => {
   for (let i = 0; i < 500; i++) {
@@ -79,4 +79,13 @@ test('freeSeat fills the lowest gap and reports a full couch', () => {
   assert.equal(freeSeat([]), 0);
   assert.equal(freeSeat([0, 1, 3]), 2);
   assert.equal(freeSeat([...Array(MAX_SEATS).keys()]), -1);
+});
+
+test('cushion keeps a valid pick and falls back for anything else', () => {
+  assert.equal(cushion(2, 0), 2);
+  assert.equal(cushion(undefined, 5), 1);
+  assert.equal(cushion(7, 2), 2);
+  assert.equal(cushion(1.5, 3), 3);
+  assert.equal(cushion('0', 0), 0);
+  assert.equal(cushion(-1, -1), 0);
 });
