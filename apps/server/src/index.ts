@@ -5,7 +5,7 @@ import { existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import type { ClientToServer, ServerToClient, Screen } from '@couchpotato/shared';
-import { RoomStore } from './rooms.js';
+import { MAX_SEATS, RoomStore, freeSeat } from './rooms.js';
 
 const PORT = Number(process.env.PORT ?? 3000);
 const HOST = process.env.HOST ?? '0.0.0.0';
@@ -40,7 +40,7 @@ const io = new Server<ClientToServer, ServerToClient>(app.server, {
 
 // ---- Rooms: each TV gets its own 4-letter room; phones join by code. ----
 const rooms = new RoomStore();
-const members = new Map<string, { screen: Screen; name?: string; code: string }>();
+const members = new Map<string, { screen: Screen; name?: string; code: string; seat: number }>();
 
 function broadcastPresence(code: string) {
   let tvs = 0;
@@ -51,6 +51,18 @@ function broadcastPresence(code: string) {
     else phones++;
   }
   io.to(code).emit('presence', { tvs, phones });
+
+  const players = [...members.entries()]
+    .filter(([, m]) => m.code === code && m.screen === 'phone')
+    .map(([id, m]) => ({ id, name: m.name ?? 'Potato', seat: m.seat }))
+    .sort((a, b) => a.seat - b.seat);
+  io.to(code).emit('room:players', { players, seats: MAX_SEATS });
+}
+
+function seatsTaken(code: string): number[] {
+  const seats: number[] = [];
+  for (const m of members.values()) if (m.code === code && m.screen === 'phone') seats.push(m.seat);
+  return seats;
 }
 
 io.on('connection', (socket) => {
@@ -68,11 +80,20 @@ io.on('connection', (socket) => {
       return;
     }
 
+    let seat = -1;
+    if (screen === 'phone') {
+      seat = freeSeat(seatsTaken(room.code));
+      if (seat === -1) {
+        socket.emit('room:error', { reason: 'full', code: room.code });
+        return;
+      }
+    }
+
     rooms.join(room.code, socket.id);
-    members.set(socket.id, { screen, name: name?.trim().slice(0, 20) || undefined, code: room.code });
+    members.set(socket.id, { screen, name: name?.trim().slice(0, 20) || undefined, code: room.code, seat });
     socket.join(room.code);
     socket.emit('room:joined', { code: room.code });
-    socket.emit('tap:count', { count: room.taps, lastBy: room.lastTapBy });
+    socket.emit('tap:count', { count: room.taps, lastBy: room.lastTapBy, lastById: null });
     broadcastPresence(room.code);
   });
 
@@ -83,7 +104,7 @@ io.on('connection', (socket) => {
     if (!room) return;
     room.taps += 1;
     room.lastTapBy = me.name ?? 'someone';
-    io.to(room.code).emit('tap:count', { count: room.taps, lastBy: room.lastTapBy });
+    io.to(room.code).emit('tap:count', { count: room.taps, lastBy: room.lastTapBy, lastById: socket.id });
   });
 
   socket.on('disconnect', () => {

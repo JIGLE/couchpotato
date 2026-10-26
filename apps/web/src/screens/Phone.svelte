@@ -2,6 +2,7 @@
   import { onDestroy } from 'svelte';
   import { connect } from '../lib/socket';
   import Logo from '../lib/Logo.svelte';
+  import { seatColour, initial } from '../lib/seats';
 
   let name = $state(localStorage.getItem('cp:name') ?? '');
   let code = $state((new URLSearchParams(location.search).get('code') ?? '').toUpperCase());
@@ -9,6 +10,7 @@
   let online = $state(false);
   let count = $state(0);
   let error = $state('');
+  let seat = $state<number | null>(null);
 
   const socket = connect();
   socket.on('connect', () => {
@@ -23,7 +25,13 @@
   });
   socket.on('room:error', (p) => {
     joined = false;
-    error = p.reason === 'not-found' ? `No room called ${p.code}. Check the code on the TV.` : 'Enter the code shown on the TV.';
+    error =
+      p.reason === 'not-found' ? `No room called ${p.code}. Check the code on the TV.`
+      : p.reason === 'full' ? 'The couch is full — all 8 seats are taken.'
+      : 'Enter the code shown on the TV.';
+  });
+  socket.on('room:players', (p) => {
+    seat = p.players.find((pl) => pl.id === socket.id)?.seat ?? null;
   });
   socket.on('tap:count', (p) => (count = p.count));
   onDestroy(() => socket.disconnect());
@@ -68,9 +76,16 @@
       <button class="primary" type="submit">Join</button>
     </form>
   {:else}
-    <p class="hint">{online ? `Hi ${name}! Watch the TV.` : 'Lost the couch for a sec — reconnecting…'}</p>
-    <button class="tap" onclick={tap} disabled={!online}>Tap</button>
-    <p class="mono">{count} taps so far</p>
+    <div class="me">
+      {#if seat !== null}
+        {@const c = seatColour(seat)}
+        <div class="avatar" style:background={c.bg} style:color={c.fg}>{initial(name)}</div>
+      {/if}
+      <h1>{online ? `You're in, ${name}.` : 'Lost the couch for a sec…'}</h1>
+      <p class="hint">{online ? 'Look at the TV. The host starts when everyone’s comfy.' : 'Reconnecting…'}</p>
+    </div>
+    <button class="tap" onclick={tap} disabled={!online}>Wave at the TV</button>
+    <p class="mono">Room {code} · {count} waves</p>
   {/if}
 </main>
 
@@ -93,9 +108,15 @@
   button:active { transform: scale(0.96); box-shadow: var(--morph-inset); }
   .primary { margin-top: auto; height: 60px; border-radius: var(--radius-pill); background: var(--spud); color: var(--ink-on-spud); box-shadow: 6px 8px 18px var(--edge-dark); }
   .hint { margin: 0; text-align: center; font-weight: 600; color: var(--ink-muted); }
+  .me { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; text-align: center; }
+  .me h1 { margin: 0; }
+  .avatar {
+    width: 140px; height: 140px; border-radius: 50%; display: grid; place-items: center;
+    font-family: var(--font-display); font-size: 56px; font-weight: 700; box-shadow: var(--morph-raised);
+  }
   .tap {
-    flex: 1; min-height: 260px; border-radius: 40px; background: var(--tile-b); color: var(--tile-b-ink);
-    font-family: var(--font-display); font-size: 48px; box-shadow: var(--morph-raised);
+    min-height: 120px; border-radius: 40px; background: var(--tile-b); color: var(--tile-b-ink);
+    font-family: var(--font-display); font-size: 28px; box-shadow: var(--morph-raised);
   }
   .tap:disabled { opacity: 0.4; }
   .mono { margin: 0; text-align: center; font-family: var(--font-mono); color: var(--ink-muted); }

@@ -3,7 +3,14 @@
 
 export type Screen = 'tv' | 'phone';
 
-export type RoomError = 'not-found' | 'bad-request';
+export type RoomError = 'not-found' | 'full' | 'bad-request';
+
+/** A phone sitting on the couch. `seat` is 0-based and decides the avatar colour. */
+export interface Player {
+  id: string;
+  name: string;
+  seat: number;
+}
 
 /** Events the server sends to clients. */
 export interface ServerToClient {
@@ -13,8 +20,10 @@ export interface ServerToClient {
   'room:joined': (payload: { code: string }) => void;
   /** Joining failed, e.g. a mistyped code. */
   'room:error': (payload: { reason: RoomError; code: string }) => void;
-  /** Phase 0 smoke test: taps in this room. */
-  'tap:count': (payload: { count: number; lastBy: string | null }) => void;
+  /** Everyone on the couch, in seat order, plus how many seats the room has. */
+  'room:players': (payload: { players: Player[]; seats: number }) => void;
+  /** Phase 0 smoke test: taps in this room. `lastById` lets the TV wiggle that player's avatar. */
+  'tap:count': (payload: { count: number; lastBy: string | null; lastById: string | null }) => void;
   /** How many phones and TVs are in this room right now. */
   'presence': (payload: { tvs: number; phones: number }) => void;
 }

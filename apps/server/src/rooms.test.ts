@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { CODE_ALPHABET, CODE_LENGTH, EMPTY_TTL_MS, RoomStore, generateCode, normaliseCode } from './rooms.ts';
+import { CODE_ALPHABET, CODE_LENGTH, EMPTY_TTL_MS, MAX_SEATS, RoomStore, freeSeat, generateCode, normaliseCode } from './rooms.ts';
 
 test('codes are 4 characters from the safe alphabet', () => {
   for (let i = 0; i < 500; i++) {
@@ -73,4 +73,10 @@ test('rejoining before expiry keeps the room alive', () => {
   now += EMPTY_TTL_MS;
   assert.deepEqual(store.sweep(), []);
   assert.equal(store.size, 1);
+});
+
+test('freeSeat fills the lowest gap and reports a full couch', () => {
+  assert.equal(freeSeat([]), 0);
+  assert.equal(freeSeat([0, 1, 3]), 2);
+  assert.equal(freeSeat([...Array(MAX_SEATS).keys()]), -1);
 });
