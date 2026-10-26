@@ -15,7 +15,7 @@ Design reference for every screen: the *Couch Potato — Lobby & Join* canvas.
 
 ## Phase 1 · Join & lobby — *1–2 weeks*
 - [x] Rooms: create, 4-letter codes (no 0/O, 1/I), expire when empty for 30 min
-- [ ] TV lobby screen (QR + code + avatars + open seats)
+- [x] TV lobby screen (QR + code + avatars + open seats)
 - [ ] Phone join: code (pre-filled from QR), name, cushion colour
 - [ ] Silent rejoin after refresh or network blip (session token in localStorage)
 - [ ] Edge states: wrong code, room full, joined mid-game

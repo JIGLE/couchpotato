@@ -3,6 +3,16 @@
 /** No 0/O or 1/I — they are easy to misread on a TV across the room. */
 export const CODE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 export const CODE_LENGTH = 4;
+/** Phones per room. Matches the 8 seats on the TV lobby. */
+export const MAX_SEATS = 8;
+
+/** The lowest seat nobody is using, or -1 when the couch is full. */
+export function freeSeat(taken: Iterable<number>, max = MAX_SEATS): number {
+  const used = new Set(taken);
+  for (let seat = 0; seat < max; seat++) if (!used.has(seat)) return seat;
+  return -1;
+}
+
 /** A room with nobody in it is removed after this long. */
 export const EMPTY_TTL_MS = 30 * 60 * 1000;
 
