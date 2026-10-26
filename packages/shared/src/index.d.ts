@@ -55,3 +55,65 @@ export interface ClientToServer {
 
 /** The WebSocket path both sides use. Mirror of the literal '/ws' in server and web. */
 export type SocketPath = '/ws';
+
+// ---------------------------------------------------------------------------
+// Trivia packs. Documented for people (and future AI generation) in docs/PACKS.md.
+// ---------------------------------------------------------------------------
+
+/** Languages a pack can be written in. BCP 47 tags; European variants on purpose. */
+export type Language = 'en' | 'pt-PT' | 'es-ES';
+
+/** Text in one or more languages. A question is playable in a language only if all its texts have it. */
+export type Localized<T = string> = Partial<Record<Language, T>>;
+
+/** Who wrote a question. AI-written questions stay out of games until a person marks them reviewed. */
+export type QuestionSource = 'manual' | 'ai';
+
+export interface TriviaQuestion {
+  /** Stable within the pack, e.g. "chess-squares". Used to avoid repeats and to report mistakes. */
+  id: string;
+  category: string;
+  /** Youngest age this question suits. Omitted = everyone. */
+  minAge?: number;
+  /** ISO 3166-1 alpha-2 countries the question is about, e.g. ["PT"]. Omitted or empty = global. */
+  regions?: string[];
+  text: Localized;
+  /** 2–4 answers per language, in the same order in every language. */
+  answers: Localized<string[]>;
+  /** Index into `answers` of the right one. Answers are shuffled when played. */
+  correct: number;
+  /** Optional one-liner shown on the reveal screen. */
+  fact?: Localized;
+  source?: QuestionSource;
+  /** Required for `source: "ai"` before the question is used in a game. */
+  reviewed?: boolean;
+}
+
+export interface TriviaPack {
+  /** Format marker and version, so old packs keep working when the format grows. */
+  format: 'couchpotato.trivia/1';
+  /** Unique, lowercase, e.g. "starter". */
+  id: string;
+  title: Localized;
+  description?: Localized;
+  author: string;
+  /** e.g. "CC-BY-4.0". Shared packs need one so other hosts know what they may do with them. */
+  license?: string;
+  /** Whether other hosts can find and use this pack once the shared library exists. */
+  visibility?: 'private' | 'shared';
+  tags?: string[];
+  questions: TriviaQuestion[];
+}
+
+/** What the server lists about a pack (GET /api/packs). */
+export interface PackSummary {
+  id: string;
+  title: Localized;
+  description?: Localized;
+  author: string;
+  languages: Language[];
+  questions: number;
+  categories: string[];
+  regions: string[];
+  visibility: 'private' | 'shared';
+}

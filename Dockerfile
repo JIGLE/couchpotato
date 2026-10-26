@@ -24,6 +24,7 @@ COPY apps/web/package.json apps/web/
 RUN if [ -f package-lock.json ]; then npm ci --omit=dev --workspace @couchpotato/server; else npm install --omit=dev --workspace @couchpotato/server; fi \
  && npm cache clean --force
 COPY --from=build /app/apps/server/dist apps/server/dist
+COPY apps/server/packs apps/server/packs
 COPY --from=build /app/apps/web/dist web
 USER node
 EXPOSE 3000

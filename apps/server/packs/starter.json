@@ -1,0 +1,1220 @@
+{
+  "format": "couchpotato.trivia/1",
+  "id": "starter",
+  "title": {
+    "en": "Starter pack",
+    "pt-PT": "Pacote inicial",
+    "es-ES": "Paquete inicial"
+  },
+  "description": {
+    "en": "Board games, science, nature and a few questions about Portugal, Spain and Denmark.",
+    "pt-PT": "Jogos de tabuleiro, ciência, natureza e algumas perguntas sobre Portugal, Espanha e Dinamarca.",
+    "es-ES": "Juegos de mesa, ciencia, naturaleza y algunas preguntas sobre Portugal, España y Dinamarca."
+  },
+  "author": "Couch Potato",
+  "license": "CC-BY-4.0",
+  "visibility": "shared",
+  "tags": [
+    "starter",
+    "mixed"
+  ],
+  "questions": [
+    {
+      "id": "chess-squares",
+      "category": "board-games",
+      "minAge": 7,
+      "text": {
+        "en": "How many squares are on a chessboard?",
+        "pt-PT": "Quantas casas tem um tabuleiro de xadrez?",
+        "es-ES": "¿Cuántas casillas tiene un tablero de ajedrez?"
+      },
+      "answers": {
+        "en": [
+          "49",
+          "64",
+          "81",
+          "100"
+        ],
+        "pt-PT": [
+          "49",
+          "64",
+          "81",
+          "100"
+        ],
+        "es-ES": [
+          "49",
+          "64",
+          "81",
+          "100"
+        ]
+      },
+      "correct": 1,
+      "fact": {
+        "en": "8 rows × 8 columns.",
+        "pt-PT": "8 filas × 8 colunas.",
+        "es-ES": "8 filas × 8 columnas."
+      },
+      "source": "manual"
+    },
+    {
+      "id": "die-opposite",
+      "category": "board-games",
+      "minAge": 8,
+      "text": {
+        "en": "On a standard die, opposite faces always add up to…",
+        "pt-PT": "Num dado normal, as faces opostas somam sempre…",
+        "es-ES": "En un dado normal, las caras opuestas siempre suman…"
+      },
+      "answers": {
+        "en": [
+          "6",
+          "7",
+          "8",
+          "12"
+        ],
+        "pt-PT": [
+          "6",
+          "7",
+          "8",
+          "12"
+        ],
+        "es-ES": [
+          "6",
+          "7",
+          "8",
+          "12"
+        ]
+      },
+      "correct": 1,
+      "fact": {
+        "en": "1 and 6, 2 and 5, 3 and 4.",
+        "pt-PT": "1 e 6, 2 e 5, 3 e 4.",
+        "es-ES": "1 y 6, 2 y 5, 3 y 4."
+      },
+      "source": "manual"
+    },
+    {
+      "id": "die-total",
+      "category": "board-games",
+      "minAge": 9,
+      "text": {
+        "en": "How many dots are there in total on a standard six-sided die?",
+        "pt-PT": "Quantos pontos tem, no total, um dado normal de seis faces?",
+        "es-ES": "¿Cuántos puntos tiene en total un dado normal de seis caras?"
+      },
+      "answers": {
+        "en": [
+          "18",
+          "21",
+          "24",
+          "36"
+        ],
+        "pt-PT": [
+          "18",
+          "21",
+          "24",
+          "36"
+        ],
+        "es-ES": [
+          "18",
+          "21",
+          "24",
+          "36"
+        ]
+      },
+      "correct": 1,
+      "fact": {
+        "en": "1 + 2 + 3 + 4 + 5 + 6 = 21.",
+        "pt-PT": "1 + 2 + 3 + 4 + 5 + 6 = 21.",
+        "es-ES": "1 + 2 + 3 + 4 + 5 + 6 = 21."
+      },
+      "source": "manual"
+    },
+    {
+      "id": "chess-bishop",
+      "category": "board-games",
+      "minAge": 9,
+      "text": {
+        "en": "Which chess piece can only move diagonally?",
+        "pt-PT": "Que peça de xadrez só se move na diagonal?",
+        "es-ES": "¿Qué pieza de ajedrez solo se mueve en diagonal?"
+      },
+      "answers": {
+        "en": [
+          "Rook",
+          "Bishop",
+          "Knight",
+          "Queen"
+        ],
+        "pt-PT": [
+          "Torre",
+          "Bispo",
+          "Cavalo",
+          "Dama"
+        ],
+        "es-ES": [
+          "Torre",
+          "Alfil",
+          "Caballo",
+          "Dama"
+        ]
+      },
+      "correct": 1,
+      "fact": {
+        "en": "That's why a bishop stays on the same colour all game.",
+        "pt-PT": "Por isso, um bispo fica sempre na mesma cor durante o jogo.",
+        "es-ES": "Por eso un alfil se queda siempre en el mismo color."
+      },
+      "source": "manual"
+    },
+    {
+      "id": "chess-knight",
+      "category": "board-games",
+      "minAge": 9,
+      "text": {
+        "en": "Which chess piece can jump over other pieces?",
+        "pt-PT": "Que peça de xadrez pode saltar por cima de outras?",
+        "es-ES": "¿Qué pieza de ajedrez puede saltar por encima de otras?"
+      },
+      "answers": {
+        "en": [
+          "King",
+          "Knight",
+          "Bishop",
+          "Pawn"
+        ],
+        "pt-PT": [
+          "Rei",
+          "Cavalo",
+          "Bispo",
+          "Peão"
+        ],
+        "es-ES": [
+          "Rey",
+          "Caballo",
+          "Alfil",
+          "Peón"
+        ]
+      },
+      "correct": 1,
+      "fact": {
+        "en": "It moves in an L shape.",
+        "pt-PT": "Move-se em forma de L.",
+        "es-ES": "Se mueve en forma de L."
+      },
+      "source": "manual"
+    },
+    {
+      "id": "cards-52",
+      "category": "board-games",
+      "minAge": 8,
+      "text": {
+        "en": "How many cards are in a standard French-suited deck, without jokers?",
+        "pt-PT": "Quantas cartas tem um baralho francês normal, sem jokers?",
+        "es-ES": "¿Cuántas cartas tiene una baraja francesa (de póker), sin comodines?"
+      },
+      "answers": {
+        "en": [
+          "40",
+          "48",
+          "52",
+          "54"
+        ],
+        "pt-PT": [
+          "40",
+          "48",
+          "52",
+          "54"
+        ],
+        "es-ES": [
+          "40",
+          "48",
+          "52",
+          "54"
+        ]
+      },
+      "correct": 2,
+      "fact": {
+        "en": "Four suits of 13 cards.",
+        "pt-PT": "Quatro naipes de 13 cartas.",
+        "es-ES": "Cuatro palos de 13 cartas."
+      },
+      "source": "manual"
+    },
+    {
+      "id": "cards-suits",
+      "category": "board-games",
+      "minAge": 7,
+      "text": {
+        "en": "Which of these is NOT a suit in a French-suited deck?",
+        "pt-PT": "Qual destes NÃO é um naipe do baralho francês?",
+        "es-ES": "¿Cuál de estos NO es un palo de la baraja francesa?"
+      },
+      "answers": {
+        "en": [
+          "Hearts",
+          "Spades",
+          "Stars",
+          "Clubs"
+        ],
+        "pt-PT": [
+          "Copas",
+          "Espadas",
+          "Estrelas",
+          "Paus"
+        ],
+        "es-ES": [
+          "Corazones",
+          "Picas",
+          "Estrellas",
+          "Tréboles"
+        ]
+      },
+      "correct": 2,
+      "source": "manual"
+    },
+    {
+      "id": "go-stones",
+      "category": "board-games",
+      "minAge": 10,
+      "text": {
+        "en": "The board game Go is played with stones of which two colours?",
+        "pt-PT": "O jogo de tabuleiro Go joga-se com pedras de que duas cores?",
+        "es-ES": "¿De qué dos colores son las piedras del juego de tablero Go?"
+      },
+      "answers": {
+        "en": [
+          "Red and blue",
+          "Black and white",
+          "Black and red",
+          "White and green"
+        ],
+        "pt-PT": [
+          "Vermelho e azul",
+          "Preto e branco",
+          "Preto e vermelho",
+          "Branco e verde"
+        ],
+        "es-ES": [
+          "Rojo y azul",
+          "Negro y blanco",
+          "Negro y rojo",
+          "Blanco y verde"
+        ]
+      },
+      "correct": 1,
+      "fact": {
+        "en": "Black always plays first.",
+        "pt-PT": "As pretas jogam sempre primeiro.",
+        "es-ES": "Las negras siempre juegan primero."
+      },
+      "source": "manual"
+    },
+    {
+      "id": "dominoes-28",
+      "category": "board-games",
+      "minAge": 10,
+      "text": {
+        "en": "How many tiles are in a double-six set of dominoes?",
+        "pt-PT": "Quantas peças tem um dominó duplo-seis?",
+        "es-ES": "¿Cuántas fichas tiene un dominó doble seis?"
+      },
+      "answers": {
+        "en": [
+          "24",
+          "28",
+          "32",
+          "36"
+        ],
+        "pt-PT": [
+          "24",
+          "28",
+          "32",
+          "36"
+        ],
+        "es-ES": [
+          "24",
+          "28",
+          "32",
+          "36"
+        ]
+      },
+      "correct": 1,
+      "fact": {
+        "en": "Every pair from 0–0 to 6–6 appears exactly once.",
+        "pt-PT": "Cada par, de 0–0 a 6–6, aparece exatamente uma vez.",
+        "es-ES": "Cada pareja, del 0–0 al 6–6, aparece exactamente una vez."
+      },
+      "source": "manual"
+    },
+    {
+      "id": "backgammon-15",
+      "category": "board-games",
+      "minAge": 12,
+      "text": {
+        "en": "How many checkers does each player start with in backgammon?",
+        "pt-PT": "Com quantas peças começa cada jogador no gamão?",
+        "es-ES": "¿Con cuántas fichas empieza cada jugador en el backgammon?"
+      },
+      "answers": {
+        "en": [
+          "12",
+          "15",
+          "16",
+          "20"
+        ],
+        "pt-PT": [
+          "12",
+          "15",
+          "16",
+          "20"
+        ],
+        "es-ES": [
+          "12",
+          "15",
+          "16",
+          "20"
+        ]
+      },
+      "correct": 1,
+      "source": "manual"
+    },
+    {
+      "id": "rubik-colours",
+      "category": "puzzles",
+      "minAge": 7,
+      "text": {
+        "en": "How many different colours are on a classic Rubik's Cube?",
+        "pt-PT": "Quantas cores diferentes tem um cubo de Rubik clássico?",
+        "es-ES": "¿Cuántos colores distintos tiene un cubo de Rubik clásico?"
+      },
+      "answers": {
+        "en": [
+          "4",
+          "5",
+          "6",
+          "8"
+        ],
+        "pt-PT": [
+          "4",
+          "5",
+          "6",
+          "8"
+        ],
+        "es-ES": [
+          "4",
+          "5",
+          "6",
+          "8"
+        ]
+      },
+      "correct": 2,
+      "fact": {
+        "en": "One for each face.",
+        "pt-PT": "Uma por cada face.",
+        "es-ES": "Uno por cada cara."
+      },
+      "source": "manual"
+    },
+    {
+      "id": "tic-tac-toe",
+      "category": "board-games",
+      "minAge": 7,
+      "text": {
+        "en": "How many squares are on a tic-tac-toe board?",
+        "pt-PT": "Quantos quadrados tem um tabuleiro do jogo do galo?",
+        "es-ES": "¿Cuántas casillas tiene un tablero de tres en raya?"
+      },
+      "answers": {
+        "en": [
+          "6",
+          "8",
+          "9",
+          "12"
+        ],
+        "pt-PT": [
+          "6",
+          "8",
+          "9",
+          "12"
+        ],
+        "es-ES": [
+          "6",
+          "8",
+          "9",
+          "12"
+        ]
+      },
+      "correct": 2,
+      "source": "manual"
+    },
+    {
+      "id": "largest-planet",
+      "category": "science",
+      "minAge": 8,
+      "text": {
+        "en": "What is the largest planet in our solar system?",
+        "pt-PT": "Qual é o maior planeta do sistema solar?",
+        "es-ES": "¿Cuál es el planeta más grande del sistema solar?"
+      },
+      "answers": {
+        "en": [
+          "Earth",
+          "Saturn",
+          "Jupiter",
+          "Neptune"
+        ],
+        "pt-PT": [
+          "Terra",
+          "Saturno",
+          "Júpiter",
+          "Neptuno"
+        ],
+        "es-ES": [
+          "Tierra",
+          "Saturno",
+          "Júpiter",
+          "Neptuno"
+        ]
+      },
+      "correct": 2,
+      "fact": {
+        "en": "It has more than 300 times the mass of Earth.",
+        "pt-PT": "Tem mais de 300 vezes a massa da Terra.",
+        "es-ES": "Tiene más de 300 veces la masa de la Tierra."
+      },
+      "source": "manual"
+    },
+    {
+      "id": "red-planet",
+      "category": "science",
+      "minAge": 7,
+      "text": {
+        "en": "Which planet is known as the Red Planet?",
+        "pt-PT": "Que planeta é conhecido como o Planeta Vermelho?",
+        "es-ES": "¿Qué planeta se conoce como el planeta rojo?"
+      },
+      "answers": {
+        "en": [
+          "Venus",
+          "Mars",
+          "Mercury",
+          "Jupiter"
+        ],
+        "pt-PT": [
+          "Vénus",
+          "Marte",
+          "Mercúrio",
+          "Júpiter"
+        ],
+        "es-ES": [
+          "Venus",
+          "Marte",
+          "Mercurio",
+          "Júpiter"
+        ]
+      },
+      "correct": 1,
+      "source": "manual"
+    },
+    {
+      "id": "spider-legs",
+      "category": "nature",
+      "minAge": 6,
+      "text": {
+        "en": "How many legs does a spider have?",
+        "pt-PT": "Quantas patas tem uma aranha?",
+        "es-ES": "¿Cuántas patas tiene una araña?"
+      },
+      "answers": {
+        "en": [
+          "6",
+          "8",
+          "10",
+          "12"
+        ],
+        "pt-PT": [
+          "6",
+          "8",
+          "10",
+          "12"
+        ],
+        "es-ES": [
+          "6",
+          "8",
+          "10",
+          "12"
+        ]
+      },
+      "correct": 1,
+      "source": "manual"
+    },
+    {
+      "id": "largest-ocean",
+      "category": "geography",
+      "minAge": 8,
+      "text": {
+        "en": "Which is the largest ocean on Earth?",
+        "pt-PT": "Qual é o maior oceano da Terra?",
+        "es-ES": "¿Cuál es el océano más grande de la Tierra?"
+      },
+      "answers": {
+        "en": [
+          "Atlantic",
+          "Indian",
+          "Arctic",
+          "Pacific"
+        ],
+        "pt-PT": [
+          "Atlântico",
+          "Índico",
+          "Ártico",
+          "Pacífico"
+        ],
+        "es-ES": [
+          "Atlántico",
+          "Índico",
+          "Ártico",
+          "Pacífico"
+        ]
+      },
+      "correct": 3,
+      "source": "manual"
+    },
+    {
+      "id": "australia-capital",
+      "category": "geography",
+      "minAge": 12,
+      "text": {
+        "en": "What is the capital of Australia?",
+        "pt-PT": "Qual é a capital da Austrália?",
+        "es-ES": "¿Cuál es la capital de Australia?"
+      },
+      "answers": {
+        "en": [
+          "Sydney",
+          "Melbourne",
+          "Canberra",
+          "Perth"
+        ],
+        "pt-PT": [
+          "Sydney",
+          "Melbourne",
+          "Camberra",
+          "Perth"
+        ],
+        "es-ES": [
+          "Sídney",
+          "Melbourne",
+          "Canberra",
+          "Perth"
+        ]
+      },
+      "correct": 2,
+      "fact": {
+        "en": "It was chosen as a compromise between Sydney and Melbourne.",
+        "pt-PT": "Foi escolhida como meio-termo entre Sydney e Melbourne.",
+        "es-ES": "Se eligió como término medio entre Sídney y Melbourne."
+      },
+      "source": "manual"
+    },
+    {
+      "id": "gold-symbol",
+      "category": "science",
+      "minAge": 12,
+      "text": {
+        "en": "What is the chemical symbol for gold?",
+        "pt-PT": "Qual é o símbolo químico do ouro?",
+        "es-ES": "¿Cuál es el símbolo químico del oro?"
+      },
+      "answers": {
+        "en": [
+          "Go",
+          "Gd",
+          "Au",
+          "Ag"
+        ],
+        "pt-PT": [
+          "Go",
+          "Gd",
+          "Au",
+          "Ag"
+        ],
+        "es-ES": [
+          "Go",
+          "Gd",
+          "Au",
+          "Ag"
+        ]
+      },
+      "correct": 2,
+      "fact": {
+        "en": "From the Latin word aurum.",
+        "pt-PT": "Vem da palavra latina aurum.",
+        "es-ES": "Viene de la palabra latina aurum."
+      },
+      "source": "manual"
+    },
+    {
+      "id": "moon-landing",
+      "category": "history",
+      "minAge": 10,
+      "text": {
+        "en": "In which year did people first walk on the Moon?",
+        "pt-PT": "Em que ano é que o ser humano pisou a Lua pela primeira vez?",
+        "es-ES": "¿En qué año pisó el ser humano la Luna por primera vez?"
+      },
+      "answers": {
+        "en": [
+          "1961",
+          "1965",
+          "1969",
+          "1972"
+        ],
+        "pt-PT": [
+          "1961",
+          "1965",
+          "1969",
+          "1972"
+        ],
+        "es-ES": [
+          "1961",
+          "1965",
+          "1969",
+          "1972"
+        ]
+      },
+      "correct": 2,
+      "fact": {
+        "en": "Neil Armstrong and Buzz Aldrin, on Apollo 11.",
+        "pt-PT": "Neil Armstrong e Buzz Aldrin, na Apollo 11.",
+        "es-ES": "Neil Armstrong y Buzz Aldrin, en el Apolo 11."
+      },
+      "source": "manual"
+    },
+    {
+      "id": "fastest-animal",
+      "category": "nature",
+      "minAge": 7,
+      "text": {
+        "en": "What is the fastest land animal?",
+        "pt-PT": "Qual é o animal terrestre mais rápido?",
+        "es-ES": "¿Cuál es el animal terrestre más rápido?"
+      },
+      "answers": {
+        "en": [
+          "Lion",
+          "Cheetah",
+          "Horse",
+          "Greyhound"
+        ],
+        "pt-PT": [
+          "Leão",
+          "Chita",
+          "Cavalo",
+          "Galgo"
+        ],
+        "es-ES": [
+          "León",
+          "Guepardo",
+          "Caballo",
+          "Galgo"
+        ]
+      },
+      "correct": 1,
+      "source": "manual"
+    },
+    {
+      "id": "mona-lisa",
+      "category": "art",
+      "minAge": 10,
+      "text": {
+        "en": "Who painted the Mona Lisa?",
+        "pt-PT": "Quem pintou a Mona Lisa?",
+        "es-ES": "¿Quién pintó La Gioconda (la Mona Lisa)?"
+      },
+      "answers": {
+        "en": [
+          "Michelangelo",
+          "Leonardo da Vinci",
+          "Raphael",
+          "Pablo Picasso"
+        ],
+        "pt-PT": [
+          "Miguel Ângelo",
+          "Leonardo da Vinci",
+          "Rafael",
+          "Pablo Picasso"
+        ],
+        "es-ES": [
+          "Miguel Ángel",
+          "Leonardo da Vinci",
+          "Rafael",
+          "Pablo Picasso"
+        ]
+      },
+      "correct": 1,
+      "source": "manual"
+    },
+    {
+      "id": "water-freezes",
+      "category": "science",
+      "minAge": 6,
+      "text": {
+        "en": "At what temperature does water freeze, in °C?",
+        "pt-PT": "A que temperatura congela a água, em °C?",
+        "es-ES": "¿A qué temperatura se congela el agua, en °C?"
+      },
+      "answers": {
+        "en": [
+          "−10",
+          "0",
+          "10",
+          "100"
+        ],
+        "pt-PT": [
+          "−10",
+          "0",
+          "10",
+          "100"
+        ],
+        "es-ES": [
+          "−10",
+          "0",
+          "10",
+          "100"
+        ]
+      },
+      "correct": 1,
+      "source": "manual"
+    },
+    {
+      "id": "plants-co2",
+      "category": "science",
+      "minAge": 10,
+      "text": {
+        "en": "Which gas do plants take in from the air to make their food?",
+        "pt-PT": "Que gás é que as plantas absorvem do ar para produzir o seu alimento?",
+        "es-ES": "¿Qué gas toman las plantas del aire para fabricar su alimento?"
+      },
+      "answers": {
+        "en": [
+          "Oxygen",
+          "Carbon dioxide",
+          "Nitrogen",
+          "Helium"
+        ],
+        "pt-PT": [
+          "Oxigénio",
+          "Dióxido de carbono",
+          "Azoto",
+          "Hélio"
+        ],
+        "es-ES": [
+          "Oxígeno",
+          "Dióxido de carbono",
+          "Nitrógeno",
+          "Helio"
+        ]
+      },
+      "correct": 1,
+      "source": "manual"
+    },
+    {
+      "id": "element-one",
+      "category": "science",
+      "minAge": 13,
+      "text": {
+        "en": "Which element has atomic number 1?",
+        "pt-PT": "Que elemento tem o número atómico 1?",
+        "es-ES": "¿Qué elemento tiene el número atómico 1?"
+      },
+      "answers": {
+        "en": [
+          "Helium",
+          "Hydrogen",
+          "Oxygen",
+          "Carbon"
+        ],
+        "pt-PT": [
+          "Hélio",
+          "Hidrogénio",
+          "Oxigénio",
+          "Carbono"
+        ],
+        "es-ES": [
+          "Helio",
+          "Hidrógeno",
+          "Oxígeno",
+          "Carbono"
+        ]
+      },
+      "correct": 1,
+      "source": "manual"
+    },
+    {
+      "id": "speed-of-light",
+      "category": "science",
+      "minAge": 15,
+      "text": {
+        "en": "Roughly how fast does light travel?",
+        "pt-PT": "A que velocidade viaja, aproximadamente, a luz?",
+        "es-ES": "¿A qué velocidad viaja, aproximadamente, la luz?"
+      },
+      "answers": {
+        "en": [
+          "300 km/s",
+          "3,000 km/s",
+          "300,000 km/s",
+          "3,000,000 km/s"
+        ],
+        "pt-PT": [
+          "300 km/s",
+          "3000 km/s",
+          "300 000 km/s",
+          "3 000 000 km/s"
+        ],
+        "es-ES": [
+          "300 km/s",
+          "3000 km/s",
+          "300 000 km/s",
+          "3 000 000 km/s"
+        ]
+      },
+      "correct": 2,
+      "fact": {
+        "en": "Light from the Sun reaches us in about 8 minutes.",
+        "pt-PT": "A luz do Sol chega até nós em cerca de 8 minutos.",
+        "es-ES": "La luz del Sol nos llega en unos 8 minutos."
+      },
+      "source": "manual"
+    },
+    {
+      "id": "rainbow-colours",
+      "category": "nature",
+      "minAge": 6,
+      "text": {
+        "en": "How many colours are traditionally named in a rainbow?",
+        "pt-PT": "Quantas cores tem tradicionalmente um arco-íris?",
+        "es-ES": "¿Cuántos colores tiene tradicionalmente un arcoíris?"
+      },
+      "answers": {
+        "en": [
+          "5",
+          "6",
+          "7",
+          "8"
+        ],
+        "pt-PT": [
+          "5",
+          "6",
+          "7",
+          "8"
+        ],
+        "es-ES": [
+          "5",
+          "6",
+          "7",
+          "8"
+        ]
+      },
+      "correct": 2,
+      "source": "manual"
+    },
+    {
+      "id": "porto-river",
+      "category": "geography",
+      "minAge": 12,
+      "regions": [
+        "PT"
+      ],
+      "text": {
+        "en": "Which river flows through Porto?",
+        "pt-PT": "Que rio passa pelo Porto?",
+        "es-ES": "¿Qué río pasa por Oporto?"
+      },
+      "answers": {
+        "en": [
+          "Tagus",
+          "Douro",
+          "Mondego",
+          "Guadiana"
+        ],
+        "pt-PT": [
+          "Tejo",
+          "Douro",
+          "Mondego",
+          "Guadiana"
+        ],
+        "es-ES": [
+          "Tajo",
+          "Duero",
+          "Mondego",
+          "Guadiana"
+        ]
+      },
+      "correct": 1,
+      "fact": {
+        "en": "It begins in Spain, where it is called the Duero.",
+        "pt-PT": "Nasce em Espanha, onde se chama Duero.",
+        "es-ES": "Nace en España; en Portugal se llama Douro."
+      },
+      "source": "manual"
+    },
+    {
+      "id": "vasco-da-gama",
+      "category": "history",
+      "minAge": 12,
+      "regions": [
+        "PT"
+      ],
+      "text": {
+        "en": "Which Portuguese navigator first reached India by sea, in 1498?",
+        "pt-PT": "Que navegador português chegou pela primeira vez à Índia por mar, em 1498?",
+        "es-ES": "¿Qué navegante portugués llegó por primera vez a la India por mar, en 1498?"
+      },
+      "answers": {
+        "en": [
+          "Bartolomeu Dias",
+          "Vasco da Gama",
+          "Pedro Álvares Cabral",
+          "Ferdinand Magellan"
+        ],
+        "pt-PT": [
+          "Bartolomeu Dias",
+          "Vasco da Gama",
+          "Pedro Álvares Cabral",
+          "Fernão de Magalhães"
+        ],
+        "es-ES": [
+          "Bartolomeu Dias",
+          "Vasco da Gama",
+          "Pedro Álvares Cabral",
+          "Fernando de Magallanes"
+        ]
+      },
+      "correct": 1,
+      "source": "manual"
+    },
+    {
+      "id": "belem-tart",
+      "category": "food",
+      "minAge": 10,
+      "regions": [
+        "PT"
+      ],
+      "text": {
+        "en": "Which Lisbon neighbourhood is famous for its custard tarts, the pastéis?",
+        "pt-PT": "Que bairro de Lisboa é famoso pelos seus pastéis de nata?",
+        "es-ES": "¿Qué barrio de Lisboa es famoso por sus pasteles de nata?"
+      },
+      "answers": {
+        "en": [
+          "Alfama",
+          "Belém",
+          "Chiado",
+          "Bairro Alto"
+        ],
+        "pt-PT": [
+          "Alfama",
+          "Belém",
+          "Chiado",
+          "Bairro Alto"
+        ],
+        "es-ES": [
+          "Alfama",
+          "Belém",
+          "Chiado",
+          "Bairro Alto"
+        ]
+      },
+      "correct": 1,
+      "source": "manual"
+    },
+    {
+      "id": "seville-river",
+      "category": "geography",
+      "minAge": 12,
+      "regions": [
+        "ES"
+      ],
+      "text": {
+        "en": "Which river flows through Seville?",
+        "pt-PT": "Que rio passa por Sevilha?",
+        "es-ES": "¿Qué río pasa por Sevilla?"
+      },
+      "answers": {
+        "en": [
+          "Ebro",
+          "Tagus",
+          "Guadalquivir",
+          "Duero"
+        ],
+        "pt-PT": [
+          "Ebro",
+          "Tejo",
+          "Guadalquivir",
+          "Douro"
+        ],
+        "es-ES": [
+          "Ebro",
+          "Tajo",
+          "Guadalquivir",
+          "Duero"
+        ]
+      },
+      "correct": 2,
+      "source": "manual"
+    },
+    {
+      "id": "sagrada-familia",
+      "category": "art",
+      "minAge": 10,
+      "regions": [
+        "ES"
+      ],
+      "text": {
+        "en": "Who designed the Sagrada Família in Barcelona?",
+        "pt-PT": "Quem projetou a Sagrada Família, em Barcelona?",
+        "es-ES": "¿Quién diseñó la Sagrada Familia de Barcelona?"
+      },
+      "answers": {
+        "en": [
+          "Antoni Gaudí",
+          "Salvador Dalí",
+          "Joan Miró",
+          "Pablo Picasso"
+        ],
+        "pt-PT": [
+          "Antoni Gaudí",
+          "Salvador Dalí",
+          "Joan Miró",
+          "Pablo Picasso"
+        ],
+        "es-ES": [
+          "Antoni Gaudí",
+          "Salvador Dalí",
+          "Joan Miró",
+          "Pablo Picasso"
+        ]
+      },
+      "correct": 0,
+      "fact": {
+        "en": "Work on it began in 1882.",
+        "pt-PT": "As obras começaram em 1882.",
+        "es-ES": "Las obras empezaron en 1882."
+      },
+      "source": "manual"
+    },
+    {
+      "id": "paella-region",
+      "category": "food",
+      "minAge": 8,
+      "regions": [
+        "ES"
+      ],
+      "text": {
+        "en": "Paella comes from which Spanish region?",
+        "pt-PT": "A paella é originária de que região espanhola?",
+        "es-ES": "¿De qué región española es originaria la paella?"
+      },
+      "answers": {
+        "en": [
+          "Andalusia",
+          "Valencia",
+          "Catalonia",
+          "Galicia"
+        ],
+        "pt-PT": [
+          "Andaluzia",
+          "Valência",
+          "Catalunha",
+          "Galiza"
+        ],
+        "es-ES": [
+          "Andalucía",
+          "Valencia",
+          "Cataluña",
+          "Galicia"
+        ]
+      },
+      "correct": 1,
+      "source": "manual"
+    },
+    {
+      "id": "billund-toys",
+      "category": "history",
+      "minAge": 8,
+      "regions": [
+        "DK"
+      ],
+      "text": {
+        "en": "Which toy company was founded in Billund, Denmark?",
+        "pt-PT": "Que empresa de brinquedos foi fundada em Billund, na Dinamarca?",
+        "es-ES": "¿Qué empresa de juguetes se fundó en Billund, Dinamarca?"
+      },
+      "answers": {
+        "en": [
+          "LEGO",
+          "Playmobil",
+          "Mattel",
+          "Hasbro"
+        ],
+        "pt-PT": [
+          "LEGO",
+          "Playmobil",
+          "Mattel",
+          "Hasbro"
+        ],
+        "es-ES": [
+          "LEGO",
+          "Playmobil",
+          "Mattel",
+          "Hasbro"
+        ]
+      },
+      "correct": 0,
+      "source": "manual"
+    },
+    {
+      "id": "andersen-tale",
+      "category": "art",
+      "minAge": 8,
+      "regions": [
+        "DK"
+      ],
+      "text": {
+        "en": "Which fairy tale did Hans Christian Andersen write?",
+        "pt-PT": "Que conto de fadas escreveu Hans Christian Andersen?",
+        "es-ES": "¿Qué cuento de hadas escribió Hans Christian Andersen?"
+      },
+      "answers": {
+        "en": [
+          "Cinderella",
+          "The Little Mermaid",
+          "Snow White",
+          "Rapunzel"
+        ],
+        "pt-PT": [
+          "A Gata Borralheira",
+          "A Pequena Sereia",
+          "A Branca de Neve",
+          "Rapunzel"
+        ],
+        "es-ES": [
+          "La Cenicienta",
+          "La sirenita",
+          "Blancanieves",
+          "Rapunzel"
+        ]
+      },
+      "correct": 1,
+      "fact": {
+        "en": "A statue of her sits in Copenhagen harbour.",
+        "pt-PT": "Há uma estátua dela no porto de Copenhaga.",
+        "es-ES": "Hay una estatua suya en el puerto de Copenhague."
+      },
+      "source": "manual"
+    }
+  ]
+}
