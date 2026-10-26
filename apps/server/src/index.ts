@@ -15,7 +15,9 @@ const WEB_DIR = process.env.WEB_DIR ?? path.resolve(here, '../../web/dist');
 
 const app = Fastify({ logger: { level: process.env.LOG_LEVEL ?? 'info' } });
 
-app.get('/healthz', async () => ({ ok: true }));
+const VERSION = (process.env.APP_VERSION ?? 'dev').slice(0, 12);
+app.get('/healthz', async () => ({ ok: true, version: VERSION }));
+app.log.info({ version: VERSION }, 'starting couch potato');
 
 if (existsSync(WEB_DIR)) {
   await app.register(fastifyStatic, { root: WEB_DIR, wildcard: false });

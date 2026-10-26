@@ -14,3 +14,4 @@ write a new line that supersedes it instead.
 - 2026-10-25 · One Docker image published to GHCR, run on TrueNAS SCALE · matches the self-hosted setup
 - 2026-10-25 · Socket.IO ping every 20 s · stays well inside Cloudflare's ~100 s idle timeout
 - 2026-10-25 · Game names are our own; mechanics are borrowed, trademarks are not · avoid IP trouble
+- 2026-10-26 · Compose uses `pull_policy: always`; updating = Stop → Start in TrueNAS · TrueNAS reused the cached `:latest` image and needed a full reinstall

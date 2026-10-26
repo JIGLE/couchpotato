@@ -3,6 +3,8 @@
 services:
   couchpotato:
     image: ghcr.io/jigle/couchpotato:latest
+    # Check GitHub for a newer image every time the app starts, so updating is just Stop → Start.
+    pull_policy: always
     # build: .            # uncomment to build locally instead of pulling
     container_name: couchpotato
     restart: unless-stopped
