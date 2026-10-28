@@ -14,7 +14,7 @@ services:
       LOG_LEVEL: info
       # ADMIN_PASSWORD: change-me   # used from Phase 3 (host sign-in)
     volumes:
-      - couchpotato-data:/data      # from Phase 3: hosts, invites, question packs
+      - couchpotato-data:/data      # couchpotato.db (SQLite): hosts, invites, settings — back this up
 
 volumes:
   couchpotato-data:

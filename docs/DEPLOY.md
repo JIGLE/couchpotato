@@ -7,7 +7,23 @@ The `Release image` workflow publishes `ghcr.io/jigle/couchpotato:latest` on eve
 1. TrueNAS → **Apps → Discover Apps → Custom App → Install via YAML**.
 2. Paste `docker-compose.yml` from this repo.
 3. If the repo is private, make the package public in GitHub (*Packages → couchpotato → Package settings → Change visibility*) or add GHCR credentials in TrueNAS.
-4. Check `http://<truenas-ip>:3000/healthz` returns `{"ok":true,"version":"…"}`.
+4. Check `http://<truenas-ip>:3000/healthz` returns `{"ok":true,"version":"…","storage":true}`.
+
+### Saved data (`/data`)
+
+Hosts, invites and settings live in one SQLite file, `couchpotato.db`, in the `couchpotato-data` volume
+mounted at `/data`. Updating the image keeps it; the schema upgrades itself on start.
+
+- **`"storage":false` in `/healthz`** means the server could not write to `/data` (games still work, sign-in
+  will not). Usually the volume was created before the image owned `/data`. Fix it once from
+  **System → Shell**, then Stop → Start the app:
+  ```
+  sudo docker run --rm -v couchpotato-data:/data alpine chown -R 1000:1000 /data
+  ```
+  (If TrueNAS prefixed the volume name, find it with `sudo docker volume ls | grep couchpotato`.)
+- **Back up** by copying `couchpotato.db` while the app is stopped, or include the volume in a TrueNAS snapshot.
+- **Rolling back** to an image older than the database is refused (the log says
+  `database is at version …`); restore the backup that matches that image instead.
 
 ### Updating (no reinstall)
 
