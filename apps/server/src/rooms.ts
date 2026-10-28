@@ -1,4 +1,4 @@
-import type { CushionColour, Mood, PotatoKind } from '@couchpotato/shared';
+import type { CushionColour, GameSettings, Mood, PotatoKind } from '@couchpotato/shared';
 
 // Room bookkeeping, kept free of Socket.IO so it can be unit-tested.
 
@@ -55,6 +55,8 @@ export interface Room {
   lastTapBy: string | null;
   /** Colour mood every screen in the room uses. */
   mood: Mood;
+  /** The settings the Head Spud is choosing, shown on the TV before the game starts. */
+  setup: GameSettings | null;
 }
 
 export type Rng = () => number;
@@ -80,7 +82,7 @@ export class RoomStore {
 
   create(): Room {
     const code = generateCode((c) => this.rooms.has(c), this.rng);
-    const room: Room = { code, createdAt: this.now(), members: new Set(), emptySince: this.now(), taps: 0, lastTapBy: null, mood: 'lamp' };
+    const room: Room = { code, createdAt: this.now(), members: new Set(), emptySince: this.now(), taps: 0, lastTapBy: null, mood: 'lamp', setup: null };
     this.rooms.set(code, room);
     return room;
   }

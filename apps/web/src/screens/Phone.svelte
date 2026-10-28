@@ -7,9 +7,10 @@
   import Potato from '../lib/Potato.svelte';
   import PotatoPicker from '../lib/PotatoPicker.svelte';
   import { loadPotato, savePotato } from '../lib/potatoes';
-  import type { GameView } from '@couchpotato/shared';
+  import type { GameSettings, GameView, Mood } from '@couchpotato/shared';
   import PhoneGame from './phone/PhoneGame.svelte';
-  import { applyMood } from '../lib/game';
+  import HostSetup from './phone/HostSetup.svelte';
+  import { applyMood, loadSettings, saveSettings } from '../lib/game';
 
   /** The seat this phone last sat in. The token lets the server give it back after a refresh. */
   type SavedSeat = { code: string; token: string };
@@ -104,13 +105,40 @@
   });
   socket.on('tap:count', (p) => (count = p.count));
   // Tile colours must match the TV exactly, so phones always wear the room's mood.
-  socket.on('room:mood', (p) => applyMood(p.mood, false));
+  let mood = $state<Mood>('lamp');
+  socket.on('room:mood', (p) => {
+    mood = p.mood;
+    applyMood(p.mood, false);
+  });
+
   let game = $state<GameView | null>(null);
   let offset = $state(0);
   socket.on('game:state', (view) => {
     game = view;
     if (view) offset = Date.now() - view.serverNow;
   });
+
+  // The Head Spud runs the night from here: settings, mood, start, and the end-of-game buttons.
+  const isHost = $derived(me?.role === 'head-spud');
+  const headSpud = $derived(players.find((p) => p.role === 'head-spud'));
+  let settings = $state<GameSettings>(loadSettings());
+  let notice = $state('');
+  socket.on('game:error', (p) => {
+    notice = p.reason === 'no-players' ? 'Nobody on the couch yet.' : 'No questions match these settings. Try another language or age.';
+  });
+  // Share the choices as they are made so the TV can show what's coming.
+  $effect(() => {
+    if (!isHost || game || !online) return;
+    const snap = $state.snapshot(settings);
+    saveSettings(snap);
+    socket.emit('lobby:setup', snap);
+  });
+  function startGame() {
+    notice = '';
+    socket.emit('game:start', $state.snapshot(settings));
+  }
+  const endGame = () => socket.emit('game:end');
+  const changeMood = (m: Mood) => socket.emit('room:mood', { mood: m });
   onDestroy(() => socket.disconnect());
 
   function join(e: SubmitEvent) {
@@ -191,6 +219,16 @@
     </form>
   {:else if game}
     <PhoneGame view={game} {offset} {playerId} onAnswer={(choice) => socket.emit('game:answer', { choice })} />
+    {#if isHost}
+      <div class="remote" aria-label="Head Spud remote">
+        {#if game.phase === 'podium'}
+          <button class="ghost" onclick={endGame}>Back to lobby</button>
+          <button class="primary" onclick={startGame}>Play again</button>
+        {:else}
+          <button class="leave" onclick={endGame}>End game for everyone</button>
+        {/if}
+      </div>
+    {/if}
   {:else}
     <div class="me">
       {#if me}
@@ -199,13 +237,22 @@
           <div class="avatar" style:background={c.bg}><Potato kind={me.potato} size={150} /></div>
         {/key}
       {/if}
+      {#if isHost}<span class="crown">HEAD SPUD</span>{/if}
       <h1>{online ? `You're in, ${name}.` : 'Lost the couch for a sec…'}</h1>
-      <p class="hint">{online ? 'Look at the TV. The host starts when everyone’s comfy.' : 'Reconnecting…'}</p>
+      <p class="hint">
+        {#if !online}Reconnecting…
+        {:else if isHost}You run tonight. Pick the game below and start when everyone's comfy.
+        {:else if headSpud}{headSpud.name} is the Head Spud and starts the game.
+        {:else}Look at the TV.{/if}
+      </p>
     </div>
+    {#if isHost && !swapping}
+      <HostSetup bind:settings players={players.length} {mood} {notice} onMood={changeMood} onStart={startGame} />
+    {/if}
     {#if swapping}
       <PotatoPicker value={potato} {taken} legend="SWAP YOUR POTATO" onPick={swap} />
     {:else}
-      <button class="tap" onclick={tap} disabled={!online}>Wave at the TV</button>
+      <button class="tap" onclick={tap} disabled={!online}>Bounce your potato</button>
     {/if}
     <button class="leave" onclick={() => (swapping = !swapping)} disabled={!online}>{swapping ? 'Keep this potato' : 'Swap potato'}</button>
     <p class="mono">Room {code} · {count} waves</p>
@@ -265,5 +312,13 @@
     min-height: 56px; border-radius: var(--radius-pill); background: transparent; color: var(--ink-muted);
     font-size: 15px; box-shadow: none;
   }
+  .crown {
+    padding: 6px 14px; border-radius: var(--radius-pill); background: var(--spud); color: var(--ink-on-spud);
+    font: 700 13px var(--font-display); letter-spacing: 0.08em; box-shadow: 0 0 24px var(--glow);
+  }
+  .remote { display: flex; gap: 12px; }
+  .remote button { flex: 1; min-height: 56px; border-radius: var(--radius-pill); }
+  .ghost { background: var(--surface-1); color: var(--ink); box-shadow: var(--morph-raised); }
+  .remote .primary { margin-top: 0; }
   .mono { margin: 0; text-align: center; font-family: var(--font-mono); color: var(--ink-muted); }
 </style>

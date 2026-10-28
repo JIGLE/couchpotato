@@ -2,7 +2,7 @@
 // Kept free of Socket.IO so it can be unit-tested.
 
 import { randomBytes } from 'node:crypto';
-import type { CushionColour, Player, PotatoKind } from '@couchpotato/shared';
+import type { CushionColour, Player, PotatoKind, Role } from '@couchpotato/shared';
 import { MAX_SEATS, cushion, freePotato, freeSeat, isPotato } from './rooms.js';
 
 /** A dropped phone keeps its seat this long. */
@@ -28,6 +28,8 @@ interface Seated {
   seat: number;
   colour: CushionColour;
   potato: PotatoKind;
+  /** Order of arrival; the earliest one still seated is the Head Spud. */
+  arrived: number;
   socketId: string | null;
   awaySince: number | null;
 }
@@ -36,6 +38,7 @@ export type SitResult = { ok: true; player: Player; token: string; rejoined: boo
 
 export class Couch {
   private byToken = new Map<string, Seated>();
+  private arrivals = 0;
 
   constructor(
     private now: () => number = Date.now,
@@ -54,7 +57,7 @@ export class Couch {
       known.socketId = socketId;
       known.awaySince = null;
       known.name = name || known.name;
-      return { ok: true, player: toPlayer(known), token: known.token, rejoined: true };
+      return { ok: true, player: this.toPlayer(known), token: known.token, rejoined: true };
     }
 
     const seat = freeSeat([...this.byToken.values()].map((p) => p.seat), this.seats);
@@ -68,11 +71,12 @@ export class Couch {
       seat,
       colour: cushion(colour, seat),
       potato: kind,
+      arrived: this.arrivals++,
       socketId,
       awaySince: null,
     };
     this.byToken.set(seated.token, seated);
-    return { ok: true, player: toPlayer(seated), token: seated.token, rejoined: false };
+    return { ok: true, player: this.toPlayer(seated), token: seated.token, rejoined: false };
   }
 
   /** Swap this phone's potato for one nobody else has. Returns true if it changed. */
@@ -116,11 +120,31 @@ export class Couch {
 
   player(socketId: string): Player | undefined {
     const p = this.bySocket(socketId);
-    return p && toPlayer(p);
+    return p && this.toPlayer(p);
   }
 
   list(): Player[] {
-    return [...this.byToken.values()].map(toPlayer).sort((a, b) => a.seat - b.seat);
+    return [...this.byToken.values()].map((p) => this.toPlayer(p)).sort((a, b) => a.seat - b.seat);
+  }
+
+  /**
+   * The Head Spud: the phone that has been on the couch longest. A dropped Head Spud keeps the role
+   * while their seat is held; leaving (or being swept) hands it to the next in line.
+   */
+  isHeadSpud(socketId: string): boolean {
+    const p = this.bySocket(socketId);
+    return !!p && p === this.headSpud();
+  }
+
+  private headSpud(): Seated | undefined {
+    let first: Seated | undefined;
+    for (const p of this.byToken.values()) if (!first || p.arrived < first.arrived) first = p;
+    return first;
+  }
+
+  private toPlayer(p: Seated): Player {
+    const role: Role = p === this.headSpud() ? 'head-spud' : 'potato';
+    return { id: p.id, name: p.name, seat: p.seat, colour: p.colour, potato: p.potato, role, away: p.awaySince !== null };
   }
 
   private takenPotatoes(): PotatoKind[] {
@@ -131,8 +155,4 @@ export class Couch {
     for (const p of this.byToken.values()) if (p.socketId === socketId) return p;
     return undefined;
   }
-}
-
-function toPlayer(p: Seated): Player {
-  return { id: p.id, name: p.name, seat: p.seat, colour: p.colour, potato: p.potato, away: p.awaySince !== null };
 }

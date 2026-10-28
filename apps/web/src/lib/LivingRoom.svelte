@@ -1,10 +1,13 @@
-<!-- The waiting room: a living room seen from its corner, two sofas facing the players, and a potato per seat.
-     Drawn on the TV's 1280×720 stage in 2:1 isometric. Everything is SVG, coloured from the mood tokens, so each mood
-     relights the room. Physics comes later; for now potatoes drop in, squash and puff some dust. -->
+<!-- The waiting room: a living room seen front-on, like a sitcom set, with one long sofa facing the players.
+     The room is SVG coloured from the mood tokens; the cushions and potatoes are a soft-body simulation drawn on
+     a canvas on top (see room/physics.ts). Potatoes fall in when players join, squash, wobble, ripple the cushions,
+     bump their neighbours, hop when their phone waves and get flicked off when they leave. -->
 <script lang="ts">
-  import type { Player } from '@couchpotato/shared';
-  import Potato from './Potato.svelte';
-  import { seatColour } from './seats';
+  import { onMount } from 'svelte';
+  import type { Player, PotatoKind } from '@couchpotato/shared';
+  import type { PotatoFace } from './potatoes';
+  import { SOFA, STEP, World, seatX, type Body } from './room/physics';
+  import { SPRITE, buildSprites, outline, spriteKey, type Sprites } from './room/sprites';
 
   let {
     players,
@@ -12,238 +15,491 @@
     wiggle = null,
   }: { players: Player[]; seats?: number; wiggle?: { id: string; n: number } | null } = $props();
 
-  // Room corner on the floor, in stage pixels. u runs down-right along the right wall, v down-left along the left one.
-  const OX = 800;
-  const OY = 215;
-  const P = (u: number, v: number, h = 0) => [OX + u - v, OY + (u + v) / 2 - h] as const;
-  const pts = (...ps: (readonly [number, number])[]) => ps.map((p) => p.join(',')).join(' ');
+  let canvas: HTMLCanvasElement;
+  let room: HTMLDivElement;
+  const world = new World();
+  const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  /** An axis-aligned block. Only three faces can face the camera: the top, the +u side and the +v side. */
-  function box(u0: number, u1: number, v0: number, v1: number, h0: number, h1: number) {
-    return {
-      top: pts(P(u0, v0, h1), P(u1, v0, h1), P(u1, v1, h1), P(u0, v1, h1)),
-      uFace: pts(P(u1, v0, h0), P(u1, v1, h0), P(u1, v1, h1), P(u1, v0, h1)),
-      vFace: pts(P(u0, v1, h0), P(u1, v1, h0), P(u1, v1, h1), P(u0, v1, h1)),
-    };
-  }
-  /** Same block with u and v swapped: the left sofa is the right one, mirrored onto the other wall. */
-  const mirror = (u0: number, u1: number, v0: number, v1: number, h0: number, h1: number) => box(v0, v1, u0, u1, h0, h1);
+  /** What the canvas needs to know about each potato beyond its physics. */
+  type Extra = { player: Player; ouchUntil: number; blinkAt: number; hopAt: number; leaving: boolean };
+  const extras = new Map<Body, Extra>();
+  const byId = new Map<string, Body>();
+  const outlines = new Map<PotatoKind, [number, number][]>();
+  type Dust = { x: number; y: number; vx: number; vy: number; r: number; life: number; max: number; star: boolean };
+  let dust: Dust[] = [];
+  let now = 0;
 
-  // A sofa is four seats of 85 units with arms either side, backed against a wall.
-  const SEAT = 85;
-  const START = 160;
-  const END = START + 4 * SEAT;
-  function sofa(b: typeof box) {
-    return {
-      back: b(START, END, 8, 40, 0, 118),
-      farArm: b(START - 20, START, 8, 128, 0, 78),
-      base: b(START, END, 40, 128, 0, 28),
-      cushions: [0, 1, 2, 3].map((i) => b(START + SEAT * i + 3, START + SEAT * (i + 1) - 3, 42, 128, 28, 50)),
-      backCushions: [0, 1, 2, 3].map((i) => b(START + SEAT * i + 5, START + SEAT * (i + 1) - 5, 32, 52, 50, 104)),
-      nearArm: b(END, END + 20, 8, 128, 0, 78),
-    };
-  }
-  const sofas = [sofa(mirror), sofa(box)];
-
-  /** Where seat n sits, left to right on screen: 0–3 on the left sofa (far end first), 4–7 on the right one. */
-  function seatSpot(seat: number) {
-    const along = START + SEAT * ((seat < 4 ? 3 - seat : seat - 4) + 0.5);
-    const [u, v] = seat < 4 ? [88, along] : [along, 88];
-    const [x, y] = P(u, v, 50);
-    const [lx, ly] = seat < 4 ? P(132, along, 22) : P(along, 132, 22);
-    return { x, y, lx, ly, depth: u + v };
-  }
-
-  const SIZE = 124;
-  const seated = $derived(
-    players
-      .filter((p) => p.seat < seats)
-      .map((p) => ({ player: p, ...seatSpot(p.seat) }))
-      .sort((a, b) => a.depth - b.depth),
-  );
-  /** A taken seat's cushion wears its player's colour. */
-  const tintFor = (seat: number) => {
-    const p = players.find((x) => x.seat === seat);
-    return p ? seatColour(p.colour).bg : undefined;
+  const rand = (a: number, b: number) => a + Math.random() * (b - a);
+  const hull = (kind: PotatoKind) => {
+    if (!outlines.has(kind)) outlines.set(kind, outline(kind));
+    return outlines.get(kind)!;
   };
-  const short = (name: string) => ([...name].length > 9 ? [...name].slice(0, 8).join('') + '…' : name);
 
-  const lamp = P(60, 60, 0);
-  const shade = P(60, 60, 205);
-  const table = box(250, 370, 250, 370, 0, 36);
-  const bowl = P(300, 300, 36);
-  const remote = box(335, 355, 270, 280, 36, 41);
+  function spawn(p: Player) {
+    const x = seatX(p.seat) + (reduced ? 0 : rand(-24, 24));
+    const y = reduced ? SOFA.frontEdge - SOFA.sit - 60 : rand(-260, -120);
+    const b = world.add(p.id, p.potato, p.seat, hull(p.potato), x, y, reduced ? 0 : rand(-0.35, 0.35));
+    if (!reduced) world.kick(b, rand(-60, 60), rand(0, 300), rand(-3, 3));
+    extras.set(b, { player: p, ouchUntil: 0, blinkAt: now + rand(1, 5), hopAt: now + rand(6, 14), leaving: false });
+    byId.set(p.id, b);
+  }
+
+  /** Off the sofa: a flick up and sideways, then gravity takes it out of the room. */
+  function flick(b: Body) {
+    const e = extras.get(b);
+    if (!e || e.leaving) return;
+    e.leaving = true;
+    byId.delete(b.id);
+    b.ghost = true;
+    world.kick(b, b.seat < seats / 2 ? -700 : 700, -900, b.seat < seats / 2 ? -9 : 9);
+  }
+
+  // Keep the simulation in step with who is on the couch.
+  $effect(() => {
+    const seen = new Set<string>();
+    for (const p of players) {
+      if (p.seat >= seats) continue;
+      seen.add(p.id);
+      const b = byId.get(p.id);
+      if (!b) spawn(p);
+      else if (b.kind !== p.potato) {
+        // Swapped potato: the old one is flicked away and the new one drops in.
+        flick(b);
+        spawn(p);
+      } else extras.get(b)!.player = p;
+    }
+    for (const [id, b] of byId) if (!seen.has(id)) flick(b);
+  });
+
+  // A wave from the phone makes that potato hop.
+  $effect(() => {
+    const b = wiggle && byId.get(wiggle.id);
+    if (b && !reduced) world.kick(b, rand(-80, 80), -1050, rand(-6, 6));
+  });
+
+  // Colours come from the mood; read them once per mood.
+  let colours = readColours();
+  function readColours() {
+    const css = getComputedStyle(document.documentElement);
+    const get = (name: string) => css.getPropertyValue(name).trim();
+    return {
+      sofa: get('--sofa'),
+      tiles: ['a', 'b', 'c', 'd'].map((k) => ({ bg: get(`--tile-${k}`), ink: get(`--tile-${k}-ink`) })),
+      outline: get('--potato-outline'),
+      spud: get('--spud'),
+      salt: get('--potato-salt'),
+      shadow: get('--edge-dark'),
+    };
+  }
+
+  /** Mix two #rrggbb colours; anything else falls back to the first. */
+  function mix(a: string, b: string, t: number): string {
+    const hex = (c: string) => (/^#[0-9a-f]{6}$/i.test(c) ? [1, 3, 5].map((i) => parseInt(c.slice(i, i + 2), 16)) : null);
+    const x = hex(a);
+    const y = hex(b);
+    if (!x || !y) return a;
+    return `rgb(${x.map((v, i) => Math.round(v + (y[i] - v) * t)).join(',')})`;
+  }
+
+  let sprites: Sprites = new Map();
+  onMount(() => {
+    let alive = true;
+    const refresh = () =>
+      buildSprites().then((s) => {
+        if (alive) sprites = s;
+      });
+    void refresh();
+    const moodWatch = new MutationObserver(() => {
+      colours = readColours();
+      void refresh();
+    });
+    moodWatch.observe(document.documentElement, { attributes: true, attributeFilter: ['data-mood'] });
+
+    const ctx = canvas.getContext('2d')!;
+    let last = performance.now();
+    let acc = 0;
+    let frame = 0;
+    const loop = (t: number) => {
+      frame = requestAnimationFrame(loop);
+      const dt = Math.min((t - last) / 1000, 0.1);
+      last = t;
+      acc += dt;
+      let steps = 0;
+      while (acc >= STEP && steps < 16) {
+        now += STEP;
+        for (const thud of world.step()) land(thud.body, thud.x, thud.y, thud.force);
+        acc -= STEP;
+        steps++;
+      }
+      if (steps === 16) acc = 0;
+      life(dt);
+      draw(ctx);
+    };
+    frame = requestAnimationFrame(loop);
+    return () => {
+      alive = false;
+      cancelAnimationFrame(frame);
+      moodWatch.disconnect();
+    };
+  });
+
+  /** A hard landing: dust, a squeezed face, and for the heavy ones the whole room shakes. */
+  function land(b: Body, x: number, y: number, force: number) {
+    const e = extras.get(b);
+    if (!e || force < 900) return;
+    if (force > 1800) e.ouchUntil = now + 0.45;
+    const puffs = Math.min(18, Math.round(force / 250));
+    for (let i = 0; i < puffs; i++) {
+      const dir = i % 2 ? 1 : -1;
+      dust.push({
+        x: x + rand(-10, 10), y, vx: dir * rand(60, 260), vy: rand(-260, -60),
+        r: rand(4, 9), life: 0, max: rand(0.35, 0.6), star: force > 3200 && i < 4,
+      });
+    }
+    if (force > 3200 && !reduced) {
+      room.animate(
+        [
+          { transform: 'translate(0,0)' }, { transform: 'translate(-6px,4px)' }, { transform: 'translate(5px,-3px)' },
+          { transform: 'translate(-2px,2px)' }, { transform: 'translate(0,0)' },
+        ],
+        { duration: 260, easing: 'ease-out' },
+      );
+    }
+  }
+
+  /** Blinks, idle hops, dust ageing, and clearing potatoes that have left the room. */
+  function life(dt: number) {
+    for (const [b, e] of extras) {
+      if (e.leaving && (b.minY > 800 || b.maxX < -200 || b.minX > 1480)) {
+        world.remove(b);
+        extras.delete(b);
+        continue;
+      }
+      if (now > e.blinkAt + 0.14) e.blinkAt = now + rand(2.5, 6);
+      if (!reduced && !e.leaving && !e.player.away && b.grounded && now > e.hopAt) {
+        world.kick(b, rand(-40, 40), rand(-520, -300), rand(-2.5, 2.5));
+        e.hopAt = now + rand(7, 16);
+      }
+    }
+    for (const d of dust) {
+      d.life += dt;
+      d.x += d.vx * dt;
+      d.y += d.vy * dt;
+      d.vy += 500 * dt;
+      d.vx *= 0.96;
+    }
+    dust = dust.filter((d) => d.life < d.max);
+  }
+
+  function faceOf(e: Extra): PotatoFace {
+    if (e.player.away) return 'sleep';
+    if (now < e.ouchUntil) return 'ouch';
+    if (now > e.blinkAt && now < e.blinkAt + 0.14) return 'blink';
+    return 'happy';
+  }
+
+  function draw(ctx: CanvasRenderingContext2D) {
+    const rect = canvas.getBoundingClientRect();
+    const k = Math.min(2.5, Math.max(1, (rect.width / 1280) * devicePixelRatio));
+    if (canvas.width !== Math.round(1280 * k)) {
+      canvas.width = Math.round(1280 * k);
+      canvas.height = Math.round(720 * k);
+    }
+    ctx.setTransform(k, 0, 0, k, 0, 0);
+    ctx.clearRect(0, 0, 1280, 720);
+    drawCushions(ctx);
+
+    const bodies = [...extras.keys()].sort((a, b) => Number(b.grounded) - Number(a.grounded) || a.cy - b.cy);
+    // Shadows first so no potato is drawn under another's shadow.
+    for (const b of bodies) {
+      if (b.ghost || b.cx < SOFA.left || b.cx > SOFA.right) continue;
+      const floor = world.surface(b.cx) - SOFA.sit;
+      const lift = Math.max(0, floor - b.maxY);
+      const a = Math.max(0, 0.45 - lift / 500);
+      if (a <= 0) continue;
+      ctx.fillStyle = colours.shadow;
+      ctx.globalAlpha = a;
+      ctx.beginPath();
+      ctx.ellipse(b.cx, floor + 2, ((b.maxX - b.minX) / 2) * (1 - Math.min(lift, 300) / 600), 7, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.globalAlpha = 1;
+    }
+    for (const b of bodies) drawPotato(ctx, b, k);
+    ctx.setTransform(k, 0, 0, k, 0, 0);
+    drawDust(ctx);
+    drawNames(ctx);
+  }
+
+  function drawCushions(ctx: CanvasRenderingContext2D) {
+    const width = (SOFA.right - SOFA.left) / SOFA.seats;
+    ctx.lineJoin = 'round';
+    for (let s = 0; s < SOFA.seats; s++) {
+      const p = players.find((x) => x.seat === s);
+      const base = p ? colours.tiles[p.colour % 4].bg : colours.sofa;
+      const x0 = SOFA.left + s * width + 2;
+      const x1 = x0 + width - 4;
+      const edge: [number, number][] = [];
+      for (let i = 0; i <= 10; i++) {
+        const x = x0 + ((x1 - x0) * i) / 10;
+        edge.push([x, world.surface(x)]);
+      }
+      // Top of the cushion: from the fixed back edge to the moving front edge, which dents under a potato.
+      ctx.beginPath();
+      ctx.moveTo(x0 + 6, SOFA.backEdge);
+      ctx.lineTo(x1 - 6, SOFA.backEdge);
+      for (let i = edge.length - 1; i >= 0; i--) ctx.lineTo(edge[i][0], edge[i][1]);
+      ctx.closePath();
+      ctx.fillStyle = mix(base, '#ffffff', 0.22);
+      ctx.fill();
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = mix(base, '#000000', 0.55);
+      ctx.stroke();
+      // Front face, following the dent.
+      ctx.beginPath();
+      edge.forEach(([x, y], i) => (i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)));
+      ctx.lineTo(x1, SOFA.faceBottom);
+      ctx.lineTo(x0, SOFA.faceBottom);
+      ctx.closePath();
+      ctx.fillStyle = base;
+      ctx.fill();
+      ctx.stroke();
+      // Piping along the front edge.
+      ctx.beginPath();
+      edge.forEach(([x, y], i) => (i ? ctx.lineTo(x, y + 7) : ctx.moveTo(x, y + 7)));
+      ctx.strokeStyle = mix(base, '#ffffff', 0.35);
+      ctx.lineWidth = 2;
+      ctx.stroke();
+    }
+  }
+
+  function drawPotato(ctx: CanvasRenderingContext2D, b: Body, k: number) {
+    const e = extras.get(b);
+    const img = e && sprites.get(spriteKey(b.kind, faceOf(e)));
+    if (!e || !img || !img.complete) return;
+    const breathe = b.grounded ? Math.sin(now * 2.6 + b.seat * 1.3) * 0.025 : 0;
+    const [ma, mb, mc, md] = b.m;
+    const sx = 1 + breathe;
+    const sy = 1 - breathe;
+    // Breathing squash about the potato's base, on top of the physics deformation about its centre.
+    ctx.setTransform(k * ma * sx, k * mc * sx, k * mb * sy, k * md * sy, k * b.cx, k * (b.cy + (b.maxY - b.cy) * breathe));
+    ctx.globalAlpha = e.player.away ? 0.75 : 1;
+    ctx.drawImage(img, -b.spriteCx, -b.spriteCy, SPRITE, SPRITE);
+    ctx.globalAlpha = 1;
+    if (e.player.role === 'head-spud' && !e.leaving) drawCrown(ctx, b);
+  }
+
+  /** The Head Spud wears a crown, riding the potato's wobble. */
+  function drawCrown(ctx: CanvasRenderingContext2D, b: Body) {
+    const top = -(b.cy - b.minY) - 2;
+    ctx.beginPath();
+    ctx.moveTo(-15, top);
+    ctx.lineTo(-17, top - 18);
+    ctx.lineTo(-8, top - 9);
+    ctx.lineTo(0, top - 22);
+    ctx.lineTo(8, top - 9);
+    ctx.lineTo(17, top - 18);
+    ctx.lineTo(15, top);
+    ctx.closePath();
+    ctx.fillStyle = colours.spud;
+    ctx.strokeStyle = colours.outline;
+    ctx.lineWidth = 3;
+    ctx.lineJoin = 'round';
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = colours.salt;
+    ctx.beginPath();
+    ctx.arc(0, top - 7, 2.5, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  function drawDust(ctx: CanvasRenderingContext2D) {
+    for (const d of dust) {
+      const t = d.life / d.max;
+      ctx.globalAlpha = (1 - t) * 0.7;
+      if (d.star) {
+        ctx.fillStyle = colours.spud;
+        ctx.font = `700 ${Math.round(20 + 10 * t)}px sans-serif`;
+        ctx.fillText('✦', d.x, d.y);
+      } else {
+        ctx.fillStyle = colours.salt;
+        ctx.beginPath();
+        ctx.arc(d.x, d.y, d.r * (0.6 + t), 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  /** Name tags under the sofa in the player's cushion colour, alternating rows so long names have room. */
+  function drawNames(ctx: CanvasRenderingContext2D) {
+    ctx.font = '800 32px Manrope, system-ui, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    for (const p of players) {
+      if (p.seat >= seats) continue;
+      const x = seatX(p.seat);
+      const y = p.seat % 2 ? 640 : 592;
+      let name = (p.role === 'head-spud' ? '♛ ' : '') + p.name;
+      while (ctx.measureText(name).width > 156 && name.length > 2) name = name.slice(0, -2) + '…';
+      const w = ctx.measureText(name).width + 28;
+      const tile = colours.tiles[p.colour % 4];
+      ctx.globalAlpha = p.away ? 0.55 : 1;
+      ctx.strokeStyle = colours.outline;
+      ctx.lineWidth = 3;
+      // The lower row gets a little stalk up to its seat.
+      if (p.seat % 2) {
+        ctx.beginPath();
+        ctx.moveTo(x, 574);
+        ctx.lineTo(x, y - 22);
+        ctx.stroke();
+      }
+      ctx.fillStyle = tile.bg;
+      ctx.beginPath();
+      ctx.roundRect(x - w / 2, y - 22, w, 44, 22);
+      ctx.fill();
+      ctx.stroke();
+      ctx.fillStyle = tile.ink;
+      ctx.fillText(name, x, y + 2);
+      ctx.globalAlpha = 1;
+    }
+  }
+
+  // The clock on the wall tells the real time. Nobody asked for this.
+  let time = $state(new Date());
+  onMount(() => {
+    const t = setInterval(() => (time = new Date()), 1000);
+    return () => clearInterval(t);
+  });
+  const hourAngle = $derived(((time.getHours() % 12) + time.getMinutes() / 60) * 30);
+  const minuteAngle = $derived((time.getMinutes() + time.getSeconds() / 60) * 6);
+  const secondAngle = $derived(time.getSeconds() * 6);
+
+  // Floorboards converge on a vanishing point above the sofa.
+  const boards = Array.from({ length: 17 }, (_, i) => 120 + i * 80);
+  const stripes = Array.from({ length: 33 }, (_, i) => i * 40);
+  const backs = Array.from({ length: SOFA.seats }, (_, i) => SOFA.left + (i * (SOFA.right - SOFA.left)) / SOFA.seats);
+  const backW = (SOFA.right - SOFA.left) / SOFA.seats;
 </script>
 
-{#snippet block(b: ReturnType<typeof box>, kind: string, tint?: string)}
-  <g class="block {kind}" class:tinted={!!tint} style:--tint={tint}>
-    <polygon class="u" points={b.uFace} /><polygon class="v" points={b.vFace} /><polygon class="t" points={b.top} />
-  </g>
-{/snippet}
+<div class="room" bind:this={room} aria-hidden="true">
+  <svg viewBox="0 0 1280 720">
+    <defs>
+      <radialGradient id="lamp-glow">
+        <stop offset="0" class="glow-in" />
+        <stop offset="1" class="glow-out" />
+      </radialGradient>
+      <filter id="neon" x="-20%" y="-80%" width="140%" height="260%">
+        <feGaussianBlur stdDeviation="5" result="soft" />
+        <feGaussianBlur stdDeviation="16" in="SourceGraphic" result="wide" />
+        <feMerge><feMergeNode in="wide" /><feMergeNode in="soft" /><feMergeNode in="SourceGraphic" /></feMerge>
+      </filter>
+    </defs>
 
-<svg class="room" viewBox="0 0 1280 720" aria-hidden="true">
-  <defs>
-    <radialGradient id="lamp-glow">
-      <stop offset="0" class="glow-in" />
-      <stop offset="1" class="glow-out" />
-    </radialGradient>
-    <linearGradient id="night" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" class="sky-top" />
-      <stop offset="1" class="sky-bottom" />
-    </linearGradient>
-  </defs>
-
-  <!-- Walls and floor. -->
-  <polygon class="wall-left" points={pts(P(0, 0, 600), P(0, 0, 0), P(0, 900, 0), P(0, 900, 600))} />
-  <polygon class="wall-right" points={pts(P(0, 0, 600), P(0, 0, 0), P(900, 0, 0), P(900, 0, 600))} />
-  <polygon class="floor" points={pts(P(0, 0), P(900, 0), P(900, 900), P(0, 900))} />
-  <g transform="matrix(1 0.5 -1 0.5 {OX} {OY})">
-    {#each [60, 120, 180, 240, 300, 360, 420, 480, 540, 600] as v (v)}
-      <line class="board" x1="0" y1={v} x2="900" y2={v} />
+    <!-- Wall with a faint stripe, skirting, and the floor. -->
+    <rect class="wall" x="0" y="0" width="1280" height="560" />
+    {#each stripes as x (x)}
+      <rect class="stripe" {x} y="0" width="16" height="548" />
     {/each}
-    <rect class="rug" x="175" y="175" width="270" height="270" rx="28" />
-    <rect class="rug-trim" x="195" y="195" width="230" height="230" rx="18" />
-  </g>
-  <polyline class="skirting" points={pts(P(0, 900, 0), P(0, 0, 0), P(900, 0, 0))} />
+    <rect class="skirting" x="0" y="540" width="1280" height="20" />
+    <rect class="floor" x="0" y="560" width="1280" height="160" />
+    {#each boards as x (x)}
+      <line class="board" x1={820 + (x - 820) * 0.55} y1="560" x2={x} y2="720" />
+    {/each}
+    <polygon class="rug" points="520,578 1120,578 1190,716 450,716" />
+    <polygon class="rug-trim" points="540,588 1100,588 1162,706 478,706" />
 
-  <!-- A window on the right wall, a picture on the left. Both drawn flat, then sheared onto their wall. -->
-  <g transform="matrix(1 0.5 0 -1 {OX} {OY})">
-    <rect class="sky" x="250" y="160" width="170" height="140" rx="6" />
-    <circle class="moon" cx="380" cy="268" r="16" />
-    <circle class="star" cx="290" cy="280" r="2.5" /><circle class="star" cx="330" cy="200" r="2" />
-    <circle class="star" cx="270" cy="220" r="1.8" /><circle class="star" cx="405" cy="215" r="2.2" />
-    <rect class="frame" x="250" y="160" width="170" height="140" rx="6" />
-    <line class="frame" x1="335" y1="160" x2="335" y2="300" />
-  </g>
-  <g transform="matrix(-1 0.5 0 -1 {OX} {OY})">
-    <rect class="picture" x="260" y="170" width="120" height="90" rx="4" />
-    <path class="picture-spud" d="M296 205 C292 228 306 240 320 238 C338 236 346 222 342 206 C338 192 324 188 314 189 C302 190 298 196 296 205 Z" />
-    <rect class="frame" x="260" y="170" width="120" height="90" rx="4" />
-  </g>
-
-  <!-- The lamp in the corner throws the mood's glow over everything. -->
-  <circle class="lamp-light" cx={shade[0]} cy={shade[1] + 40} r="300" fill="url(#lamp-glow)" />
-  <line class="pole" x1={lamp[0]} y1={lamp[1]} x2={shade[0]} y2={shade[1]} />
-  <ellipse class="lamp-foot" cx={lamp[0]} cy={lamp[1]} rx="22" ry="11" />
-  <path class="lamp-shade" d="M{shade[0] - 34} {shade[1] + 6} L{shade[0] + 34} {shade[1] + 6} L{shade[0] + 20} {shade[1] - 38} L{shade[0] - 20} {shade[1] - 38} Z" />
-
-  <!-- Two sofas, each drawn back to front so nearer parts cover farther ones. -->
-  {#each sofas as s, i (i)}
-    {@render block(s.back, 'frame')}
-    {@render block(s.farArm, 'frame')}
-    {@render block(s.base, 'frame')}
-    {#each s.cushions as c, j (j)}{@render block(c, 'cushion', tintFor(i === 0 ? 3 - j : 4 + j))}{/each}
-    {#each s.backCushions as c, j (j)}{@render block(c, 'cushion')}{/each}
-    {@render block(s.nearArm, 'frame')}
-  {/each}
-
-  <!-- Coffee table with the essentials: popcorn and the remote nobody can find. -->
-  {@render block(table, 'table')}
-  <ellipse class="bowl" cx={bowl[0]} cy={bowl[1] - 6} rx="34" ry="16" />
-  {#each [[-14, -14], [0, -18], [14, -13], [-6, -8], [8, -6], [-20, -6], [20, -5]] as [dx, dy], k (k)}
-    <circle class="popcorn" cx={bowl[0] + dx} cy={bowl[1] + dy - 6} r="7" />
-  {/each}
-  {@render block(remote, 'remote')}
-
-  <!-- The potatoes, back to front. -->
-  {#each seated as s (s.player.id)}
-    <g transform="translate({s.x} {s.y})" class:away={s.player.away}>
-      <ellipse class="dent" cx="0" cy="2" rx="46" ry="14" />
-      {#key wiggle?.id === s.player.id ? wiggle?.n : 0}
-        <g class="drop" class:wiggle={wiggle?.id === s.player.id}>
-          <g transform="translate({-SIZE / 2} {-SIZE * 0.9})">
-            <Potato kind={s.player.potato} size={SIZE} asleep={s.player.away} delay={s.player.seat * 0.37} />
-          </g>
-        </g>
-      {/key}
-      <g class="puff">
-        <circle cx="-34" cy="0" r="9" /><circle cx="34" cy="0" r="9" /><circle cx="-18" cy="6" r="7" /><circle cx="20" cy="6" r="7" />
+    <!-- The logo, in neon, because a sticker would have been reasonable. -->
+    <g class="neon-sign" transform="translate(772 196)">
+      <rect class="clip" x="-232" y="-52" width="8" height="14" rx="2" />
+      <rect class="clip" x="224" y="-52" width="8" height="14" rx="2" />
+      <g filter="url(#neon)">
+        <path class="tube" d="M-292 14 C-296 -14 -276 -34 -254 -32 C-230 -30 -218 -12 -222 10 C-225 28 -244 36 -258 35 C-274 34 -289 28 -292 14 Z" />
+        <path class="tube" d="M-276 2 q4 4 8 0 M-254 2 q4 4 8 0" />
+        <text class="tube word" x="-200" y="20">couch p<tspan class="flicker">o</tspan>tato</text>
       </g>
     </g>
-  {/each}
 
-  <!-- Names on the seat fronts, last so nothing covers them. -->
-  {#each seated as s (s.player.id)}
-    <text class="name" class:away={s.player.away} x={s.lx} y={s.ly + 11}>{short(s.player.name)}</text>
-  {/each}
-</svg>
+    <!-- Wall clock, real time. -->
+    <g transform="translate(1150 186)">
+      <circle r="38" class="clock-face" />
+      {#each Array.from({ length: 12 }, (_, i) => i * 30) as a (a)}
+        <line class="tick" x1="0" y1="-29" x2="0" y2="-33" transform="rotate({a})" />
+      {/each}
+      <line class="hand" x1="0" y1="4" x2="0" y2="-17" transform="rotate({hourAngle})" />
+      <line class="hand" x1="0" y1="6" x2="0" y2="-26" transform="rotate({minuteAngle})" />
+      <line class="second" x1="0" y1="8" x2="0" y2="-29" transform="rotate({secondAngle})" />
+      <circle r="3.5" class="pin" />
+    </g>
+
+    <!-- Floor lamp behind the right arm. -->
+    <circle cx="1252" cy="250" r="280" fill="url(#lamp-glow)" />
+    <line class="pole" x1="1252" y1="262" x2="1252" y2="556" />
+    <path class="lamp-shade" d="M1218 266 L1286 266 L1272 214 L1232 214 Z" />
+
+    <!-- The sofa's frame: backrest, back cushions, base and arms. Seat cushions live on the canvas. -->
+    <g class="sofa">
+      <rect class="back" x="436" y="312" width="768" height="128" rx="18" />
+      <rect class="back-top" x="428" y="296" width="784" height="32" rx="16" />
+      {#each backs as x (x)}
+        <rect class="back-cushion" x={x + 4} y="334" width={backW - 8} height="98" rx="16" />
+        <circle class="tuft" cx={x + backW / 2} cy="372" r="4" />
+      {/each}
+      <rect class="base" x="410" y="508" width="820" height="54" rx="10" />
+      <rect class="leg" x="428" y="560" width="16" height="14" rx="3" />
+      <rect class="leg" x="812" y="560" width="16" height="14" rx="3" />
+      <rect class="leg" x="1196" y="560" width="16" height="14" rx="3" />
+      <rect class="arm" x="408" y="398" width="52" height="156" rx="14" />
+      <rect class="arm-top" x="404" y="388" width="60" height="30" rx="15" />
+      <rect class="arm" x="1180" y="398" width="52" height="156" rx="14" />
+      <rect class="arm-top" x="1176" y="388" width="60" height="30" rx="15" />
+    </g>
+  </svg>
+  <canvas bind:this={canvas}></canvas>
+</div>
 
 <style>
-  .room { position: absolute; inset: 0; width: 100%; height: 100%; overflow: hidden; }
+  .room { position: absolute; inset: 0; overflow: hidden; }
+  svg, canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
 
-  .wall-left { fill: color-mix(in srgb, var(--surface-1) 88%, var(--spud)); }
-  .wall-right { fill: color-mix(in srgb, var(--surface-1) 92%, black); }
-  .floor { fill: color-mix(in srgb, var(--surface-2) 82%, var(--spud)); }
-  .board { stroke: var(--edge-dark); stroke-width: 1.5; opacity: 0.35; }
-  .rug { fill: var(--tile-d); opacity: 0.55; }
-  .rug-trim { fill: none; stroke: var(--tile-a); stroke-width: 4; stroke-dasharray: 14 10; opacity: 0.6; }
-  .skirting { fill: none; stroke: var(--edge-dark); stroke-width: 6; }
+  .wall { fill: color-mix(in srgb, var(--surface-1) 86%, var(--spud)); }
+  .stripe { fill: var(--ink); opacity: 0.025; }
+  .skirting { fill: color-mix(in srgb, var(--surface-0) 70%, var(--spud)); }
+  .floor { fill: color-mix(in srgb, var(--surface-2) 78%, var(--spud)); }
+  .board { stroke: var(--edge-dark); stroke-width: 2; opacity: 0.5; }
+  .rug { fill: var(--tile-d); opacity: 0.6; }
+  .rug-trim { fill: none; stroke: var(--tile-a); stroke-width: 4; stroke-dasharray: 16 10; opacity: 0.7; }
 
-  .sky { fill: url(#night); }
-  .sky-top { stop-color: var(--surface-0); }
-  .sky-bottom { stop-color: var(--sofa); }
-  .moon { fill: var(--potato-mash); }
-  .star { fill: var(--ink); opacity: 0.8; animation: twinkle 3s ease-in-out infinite; }
-  .star:nth-of-type(2n) { animation-delay: -1.4s; }
-  .frame { fill: none; stroke: var(--potato-outline); stroke-width: 6; }
-  .picture { fill: var(--surface-2); }
-  .picture-spud { fill: var(--spud); }
+  .clip { fill: var(--ink-muted); opacity: 0.5; }
+  .tube { fill: none; stroke: var(--spud); stroke-width: 4; stroke-linecap: round; stroke-linejoin: round; }
+  .word { font: 600 60px var(--font-display); letter-spacing: -0.02em; stroke-width: 3; }
+  .neon-sign { animation: buzz 6s steps(1) infinite; }
+  .flicker { animation: flicker 3.7s steps(1) infinite; }
 
-  .glow-in { stop-color: var(--spud); stop-opacity: 0.35; }
+  .clock-face { fill: var(--potato-mash); stroke: var(--potato-outline); stroke-width: 5; }
+  .tick { stroke: var(--potato-outline); stroke-width: 3; stroke-linecap: round; }
+  .hand { stroke: var(--potato-outline); stroke-width: 5; stroke-linecap: round; }
+  .second { stroke: var(--tile-d); stroke-width: 2; stroke-linecap: round; }
+  .pin { fill: var(--potato-outline); }
+
+  .glow-in { stop-color: var(--spud); stop-opacity: 0.4; }
   .glow-out { stop-color: var(--spud); stop-opacity: 0; }
-  .lamp-light { mix-blend-mode: screen; animation: flicker 7s ease-in-out infinite; }
-  .pole { stroke: var(--potato-outline); stroke-width: 5; stroke-linecap: round; }
-  .lamp-foot { fill: var(--potato-outline); }
+  .pole { stroke: var(--potato-outline); stroke-width: 6; stroke-linecap: round; }
   .lamp-shade { fill: var(--potato-mash); stroke: var(--potato-outline); stroke-width: 4; stroke-linejoin: round; }
 
-  .block polygon { stroke: color-mix(in srgb, var(--sofa) 35%, black); stroke-width: 3; stroke-linejoin: round; }
-  .frame .t { fill: color-mix(in srgb, var(--sofa) 80%, white); }
-  .frame .u { fill: var(--sofa); }
-  .frame .v { fill: color-mix(in srgb, var(--sofa) 72%, black); }
-  .cushion .t { fill: color-mix(in srgb, var(--sofa) 70%, white); }
-  .cushion .u { fill: color-mix(in srgb, var(--sofa) 92%, white); }
-  .cushion .v { fill: color-mix(in srgb, var(--sofa) 85%, black); }
-  .cushion.tinted .t { fill: color-mix(in srgb, var(--tint) 88%, white); }
-  .cushion.tinted .u { fill: var(--tint); }
-  .cushion.tinted .v { fill: color-mix(in srgb, var(--tint) 75%, black); }
-  .table polygon, .remote polygon { stroke: var(--potato-outline); }
-  .table .t { fill: color-mix(in srgb, var(--potato-skin) 80%, white); }
-  .table .u { fill: var(--potato-skin); }
-  .table .v { fill: var(--potato-skin-shade); }
-  .remote .t, .remote .u, .remote .v { fill: var(--potato-outline); }
-  .bowl { fill: var(--tile-d); stroke: var(--potato-outline); stroke-width: 3; }
-  .popcorn { fill: var(--potato-mash); stroke: var(--potato-outline); stroke-width: 2; }
+  .sofa rect { stroke: color-mix(in srgb, var(--sofa) 40%, black); stroke-width: 3; }
+  .back-top { fill: color-mix(in srgb, var(--sofa) 78%, white); }
+  .back { fill: var(--sofa); }
+  .back-cushion { fill: color-mix(in srgb, var(--sofa) 90%, white); }
+  .tuft { fill: color-mix(in srgb, var(--sofa) 55%, black); }
+  .base { fill: color-mix(in srgb, var(--sofa) 70%, black); }
+  .leg { fill: var(--potato-outline); }
+  .arm { fill: color-mix(in srgb, var(--sofa) 92%, black); }
+  .arm-top { fill: color-mix(in srgb, var(--sofa) 80%, white); }
 
-  .dent { fill: var(--edge-dark); opacity: 0.5; animation: dent 600ms var(--ease-out) both; transform-box: fill-box; transform-origin: center; }
-  .drop { transform-box: fill-box; transform-origin: 50% 92%; animation: drop 620ms cubic-bezier(0.5, 0, 0.6, 1) both; }
-  .drop.wiggle { animation: hop 420ms var(--ease-out); }
-  .away .drop { opacity: 0.6; }
-  .puff circle { fill: var(--ink); opacity: 0; transform-box: fill-box; transform-origin: center; animation: puff 520ms ease-out 260ms both; }
-  .puff circle:nth-child(odd) { --dx: -14px; }
-  .puff circle:nth-child(even) { --dx: 14px; }
-
-  .name {
-    font: 800 32px var(--font-sans); text-anchor: middle; fill: var(--potato-salt);
-    paint-order: stroke; stroke: var(--potato-outline); stroke-width: 8px; stroke-linejoin: round;
-  }
-  .name.away { opacity: 0.55; }
-
-  /* Fall from above the stage, slam, squash, rebound once, settle. */
-  @keyframes drop {
-    0% { transform: translateY(-560px) scale(0.92, 1.12); }
-    42% { transform: translateY(0) scale(0.92, 1.12); }
-    52% { transform: translateY(0) scale(1.24, 0.72); }
-    66% { transform: translateY(-16px) scale(0.94, 1.08); }
-    80% { transform: translateY(0) scale(1.06, 0.94); }
-    100% { transform: none; }
-  }
-  @keyframes dent { 0%, 40% { transform: scale(0.4); opacity: 0; } 52% { transform: scale(1.25, 1.4); opacity: 0.7; } 100% { transform: scale(1); } }
-  @keyframes puff { 0% { opacity: 0.55; transform: translate(0, 0) scale(0.4); } 100% { opacity: 0; transform: translate(var(--dx), -18px) scale(1.6); } }
-  @keyframes hop { 30% { transform: translateY(-34px) scale(0.92, 1.1); } 60% { transform: translateY(0) scale(1.14, 0.84); } 80% { transform: scale(0.97, 1.03); } }
-  @keyframes twinkle { 50% { opacity: 0.25; } }
-  @keyframes flicker { 0%, 100% { opacity: 1; } 47% { opacity: 1; } 48% { opacity: 0.86; } 50% { opacity: 1; } 72% { opacity: 0.94; } }
+  @keyframes flicker { 0%, 100% { opacity: 1; } 62% { opacity: 0.25; } 64% { opacity: 1; } 66% { opacity: 0.3; } 68% { opacity: 1; } }
+  @keyframes buzz { 0%, 100% { opacity: 1; } 91% { opacity: 0.86; } 92% { opacity: 1; } }
 
   @media (prefers-reduced-motion: reduce) {
-    .drop, .dent, .puff circle, .star, .lamp-light { animation: none; }
+    .neon-sign, .flicker { animation: none; }
   }
 </style>

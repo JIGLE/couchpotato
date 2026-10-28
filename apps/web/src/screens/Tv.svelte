@@ -3,8 +3,7 @@
   import QRCode from 'qrcode';
   import type { GameSettings, GameView, Player } from '@couchpotato/shared';
   import type { Mood } from '@couchpotato/shared';
-  import { LANGUAGE_NAMES, applyMood, currentMood, loadSettings, saveSettings } from '../lib/game';
-  import TvSetup from './tv/TvSetup.svelte';
+  import { LANGUAGE_NAMES, applyMood, currentMood } from '../lib/game';
   import TvGame from './tv/TvGame.svelte';
   import { connect } from '../lib/socket';
   import LivingRoom from '../lib/LivingRoom.svelte';
@@ -22,9 +21,8 @@
   let qrSvg = $state('');
   let game = $state<GameView | null>(null);
   let offset = $state(0);
-  let setup = $state(false);
-  let settings = $state<GameSettings>(loadSettings());
-  let notice = $state('');
+  /** What the Head Spud is choosing on their phone, shown as a preview chip. */
+  let setup = $state<GameSettings | null>(null);
   let mood = $state<Mood>(currentMood());
 
   const socket = connect();
@@ -48,30 +46,14 @@
     mood = p.mood;
     applyMood(p.mood);
   });
-  function changeMood(m: Mood) {
-    mood = m;
-    applyMood(m);
-    socket.emit('room:mood', { mood: m });
-  }
   socket.on('game:state', (view) => {
     game = view;
-    if (view) {
-      offset = Date.now() - view.serverNow;
-      setup = false;
-    }
+    if (view) offset = Date.now() - view.serverNow;
   });
-  socket.on('game:error', (p) => {
-    notice = p.reason === 'no-players' ? 'Nobody on the couch yet.' : 'No questions match these settings. Try another language or age.';
-    setup = true;
-  });
+  socket.on('lobby:setup', (p) => (setup = p.settings));
   onDestroy(() => socket.disconnect());
 
-  function startGame() {
-    saveSettings(settings);
-    notice = '';
-    socket.emit('game:start', $state.snapshot(settings));
-  }
-  const endGame = () => socket.emit('game:end');
+  const headSpud = $derived(players.find((p) => p.role === 'head-spud'));
 
   const host = location.host;
   const joinUrl = $derived(code ? `${location.origin}/?code=${code}` : '');
@@ -88,22 +70,23 @@
 
 <Ambient />
 <Stage>
-{#if !game && !setup}<LivingRoom {players} {seats} {wiggle} />{/if}
+{#if !game}<LivingRoom {players} {seats} {wiggle} />{/if}
 <main>
   <header>
-    <div class="brand"><Logo size={56} /><span>couch<br />potato</span></div>
+    {#if game}<div class="brand"><Logo size={56} /><span>couch<br />potato</span></div>{:else}<span></span>{/if}
     {#if !online}
       <div class="status" role="status">Reconnecting…</div>
     {:else if !game}
-      <div class="chip">Trivia · {LANGUAGE_NAMES[settings.language]} · {settings.rounds} questions</div>
+      <div class="chip" class:live={!!setup}>
+        {#if setup}Trivia · {LANGUAGE_NAMES[setup.language]} · {setup.rounds} questions
+        {:else if headSpud}{headSpud.name} is picking a game…
+        {:else}Scan in, potatoes{/if}
+      </div>
     {/if}
   </header>
 
   {#if game}
-    <TvGame view={game} {offset} {players} onPlayAgain={startGame} onEnd={endGame} />
-  {:else if setup}
-    <TvSetup bind:settings players={players.length} {mood} onMood={changeMood} onStart={startGame} onBack={() => (setup = false)} />
-    {#if notice}<p class="notice" role="alert">{notice}</p>{/if}
+    <TvGame view={game} {offset} {players} />
   {:else}
     <div class="lobby">
       <section class="join" aria-label="How to join">
@@ -113,21 +96,15 @@
         </div>
         <span class="or">or go to <span class="mono">{host}</span></span>
         <div class="code" aria-label="Room code {code.split('').join(' ')}">{code || '····'}</div>
+        <span class="count" role="status">{players.length}/{seats} on the sofa</span>
       </section>
 
       <ul class="sr" aria-label="On the sofa">
         {#each players as player (player.id)}
-          <li>{player.name}, {potatoName(player.potato)}{player.away ? ', reconnecting' : ''}</li>
+          <li>{player.name}, {potatoName(player.potato)}{player.role === 'head-spud' ? ', Head Spud' : ''}{player.away ? ', reconnecting' : ''}</li>
         {/each}
       </ul>
 
-      <div class="foot">
-        <div class="tally">
-          <span class="count">{players.length} / {seats}</span>
-          <span class="muted">{players.length ? 'Everyone in? Start when ready.' : 'Grab the snacks…'}</span>
-        </div>
-        <button class="start" disabled={players.length === 0} onclick={() => (setup = true)}>Start game</button>
-      </div>
     </div>
   {/if}
 </main>
@@ -147,8 +124,6 @@
     font-size: 32px; font-weight: 600; color: var(--ink-muted); padding: 6px 22px; border-radius: var(--radius-pill);
     background: var(--surface-1); box-shadow: var(--morph-inset);
   }
-  .notice { margin: 0; font-size: 32px; font-weight: 600; color: var(--wrong); }
-  .muted { color: var(--ink-muted); }
   .mono { font-family: var(--font-mono); font-weight: 500; color: var(--ink); }
   .label { font-size: 32px; font-weight: 700; letter-spacing: 0.08em; color: var(--ink-muted); }
   .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
@@ -173,16 +148,6 @@
     border-radius: var(--radius-pill); box-shadow: 0 0 50px var(--glow), 6px 8px 18px var(--edge-dark);
   }
 
-  .foot {
-    position: absolute; right: 0; bottom: 0; display: flex; align-items: center; gap: 24px;
-    padding: 12px 12px 12px 28px; border-radius: var(--radius-pill);
-    background: color-mix(in srgb, var(--surface-1) 88%, transparent); box-shadow: var(--morph-raised);
-  }
-  .tally { display: flex; flex-direction: column; font-size: 32px; font-weight: 600; line-height: 1.1; }
-  .count { font-family: var(--font-mono); font-weight: 700; color: var(--spud); }
-  .start {
-    flex-shrink: 0; border: 0; cursor: pointer; font: 700 32px var(--font-sans); padding: 18px 40px; border-radius: var(--radius-pill);
-    background: var(--spud); color: var(--ink-on-spud); box-shadow: 0 0 50px var(--glow), 6px 8px 18px var(--edge-dark);
-  }
-  .start:disabled { opacity: 0.45; cursor: default; box-shadow: none; }
+  .count { font-size: 32px; font-weight: 700; color: var(--spud); }
+  .chip.live { color: var(--ink); }
 </style>

@@ -137,3 +137,25 @@ test('eight seats use all eight potatoes', () => {
   assert.equal(new Set(couch.list().map((p) => p.potato)).size, 8);
   assert.equal(couch.sit(undefined, 's9', 'Late', 0).ok, false);
 });
+
+test('the first phone on the couch is the Head Spud; the role passes on when they leave, not when they drop', () => {
+  const { couch, tick } = setup();
+  couch.sit(undefined, 's1', 'Ana', 0);
+  couch.sit(undefined, 's2', 'Rui', 0);
+  couch.sit(undefined, 's3', 'Maya', 0);
+  const role = (name: string) => couch.list().find((p) => p.name === name)?.role;
+  assert.equal(role('Ana'), 'head-spud');
+  assert.equal(role('Rui'), 'potato');
+  assert.ok(couch.isHeadSpud('s1'));
+  assert.equal(couch.isHeadSpud('s2'), false);
+
+  couch.drop('s1');
+  assert.equal(role('Ana'), 'head-spud', 'a dropped Head Spud keeps the role while the seat is held');
+
+  tick(HOLD_MS);
+  couch.sweep();
+  assert.equal(role('Rui'), 'head-spud');
+  couch.leave('s2');
+  assert.equal(role('Maya'), 'head-spud');
+  assert.ok(couch.isHeadSpud('s3'));
+});

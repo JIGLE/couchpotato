@@ -14,6 +14,12 @@ export type CushionColour = 0 | 1 | 2 | 3;
 /** The potato characters. One of each per room, so eight potatoes for eight seats. */
 export type PotatoKind = 'boiled' | 'grilled' | 'chip' | 'fry' | 'mashed' | 'jacket' | 'hashbrown' | 'sweet';
 
+/**
+ * Who runs the night. The Head Spud picks the game and starts it from their phone; everyone else is a potato.
+ * Until host accounts exist, the first phone on the couch is the Head Spud and the role passes on when they leave.
+ */
+export type Role = 'head-spud' | 'potato';
+
 /** A phone sitting on the couch. `seat` is 0-based; `colour` is the cushion they picked; `potato` is who they play as. */
 export interface Player {
   /** Public id, safe to show to everyone. Never the rejoin token. */
@@ -22,6 +28,7 @@ export interface Player {
   seat: number;
   colour: CushionColour;
   potato: PotatoKind;
+  role: Role;
   /** Connection dropped; the seat is held for a couple of minutes in case they come back. */
   away: boolean;
 }
@@ -47,6 +54,8 @@ export interface ServerToClient {
   'presence': (payload: { tvs: number; phones: number }) => void;
   /** The game as this screen should see it. `null` = no game, show the lobby. Each phone gets its own view. */
   'game:state': (view: GameView | null) => void;
+  /** What the Head Spud is setting up, so the TV can show it while they choose. `null` = nothing yet. */
+  'lobby:setup': (payload: { settings: GameSettings | null }) => void;
   /** Starting a game failed. */
   'game:error': (payload: { reason: 'no-questions' | 'no-players' }) => void;
 }
@@ -60,7 +69,7 @@ export interface ClientToServer {
    * - Phone: must send the `code` it wants to join. A `potato` that is taken is swapped for a free one.
    */
   'hello': (payload: { screen: Screen; code?: string; name?: string; colour?: CushionColour; potato?: PotatoKind; token?: string; mood?: Mood }) => void;
-  /** The TV changes the room's mood. */
+  /** The TV or the Head Spud changes the room's mood. */
   'room:mood': (payload: { mood: Mood }) => void;
   /** A phone swaps to another potato. Only in the lobby, and only to one nobody else is playing. */
   'potato:pick': (payload: { potato: PotatoKind }) => void;
@@ -68,11 +77,13 @@ export interface ClientToServer {
   'leave': () => void;
   /** Phase 0 smoke test: a phone taps the big button. */
   'tap': () => void;
-  /** The TV (later: the host) starts a game with these settings; missing ones use defaults. */
+  /** The Head Spud shares the settings they are choosing, before starting. */
+  'lobby:setup': (settings: Partial<GameSettings>) => void;
+  /** The Head Spud starts a game with these settings; missing ones use defaults. */
   'game:start': (settings: Partial<GameSettings>) => void;
   /** A phone picks an answer (index into the question's answers). Only the first pick counts. */
   'game:answer': (payload: { choice: number }) => void;
-  /** Back to the lobby. */
+  /** The Head Spud sends everyone back to the lobby. */
   'game:end': () => void;
 }
 
