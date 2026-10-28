@@ -7,8 +7,8 @@
   import TvSetup from './tv/TvSetup.svelte';
   import TvGame from './tv/TvGame.svelte';
   import { connect } from '../lib/socket';
-  import { seatColour } from '../lib/seats';
-  import Potato from '../lib/Potato.svelte';
+  import LivingRoom from '../lib/LivingRoom.svelte';
+  import { potatoName } from '../lib/potatoes';
   import Logo from '../lib/Logo.svelte';
   import Ambient from '../lib/Ambient.svelte';
   import Stage from '../lib/Stage.svelte';
@@ -84,15 +84,11 @@
       .then((svg) => (qrSvg = svg))
       .catch(() => (qrSvg = ''));
   });
-
-  // Seat list: real players in their seats, the rest shown as pressed-in open cushions.
-  const seatList = $derived(
-    Array.from({ length: seats }, (_, seat) => players.find((p) => p.seat === seat) ?? null),
-  );
 </script>
 
 <Ambient />
 <Stage>
+{#if !game && !setup}<LivingRoom {players} {seats} {wiggle} />{/if}
 <main>
   <header>
     <div class="brand"><Logo size={56} /><span>couch<br />potato</span></div>
@@ -119,40 +115,19 @@
         <div class="code" aria-label="Room code {code.split('').join(' ')}">{code || '····'}</div>
       </section>
 
-      <section class="couch">
-        <div class="couch-head">
-          <h2>On the couch</h2>
+      <ul class="sr" aria-label="On the sofa">
+        {#each players as player (player.id)}
+          <li>{player.name}, {potatoName(player.potato)}{player.away ? ', reconnecting' : ''}</li>
+        {/each}
+      </ul>
+
+      <div class="foot">
+        <div class="tally">
           <span class="count">{players.length} / {seats}</span>
-        </div>
-        <ul class="seats">
-          {#each seatList as player, seat (player?.id ?? `empty-${seat}`)}
-            <li>
-              {#if player}
-                {@const c = seatColour(player.colour)}
-                {#key wiggle?.id === player.id ? wiggle?.n : 0}
-                  <div
-                    class="avatar"
-                    class:wiggle={wiggle?.id === player.id}
-                    class:away={player.away}
-                    style:background={c.bg}
-                  >
-                    <Potato kind={player.potato} size={100} asleep={player.away} delay={seat * 0.37} />
-                  </div>
-                {/key}
-                <span class="name" class:muted={player.away}>{player.name}</span>
-                {#if player.away}<span class="sr">is reconnecting</span>{/if}
-              {:else}
-                <div class="avatar empty" aria-hidden="true">+</div>
-                <span class="name muted">Open seat</span>
-              {/if}
-            </li>
-          {/each}
-        </ul>
-        <div class="couch-foot">
           <span class="muted">{players.length ? 'Everyone in? Start when ready.' : 'Grab the snacks…'}</span>
-          <button class="start" disabled={players.length === 0} onclick={() => (setup = true)}>Start game</button>
         </div>
-      </section>
+        <button class="start" disabled={players.length === 0} onclick={() => (setup = true)}>Start game</button>
+      </div>
     </div>
   {/if}
 </main>
@@ -160,6 +135,7 @@
 
 <style>
   main {
+    position: relative; z-index: 1;
     height: 100%; box-sizing: border-box; padding: 36px 56px 40px;
     display: flex; flex-direction: column; gap: 28px;
   }
@@ -175,60 +151,38 @@
   .muted { color: var(--ink-muted); }
   .mono { font-family: var(--font-mono); font-weight: 500; color: var(--ink); }
   .label { font-size: 32px; font-weight: 700; letter-spacing: 0.08em; color: var(--ink-muted); }
+  .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 
-  .lobby { flex: 1; min-height: 0; display: flex; gap: 32px; }
+  .lobby { flex: 1; min-height: 0; position: relative; }
 
   .join {
-    width: 400px; flex-shrink: 0; box-sizing: border-box; padding: 24px 28px; border-radius: 32px;
-    background: var(--surface-1); box-shadow: var(--morph-raised);
+    position: absolute; left: 0; top: 0; bottom: 0; width: 320px; box-sizing: border-box; padding: 22px 24px; border-radius: 32px;
+    background: color-mix(in srgb, var(--surface-1) 92%, transparent); box-shadow: var(--morph-raised);
     display: flex; flex-direction: column; align-items: center; justify-content: space-between;
   }
   .qr {
-    width: 236px; height: 236px; padding: 16px; box-sizing: border-box; border-radius: var(--radius-md);
+    width: 216px; height: 216px; padding: 14px; box-sizing: border-box; border-radius: var(--radius-md);
     background: #f2ede4; /* fixed light ground for the QR, see script */
     box-shadow: 0 0 60px var(--glow), 6px 8px 18px var(--edge-dark);
   }
   .qr :global(svg) { width: 100%; height: 100%; display: block; }
-  .or { font-size: 32px; font-weight: 600; color: var(--ink-muted); text-align: center; overflow-wrap: anywhere; }
+  .or { font-size: 32px; font-weight: 600; color: var(--ink-muted); text-align: center; overflow-wrap: anywhere; line-height: 1.15; }
   .code {
-    font-family: var(--font-mono); font-weight: 700; font-size: 64px; line-height: 1; letter-spacing: 0.18em;
-    color: var(--ink-on-spud); background: var(--spud); padding: 16px 28px 16px 40px;
+    font-family: var(--font-mono); font-weight: 700; font-size: 56px; line-height: 1; letter-spacing: 0.16em;
+    color: var(--ink-on-spud); background: var(--spud); padding: 14px 22px 14px 32px;
     border-radius: var(--radius-pill); box-shadow: 0 0 50px var(--glow), 6px 8px 18px var(--edge-dark);
   }
 
-  .couch {
-    flex: 1; min-width: 0; box-sizing: border-box; padding: 24px 32px; border-radius: 32px;
-    background: var(--surface-1); box-shadow: var(--morph-raised);
-    display: flex; flex-direction: column; gap: 20px;
+  .foot {
+    position: absolute; right: 0; bottom: 0; display: flex; align-items: center; gap: 24px;
+    padding: 12px 12px 12px 28px; border-radius: var(--radius-pill);
+    background: color-mix(in srgb, var(--surface-1) 88%, transparent); box-shadow: var(--morph-raised);
   }
-  .couch-head { display: flex; justify-content: space-between; align-items: baseline; }
-  h2 { margin: 0; font-family: var(--font-display); font-weight: 500; font-size: 32px; }
-  .count { font-family: var(--font-mono); font-size: 32px; font-weight: 700; color: var(--spud); }
-  .seats { flex: 1; list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); align-content: center; gap: 20px 16px; }
-  .seats li { position: relative; display: flex; flex-direction: column; align-items: center; gap: 8px; min-width: 0; }
-  .avatar {
-    width: 104px; height: 104px; border-radius: 50%; display: grid; place-items: center;
-    box-shadow: 6px 8px 18px var(--edge-dark);
-    animation: land 560ms var(--ease-out);
-  }
-  .avatar.empty { background: var(--surface-2); color: var(--ink-muted); box-shadow: var(--morph-inset); animation: none; }
-  .avatar.wiggle { animation: wiggle 420ms var(--ease-out); }
-  .avatar.away { opacity: 0.55; box-shadow: none; animation: none; }
-  .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
-  .name { font-size: 32px; font-weight: 700; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .couch-foot { display: flex; justify-content: space-between; align-items: center; gap: 16px; font-size: 32px; font-weight: 600; }
+  .tally { display: flex; flex-direction: column; font-size: 32px; font-weight: 600; line-height: 1.1; }
+  .count { font-family: var(--font-mono); font-weight: 700; color: var(--spud); }
   .start {
     flex-shrink: 0; border: 0; cursor: pointer; font: 700 32px var(--font-sans); padding: 18px 40px; border-radius: var(--radius-pill);
     background: var(--spud); color: var(--ink-on-spud); box-shadow: 0 0 50px var(--glow), 6px 8px 18px var(--edge-dark);
   }
   .start:disabled { opacity: 0.45; cursor: default; box-shadow: none; }
-
-  /* Drop in from above, squash on the cushion, settle. The full sofa physics comes with the living room. */
-  @keyframes land {
-    0% { transform: translateY(-120px) scale(0.9, 1.12); opacity: 0; }
-    50% { transform: translateY(0) scale(1.14, 0.84); opacity: 1; }
-    70% { transform: translateY(-8px) scale(0.96, 1.05); }
-    85% { transform: translateY(0) scale(1.03, 0.97); }
-  }
-  @keyframes wiggle { 25% { transform: rotate(-8deg) scale(1.08); } 75% { transform: rotate(8deg) scale(1.08); } }
 </style>

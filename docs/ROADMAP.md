@@ -50,7 +50,7 @@ Design reference for every screen: the *Couch Potato — Lobby & Join* canvas.
 - [ ] More games: Bingo, a dial game, a team word game
 - Waiting room redesign (plan: potatoes on an isometric sofa, Head Spud host role, claim QR):
   - [x] Potato characters: picker on the phone, potatoes on the TV lobby and leaderboards
-  - [ ] Living room scene: isometric room on the right, join panel on the left
+  - [x] Living room scene: isometric room with two sofas, cushions in each player's colour, drop-in landing; slim join panel on the left
   - [ ] Landing physics: soft-body potatoes, spring-mesh cushion, idle life
   - [ ] Head Spud: claim QR, setup and remote on the host's phone (with Phase 3 host accounts)
   - [ ] One living room per mood, sound, snack throw
