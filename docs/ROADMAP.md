@@ -29,7 +29,7 @@ Design reference for every screen: the *Couch Potato — Lobby & Join* canvas.
 - [ ] **Done when:** a full 10-round game with friends, no restarts
 
 ## Phase 3 · Host & admin — *1–2 weeks*
-- [ ] Persistent storage in `/data` (SQLite)
+- [x] Persistent storage in `/data` (SQLite)
 - [ ] Host accounts: hashed passwords, rate-limited login, 30-day remember-me
 - [ ] TV "ready to host" screen + screen-code unlock
 - [ ] Host remote: pause, +10 s, skip, kick, hand over, end
