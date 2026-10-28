@@ -163,6 +163,8 @@ export interface Standing {
   streak: number;
   /** Points from the last question (0 if wrong or no answer). */
   lastPoints: number;
+  /** Not connected right now (dropped or left). They keep their score; the TV greys them out. */
+  away: boolean;
 }
 
 /** Timing: `endsAt` and `serverNow` are server clock milliseconds; screens use the difference. */
@@ -203,6 +205,15 @@ export type GameView =
       fact?: string;
       /** Phone only. */
       me?: Standing & { choice: number | null; correct: boolean };
+      /** Phone only: true for someone who joined after this question started; they play from the next one. */
+      waiting?: boolean;
     })
-  | (Timed & { phase: 'leaderboard'; round: number; rounds: number; standings: Standing[] })
+  | (Timed & {
+      phase: 'leaderboard';
+      round: number;
+      rounds: number;
+      standings: Standing[];
+      /** Phone only: true for someone who hasn't played a question yet; they play from the next one. */
+      waiting?: boolean;
+    })
   | { phase: 'podium'; rounds: number; standings: Standing[]; serverNow: number };

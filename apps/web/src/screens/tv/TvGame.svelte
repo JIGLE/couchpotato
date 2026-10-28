@@ -13,7 +13,12 @@
     onEnd,
   }: { view: GameView; offset: number; players: Player[]; onPlayAgain: () => void; onEnd: () => void } = $props();
 
-  const byId = $derived(new Map(players.map((p) => [p.id, p])));
+  // Players who left mid-game keep their place on the leaderboard, so remember their cushion colour.
+  const seen = new Map<string, Player>();
+  const byId = $derived.by(() => {
+    for (const p of players) seen.set(p.id, p);
+    return new Map(seen);
+  });
   const colourOf = (id: string) => seatColour(byId.get(id)?.colour ?? 0);
   const nameOf = (id: string) => byId.get(id)?.name ?? '?';
 
@@ -85,7 +90,7 @@
       <ol class="rows">
         {#each view.standings.slice(0, 6) as s, i (s.id)}
           {@const c = colourOf(s.id)}
-          <li class:first={i === 0}>
+          <li class:first={i === 0} class:away={s.away}>
             <span class="mono rank">{s.rank}</span>
             <span class="av" style:background={c.bg} style:color={c.fg}>{initial(s.name)}</span>
             <span class="name">{s.name}</span>
@@ -103,7 +108,7 @@
         {#each podium as s, i (s.id)}
           {@const c = colourOf(s.id)}
           {@const h = heights[i]}
-          <div class="stand">
+          <div class="stand" class:away={s.away}>
             <span class="av big" class:winner={s.rank === 1} style:background={c.bg} style:color={c.fg}>{initial(s.name)}</span>
             <span class="name">{s.name}</span>
             <div class="bar-col" style:height={h}>
@@ -176,6 +181,7 @@
   .name { flex: 1; font-size: 32px; font-weight: 700; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .moved { font-size: 32px; opacity: 0.8; }
   .score { width: 150px; text-align: right; font-size: 32px; }
+  .rows li.away, .stand.away { opacity: 0.45; filter: grayscale(1); }
 
   .podium { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 8px; min-height: 0; }
   .podium h1 { margin: 0; font: 700 56px var(--font-display); letter-spacing: -0.03em; text-align: center; }

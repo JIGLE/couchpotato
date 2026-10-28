@@ -62,16 +62,20 @@ export class TriviaGame {
     return this.questions.slice(0, this.round + 1).map((q) => q.id);
   }
 
-  /** Someone sat down. During a question they wait for the next one; their score starts at the room's average. */
+  /**
+   * Someone sat down. Unless the game is just starting they wait for the next question,
+   * and their score starts at the room's average. Nobody new joins once the podium is up.
+   */
   addPlayer(id: string, name: string, now: number): void {
     const known = this.seats.get(id);
     if (known) {
       known.name = name;
       return;
     }
+    if (this.phase === 'podium') return;
     const others = [...this.seats.values()];
     const average = others.length ? Math.round(others.reduce((t, s) => t + s.score, 0) / others.length) : 0;
-    const midQuestion = this.phase === 'question' && now > this.startedAt;
+    const atStart = this.phase === 'question' && now <= this.startedAt;
     this.seats.set(id, {
       id,
       name,
@@ -80,7 +84,7 @@ export class TriviaGame {
       lastPoints: 0,
       rank: 0,
       prevRank: 0,
-      fromRound: midQuestion ? this.round + 1 : this.round,
+      fromRound: atStart ? this.round : this.round + 1,
       picks: new Map(),
     });
     this.present.add(id);
@@ -144,6 +148,7 @@ export class TriviaGame {
         moved: s.prevRank ? s.prevRank - s.rank : 0,
         streak: s.streak,
         lastPoints: s.lastPoints,
+        away: !this.present.has(s.id),
       }));
   }
 
@@ -163,12 +168,17 @@ export class TriviaGame {
     return this.settings.seconds > 0 ? now + this.settings.seconds * 1000 : null;
   }
 
-  /** Everyone here has answered (and at least one person has): no need to wait for the timer. */
+  /**
+   * Everyone here has answered (and at least one person has): no need to wait for the timer.
+   * Also ends a question nobody here can answer while someone is waiting for the next one,
+   * so players who left never stall the game, even with no time limit.
+   */
   private maybeEndEarly(now: number): void {
     if (this.phase !== 'question') return;
     const expected = [...this.present].filter((id) => this.seats.get(id)!.fromRound <= this.round);
     const answered = expected.filter((id) => this.seats.get(id)!.picks.has(this.round));
-    if (answered.length > 0 && answered.length === expected.length) this.endsAt = now;
+    const waiting = this.present.size > expected.length;
+    if (answered.length === expected.length && (answered.length > 0 || waiting)) this.endsAt = now;
   }
 
   private reveal(now: number): void {
@@ -206,7 +216,10 @@ export class TriviaGame {
     const base = { endsAt: this.endsAt, serverNow: now, round: this.round + 1, rounds: this.rounds };
     switch (this.phase) {
       case 'question': {
-        const expected = [...this.seats.values()].filter((s) => s.fromRound <= this.round);
+        // Someone who answered and then left still counts, so the TV never shows "3 of 2 locked in".
+        const expected = [...this.seats.values()].filter(
+          (s) => s.fromRound <= this.round && (this.present.has(s.id) || s.picks.has(this.round)),
+        );
         const seat = phoneId ? this.seats.get(phoneId) : undefined;
         return {
           ...base,
@@ -215,7 +228,7 @@ export class TriviaGame {
           ...(tv ? { text: q.text, answers: q.answers } : {}),
           choices: q.answers.length,
           answered: expected.filter((s) => s.picks.has(this.round)).length,
-          players: expected.filter((s) => this.present.has(s.id)).length,
+          players: expected.length,
           ...(tv ? {} : { myChoice: seat?.picks.get(this.round)?.choice ?? null, canAnswer: !!seat && seat.fromRound <= this.round }),
         };
       }
@@ -237,10 +250,18 @@ export class TriviaGame {
           pickedBy,
           fact: q.fact,
           ...(me ? { me: { ...me, choice, correct: choice === q.correct } } : {}),
+          ...(seat ? { waiting: seat.fromRound > this.round } : {}),
         };
       }
-      case 'leaderboard':
-        return { ...base, phase: 'leaderboard', standings: this.standings() };
+      case 'leaderboard': {
+        const seat = phoneId ? this.seats.get(phoneId) : undefined;
+        return {
+          ...base,
+          phase: 'leaderboard',
+          standings: this.standings(),
+          ...(seat ? { waiting: seat.fromRound > this.round } : {}),
+        };
+      }
       default:
         return { phase: 'podium', rounds: this.rounds, standings: this.standings(), serverNow: now };
     }
