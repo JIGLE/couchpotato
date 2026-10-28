@@ -7,9 +7,9 @@
     "es-ES": "Paquete inicial"
   },
   "description": {
-    "en": "Board games, science, nature and a few questions about Portugal, Spain and Denmark.",
-    "pt-PT": "Jogos de tabuleiro, ciência, natureza e algumas perguntas sobre Portugal, Espanha e Dinamarca.",
-    "es-ES": "Juegos de mesa, ciencia, naturaleza y algunas preguntas sobre Portugal, España y Dinamarca."
+    "en": "Board games, science, nature, geography, history, art, food and sport, plus questions about Portugal, Spain and Denmark.",
+    "pt-PT": "Jogos de tabuleiro, ciência, natureza, geografia, história, arte, comida e desporto, e perguntas sobre Portugal, Espanha e Dinamarca.",
+    "es-ES": "Juegos de mesa, ciencia, naturaleza, geografía, historia, arte, comida y deporte, y preguntas sobre Portugal, España y Dinamarca."
   },
   "author": "Couch Potato",
   "license": "CC-BY-4.0",
@@ -1213,6 +1213,4283 @@
         "en": "A statue of her sits in Copenhagen harbour.",
         "pt-PT": "Há uma estátua dela no porto de Copenhaga.",
         "es-ES": "Hay una estatua suya en el puerto de Copenhague."
+      },
+      "source": "manual"
+    },
+    {
+      "id": "chess-pawns",
+      "category": "board-games",
+      "minAge": 7,
+      "text": {
+        "en": "How many pawns does each player start with in chess?",
+        "pt-PT": "Com quantos peões começa cada jogador no xadrez?",
+        "es-ES": "¿Con cuántos peones empieza cada jugador en el ajedrez?"
+      },
+      "answers": {
+        "en": [
+          "6",
+          "8",
+          "10",
+          "16"
+        ],
+        "pt-PT": [
+          "6",
+          "8",
+          "10",
+          "16"
+        ],
+        "es-ES": [
+          "6",
+          "8",
+          "10",
+          "16"
+        ]
+      },
+      "correct": 1,
+      "source": "manual"
+    },
+    {
+      "id": "chess-king",
+      "category": "board-games",
+      "minAge": 7,
+      "text": {
+        "en": "Which chess piece must you protect to avoid losing the game?",
+        "pt-PT": "Que peça de xadrez tens de proteger para não perder o jogo?",
+        "es-ES": "¿Qué pieza de ajedrez debes proteger para no perder la partida?"
+      },
+      "answers": {
+        "en": [
+          "Queen",
+          "King",
+          "Rook",
+          "Knight"
+        ],
+        "pt-PT": [
+          "Dama",
+          "Rei",
+          "Torre",
+          "Cavalo"
+        ],
+        "es-ES": [
+          "Dama",
+          "Rey",
+          "Torre",
+          "Caballo"
+        ]
+      },
+      "correct": 1,
+      "fact": {
+        "en": "When the king can't escape, it's checkmate.",
+        "pt-PT": "Quando o rei não pode escapar, é xeque-mate.",
+        "es-ES": "Cuando el rey no puede escapar, es jaque mate."
+      },
+      "source": "manual"
+    },
+    {
+      "id": "chess-castling",
+      "category": "board-games",
+      "minAge": 12,
+      "text": {
+        "en": "Which chess move lets you move two of your own pieces at once?",
+        "pt-PT": "Que jogada de xadrez move duas peças tuas ao mesmo tempo?",
+        "es-ES": "¿Qué jugada de ajedrez mueve dos piezas tuyas a la vez?"
+      },
+      "answers": {
+        "en": [
+          "En passant",
+          "Castling",
+          "Promotion",
+          "Check"
+        ],
+        "pt-PT": [
+          "En passant",
+          "Roque",
+          "Promoção",
+          "Xeque"
+        ],
+        "es-ES": [
+          "Captura al paso",
+          "Enroque",
+          "Coronación",
+          "Jaque"
+        ]
+      },
+      "correct": 1,
+      "fact": {
+        "en": "The king and a rook swap sides together.",
+        "pt-PT": "O rei e uma torre trocam de lado juntos.",
+        "es-ES": "El rey y una torre cambian de lado juntos."
+      },
+      "source": "manual"
+    },
+    {
+      "id": "checkers-12",
+      "category": "board-games",
+      "minAge": 8,
+      "text": {
+        "en": "How many pieces does each player start with in draughts (checkers)?",
+        "pt-PT": "Com quantas peças começa cada jogador nas damas?",
+        "es-ES": "¿Con cuántas fichas empieza cada jugador en las damas?"
+      },
+      "answers": {
+        "en": [
+          "10",
+          "12",
+          "15",
+          "16"
+        ],
+        "pt-PT": [
+          "10",
+          "12",
+          "15",
+          "16"
+        ],
+        "es-ES": [
+          "10",
+          "12",
+          "15",
+          "16"
+        ]
+      },
+      "correct": 1,
+      "fact": {
+        "en": "On a normal 8 × 8 board.",
+        "pt-PT": "Num tabuleiro normal de 8 × 8.",
+        "es-ES": "En un tablero normal de 8 × 8."
+      },
+      "source": "manual"
+    },
+    {
+      "id": "monopoly-go",
+      "category": "board-games",
+      "minAge": 8,
+      "text": {
+        "en": "In Monopoly, which corner square do players start on?",
+        "pt-PT": "No Monopólio, em que casa de canto começam os jogadores?",
+        "es-ES": "En el Monopoly, ¿en qué casilla de esquina empiezan los jugadores?"
+      },
+      "answers": {
+        "en": [
+          "Jail",
+          "GO",
+          "Free Parking",
+          "Go to Jail"
+        ],
+        "pt-PT": [
+          "Prisão",
+          "Partida",
+          "Estacionamento Livre",
+          "Vá para a Prisão"
+        ],
+        "es-ES": [
+          "Cárcel",
+          "Salida",
+          "Parking gratuito",
+          "Vaya a la cárcel"
+        ]
+      },
+      "correct": 1,
+      "source": "manual"
+    },
+    {
+      "id": "uno-colours",
+      "category": "board-games",
+      "minAge": 7,
+      "text": {
+        "en": "How many card colours does UNO use, not counting wild cards?",
+        "pt-PT": "Quantas cores de cartas tem o UNO, sem contar os curingas?",
+        "es-ES": "¿Cuántos colores de cartas tiene el UNO, sin contar los comodines?"
+      },
+      "answers": {
+        "en": [
+          "2",
+          "3",
+          "4",
+          "5"
+        ],
+        "pt-PT": [
+          "2",
+          "3",
+          "4",
+          "5"
+        ],
+        "es-ES": [
+          "2",
+          "3",
+          "4",
+          "5"
+        ]
+      },
+      "correct": 2,
+      "fact": {
+        "en": "Red, yellow, green and blue.",
+        "pt-PT": "Vermelho, amarelo, verde e azul.",
+        "es-ES": "Rojo, amarillo, verde y azul."
+      },
+      "source": "manual"
+    },
+    {
+      "id": "cards-face",
+      "category": "board-games",
+      "minAge": 9,
+      "text": {
+        "en": "How many face cards (jacks, queens, kings) are in a standard deck?",
+        "pt-PT": "Quantas figuras (valetes, damas e reis) tem um baralho normal?",
+        "es-ES": "¿Cuántas figuras (J, Q y K) tiene una baraja francesa normal?"
+      },
+      "answers": {
+        "en": [
+          "8",
+          "12",
+          "13",
+          "16"
+        ],
+        "pt-PT": [
+          "8",
+          "12",
+          "13",
+          "16"
+        ],
+        "es-ES": [
+          "8",
+          "12",
+          "13",
+          "16"
+        ]
+      },
+      "correct": 1,
+      "fact": {
+        "en": "Three in each of the four suits.",
+        "pt-PT": "Três em cada um dos quatro naipes.",
+        "es-ES": "Tres en cada uno de los cuatro palos."
+      },
+      "source": "manual"
+    },
+    {
+      "id": "ludo-pieces",
+      "category": "board-games",
+      "minAge": 6,
+      "text": {
+        "en": "How many pieces does each player move around the board in Ludo?",
+        "pt-PT": "Quantos peões tem cada jogador no Ludo?",
+        "es-ES": "¿Cuántas fichas tiene cada jugador en el parchís?"
+      },
+      "answers": {
+        "en": [
+          "2",
+          "3",
+          "4",
+          "6"
+        ],
+        "pt-PT": [
+          "2",
+          "3",
+          "4",
+          "6"
+        ],
+        "es-ES": [
+          "2",
+          "3",
+          "4",
+          "6"
+        ]
+      },
+      "correct": 2,
+      "source": "manual"
+    },
+    {
+      "id": "snakes-ladders",
+      "category": "board-games",
+      "minAge": 6,
+      "text": {
+        "en": "In Snakes and Ladders, what happens when you land on a snake's head?",
+        "pt-PT": "Nas Cobras e Escadas, o que acontece se cais na cabeça de uma cobra?",
+        "es-ES": "En Serpientes y escaleras, ¿qué pasa si caes en una serpiente?"
+      },
+      "answers": {
+        "en": [
+          "You climb up",
+          "You slide down",
+          "You miss a turn",
+          "You roll again"
+        ],
+        "pt-PT": [
+          "Sobes",
+          "Escorregas para baixo",
+          "Perdes a vez",
+          "Lanças outra vez"
+        ],
+        "es-ES": [
+          "Subes",
+          "Bajas deslizándote",
+          "Pierdes el turno",
+          "Tiras otra vez"
+        ]
+      },
+      "correct": 1,
+      "source": "manual"
+    },
+    {
+      "id": "jenga-meaning",
+      "category": "board-games",
+      "minAge": 12,
+      "text": {
+        "en": "The name Jenga comes from a Swahili word meaning…",
+        "pt-PT": "O nome Jenga vem de uma palavra suaíli que significa…",
+        "es-ES": "El nombre Jenga viene de una palabra suajili que significa…"
+      },
+      "answers": {
+        "en": [
+          "Build",
+          "Fall",
+          "Tower",
+          "Wobble"
+        ],
+        "pt-PT": [
+          "Construir",
+          "Cair",
+          "Torre",
+          "Abanar"
+        ],
+        "es-ES": [
+          "Construir",
+          "Caer",
+          "Torre",
+          "Tambalear"
+        ]
+      },
+      "correct": 0,
+      "source": "manual"
+    },
+    {
+      "id": "mahjong-origin",
+      "category": "board-games",
+      "minAge": 10,
+      "text": {
+        "en": "The tile game mahjong comes from which country?",
+        "pt-PT": "O jogo de peças mahjong é originário de que país?",
+        "es-ES": "¿De qué país es originario el juego de fichas mahjong?"
+      },
+      "answers": {
+        "en": [
+          "Japan",
+          "China",
+          "Korea",
+          "India"
+        ],
+        "pt-PT": [
+          "Japão",
+          "China",
+          "Coreia",
+          "Índia"
+        ],
+        "es-ES": [
+          "Japón",
+          "China",
+          "Corea",
+          "India"
+        ]
+      },
+      "correct": 1,
+      "source": "manual"
+    },
+    {
+      "id": "tangram-pieces",
+      "category": "puzzles",
+      "minAge": 10,
+      "text": {
+        "en": "How many pieces are in a classic tangram puzzle?",
+        "pt-PT": "Quantas peças tem um tangram clássico?",
+        "es-ES": "¿Cuántas piezas tiene un tangram clásico?"
+      },
+      "answers": {
+        "en": [
+          "5",
+          "7",
+          "9",
+          "12"
+        ],
+        "pt-PT": [
+          "5",
+          "7",
+          "9",
+          "12"
+        ],
+        "es-ES": [
+          "5",
+          "7",
+          "9",
+          "12"
+        ]
+      },
+      "correct": 1,
+      "fact": {
+        "en": "All seven are cut from one square.",
+        "pt-PT": "As sete são cortadas de um só quadrado.",
+        "es-ES": "Las siete se cortan de un solo cuadrado."
+      },
+      "source": "manual"
+    },
+    {
+      "id": "sudoku-digits",
+      "category": "puzzles",
+      "minAge": 8,
+      "text": {
+        "en": "Which numbers do you use to fill in a classic Sudoku?",
+        "pt-PT": "Que números se usam para preencher um Sudoku clássico?",
+        "es-ES": "¿Qué números se usan para rellenar un sudoku clásico?"
+      },
+      "answers": {
+        "en": [
+          "0 to 9",
+          "1 to 9",
+          "1 to 10",
+          "1 to 12"
+        ],
+        "pt-PT": [
+          "0 a 9",
+          "1 a 9",
+          "1 a 10",
+          "1 a 12"
+        ],
+        "es-ES": [
+          "Del 0 al 9",
+          "Del 1 al 9",
+          "Del 1 al 10",
+          "Del 1 al 12"
+        ]
+      },
+      "correct": 1,
+      "source": "manual"
+    },
+    {
+      "id": "water-boils",
+      "category": "science",
+      "minAge": 7,
+      "text": {
+        "en": "At sea level, at what temperature does water boil, in °C?",
+        "pt-PT": "Ao nível do mar, a que temperatura ferve a água, em °C?",
+        "es-ES": "Al nivel del mar, ¿a qué temperatura hierve el agua, en °C?"
+      },
+      "answers": {
+        "en": [
+          "50",
+          "90",
+          "100",
+          "120"
+        ],
+        "pt-PT": [
+          "50",
+          "90",
+          "100",
+          "120"
+        ],
+        "es-ES": [
+          "50",
+          "90",
+          "100",
+          "120"
+        ]
+      },
+      "correct": 2,
+      "source": "manual"
+    },
+    {
+      "id": "planets-eight",
+      "category": "science",
+      "minAge": 7,
+      "text": {
+        "en": "How many planets are in our solar system?",
+        "pt-PT": "Quantos planetas tem o nosso sistema solar?",
+        "es-ES": "¿Cuántos planetas tiene nuestro sistema solar?"
+      },
+      "answers": {
+        "en": [
+          "7",
+          "8",
+          "9",
+          "10"
+        ],
+        "pt-PT": [
+          "7",
+          "8",
+          "9",
+          "10"
+        ],
+        "es-ES": [
+          "7",
+          "8",
+          "9",
+          "10"
+        ]
+      },
+      "correct": 1,
+      "fact": {
+        "en": "Pluto was renamed a dwarf planet in 2006.",
+        "pt-PT": "Plutão passou a ser planeta anão em 2006.",
+        "es-ES": "Plutón pasó a ser planeta enano en 2006."
+      },
+      "source": "manual"
+    },
+    {
+      "id": "closest-to-sun",
+      "category": "science",
+      "minAge": 8,
+      "text": {
+        "en": "Which planet is closest to the Sun?",
+        "pt-PT": "Qual é o planeta mais próximo do Sol?",
+        "es-ES": "¿Cuál es el planeta más cercano al Sol?"
+      },
+      "answers": {
+        "en": [
+          "Venus",
+          "Mercury",
+          "Mars",
+          "Earth"
+        ],
+        "pt-PT": [
+          "Vénus",
+          "Mercúrio",
+          "Marte",
+          "Terra"
+        ],
+        "es-ES": [
+          "Venus",
+          "Mercurio",
+          "Marte",
+          "Tierra"
+        ]
+      },
+      "correct": 1,
+      "source": "manual"
+    },
+    {
+      "id": "saturn-rings",
+      "category": "science",
+      "minAge": 7,
+      "text": {
+        "en": "Which planet is famous for its big, bright rings?",
+        "pt-PT": "Que planeta é famoso pelos seus grandes anéis brilhantes?",
+        "es-ES": "¿Qué planeta es famoso por sus grandes anillos brillantes?"
+      },
+      "answers": {
+        "en": [
+          "Mars",
+          "Saturn",
+          "Mercury",
+          "Venus"
+        ],
+        "pt-PT": [
+          "Marte",
+          "Saturno",
+          "Mercúrio",
+          "Vénus"
+        ],
+        "es-ES": [
+          "Marte",
+          "Saturno",
+          "Mercurio",
+          "Venus"
+        ]
+      },
+      "correct": 1,
+      "fact": {
+        "en": "They are made mostly of ice.",
+        "pt-PT": "São feitos sobretudo de gelo.",
+        "es-ES": "Están hechos sobre todo de hielo."
+      },
+      "source": "manual"
+    },
+    {
+      "id": "closest-star",
+      "category": "science",
+      "minAge": 8,
+      "text": {
+        "en": "What is the closest star to Earth?",
+        "pt-PT": "Qual é a estrela mais próxima da Terra?",
+        "es-ES": "¿Cuál es la estrella más cercana a la Tierra?"
+      },
+      "answers": {
+        "en": [
+          "The North Star",
+          "The Sun",
+          "Sirius",
+          "Alpha Centauri"
+        ],
+        "pt-PT": [
+          "Estrela Polar",
+          "O Sol",
+          "Sírius",
+          "Alfa do Centauro"
+        ],
+        "es-ES": [
+          "Estrella Polar",
+          "El Sol",
+          "Sirio",
+          "Alfa Centauri"
+        ]
+      },
+      "correct": 1,
+      "source": "manual"
+    },
+    {
+      "id": "earth-year",
+      "category": "science",
+      "minAge": 8,
+      "text": {
+        "en": "How many days does Earth take to travel once around the Sun?",
+        "pt-PT": "Quantos dias demora a Terra a dar uma volta ao Sol?",
+        "es-ES": "¿Cuántos días tarda la Tierra en dar una vuelta al Sol?"
+      },
+      "answers": {
+        "en": [
+          "About 30",
+          "About 180",
+          "About 365",
+          "About 1,000"
+        ],
+        "pt-PT": [
+          "Cerca de 30",
+          "Cerca de 180",
+          "Cerca de 365",
+          "Cerca de 1000"
+        ],
+        "es-ES": [
+          "Unos 30",
+          "Unos 180",
+          "Unos 365",
+          "Unos 1000"
+        ]
+      },
+      "correct": 2,
+      "source": "manual"
+    },
+    {
+      "id": "breathe-oxygen",
+      "category": "science",
+      "minAge": 6,
+      "text": {
+        "en": "Which gas do we need to breathe in to stay alive?",
+        "pt-PT": "Que gás precisamos de respirar para viver?",
+        "es-ES": "¿Qué gas necesitamos respirar para vivir?"
+      },
+      "answers": {
+        "en": [
+          "Oxygen",
+          "Helium",
+          "Carbon dioxide",
+          "Nitrogen"
+        ],
+        "pt-PT": [
+          "Oxigénio",
+          "Hélio",
+          "Dióxido de carbono",
+          "Azoto"
+        ],
+        "es-ES": [
+          "Oxígeno",
+          "Helio",
+          "Dióxido de carbono",
+          "Nitrógeno"
+        ]
+      },
+      "correct": 0,
+      "source": "manual"
+    },
+    {
+      "id": "water-formula",
+      "category": "science",
+      "minAge": 10,
+      "text": {
+        "en": "What is the chemical formula for water?",
+        "pt-PT": "Qual é a fórmula química da água?",
+        "es-ES": "¿Cuál es la fórmula química del agua?"
+      },
+      "answers": {
+        "en": [
+          "CO₂",
+          "H₂O",
+          "O₂",
+          "NaCl"
+        ],
+        "pt-PT": [
+          "CO₂",
+          "H₂O",
+          "O₂",
+          "NaCl"
+        ],
+        "es-ES": [
+          "CO₂",
+          "H₂O",
+          "O₂",
+          "NaCl"
+        ]
+      },
+      "correct": 1,
+      "fact": {
+        "en": "Two hydrogen atoms and one oxygen atom.",
+        "pt-PT": "Dois átomos de hidrogénio e um de oxigénio.",
+        "es-ES": "Dos átomos de hidrógeno y uno de oxígeno."
+      },
+      "source": "manual"
+    },
+    {
+      "id": "salt-chlorine",
+      "category": "science",
+      "minAge": 13,
+      "text": {
+        "en": "Table salt is made of sodium and which other element?",
+        "pt-PT": "O sal de cozinha é feito de sódio e de que outro elemento?",
+        "es-ES": "La sal de mesa está hecha de sodio y ¿qué otro elemento?"
+      },
+      "answers": {
+        "en": [
+          "Chlorine",
+          "Calcium",
+          "Carbon",
+          "Potassium"
+        ],
+        "pt-PT": [
+          "Cloro",
+          "Cálcio",
+          "Carbono",
+          "Potássio"
+        ],
+        "es-ES": [
+          "Cloro",
+          "Calcio",
+          "Carbono",
+          "Potasio"
+        ]
+      },
+      "correct": 0,
+      "fact": {
+        "en": "Its chemical name is sodium chloride.",
+        "pt-PT": "O nome químico é cloreto de sódio.",
+        "es-ES": "Su nombre químico es cloruro de sodio."
+      },
+      "source": "manual"
+    },
+    {
+      "id": "diamond-carbon",
+      "category": "science",
+      "minAge": 12,
+      "text": {
+        "en": "Diamonds are made of which element?",
+        "pt-PT": "Os diamantes são feitos de que elemento?",
+        "es-ES": "¿De qué elemento están hechos los diamantes?"
+      },
+      "answers": {
+        "en": [
+          "Silicon",
+          "Carbon",
+          "Iron",
+          "Calcium"
+        ],
+        "pt-PT": [
+          "Silício",
+          "Carbono",
+          "Ferro",
+          "Cálcio"
+        ],
+        "es-ES": [
+          "Silicio",
+          "Carbono",
+          "Hierro",
+          "Calcio"
+        ]
+      },
+      "correct": 1,
+      "fact": {
+        "en": "So is the graphite in your pencil.",
+        "pt-PT": "Tal como a grafite do teu lápis.",
+        "es-ES": "Igual que el grafito de tu lápiz."
+      },
+      "source": "manual"
+    },
+    {
+      "id": "magnet-iron",
+      "category": "science",
+      "minAge": 9,
+      "text": {
+        "en": "Which of these metals sticks to a magnet?",
+        "pt-PT": "Qual destes metais é atraído por um íman?",
+        "es-ES": "¿Cuál de estos metales se pega a un imán?"
+      },
+      "answers": {
+        "en": [
+          "Iron",
+          "Copper",
+          "Aluminium",
+          "Gold"
+        ],
+        "pt-PT": [
+          "Ferro",
+          "Cobre",
+          "Alumínio",
+          "Ouro"
+        ],
+        "es-ES": [
+          "Hierro",
+          "Cobre",
+          "Aluminio",
+          "Oro"
+        ]
+      },
+      "correct": 0,
+      "source": "manual"
+    },
+    {
+      "id": "sound-space",
+      "category": "science",
+      "minAge": 12,
+      "text": {
+        "en": "Can sound travel through empty space?",
+        "pt-PT": "O som consegue viajar no espaço vazio?",
+        "es-ES": "¿Puede el sonido viajar por el espacio vacío?"
+      },
+      "answers": {
+        "en": [
+          "Yes",
+          "No"
+        ],
+        "pt-PT": [
+          "Sim",
+          "Não"
+        ],
+        "es-ES": [
+          "Sí",
+          "No"
+        ]
+      },
+      "correct": 1,
+      "fact": {
+        "en": "There's no air to carry the vibrations.",
+        "pt-PT": "Não há ar para transportar as vibrações.",
+        "es-ES": "No hay aire que transmita las vibraciones."
+      },
+      "source": "manual"
+    },
+    {
+      "id": "lightning-first",
+      "category": "science",
+      "minAge": 11,
+      "text": {
+        "en": "Why do we see lightning before we hear the thunder?",
+        "pt-PT": "Porque vemos o relâmpago antes de ouvirmos o trovão?",
+        "es-ES": "¿Por qué vemos el relámpago antes de oír el trueno?"
+      },
+      "answers": {
+        "en": [
+          "Light is faster than sound",
+          "Thunder happens later",
+          "Clouds block the sound",
+          "Eyes are faster than ears"
+        ],
+        "pt-PT": [
+          "A luz é mais rápida do que o som",
+          "O trovão acontece depois",
+          "As nuvens bloqueiam o som",
+          "Os olhos são mais rápidos do que os ouvidos"
+        ],
+        "es-ES": [
+          "La luz es más rápida que el sonido",
+          "El trueno ocurre después",
+          "Las nubes bloquean el sonido",
+          "Los ojos son más rápidos que los oídos"
+        ]
+      },
+      "correct": 0,
+      "source": "manual"
+    },
+    {
+      "id": "chlorophyll",
+      "category": "science",
+      "minAge": 11,
+      "text": {
+        "en": "What gives plants their green colour?",
+        "pt-PT": "O que dá a cor verde às plantas?",
+        "es-ES": "¿Qué da a las plantas su color verde?"
+      },
+      "answers": {
+        "en": [
+          "Chlorophyll",
+          "Melanin",
+          "Keratin",
+          "Haemoglobin"
+        ],
+        "pt-PT": [
+          "Clorofila",
+          "Melanina",
+          "Queratina",
+          "Hemoglobina"
+        ],
+        "es-ES": [
+          "Clorofila",
+          "Melanina",
+          "Queratina",
+          "Hemoglobina"
+        ]
+      },
+      "correct": 0,
+      "source": "manual"
+    },
+    {
+      "id": "human-bones",
+      "category": "science",
+      "minAge": 10,
+      "text": {
+        "en": "Roughly how many bones are in an adult human body?",
+        "pt-PT": "Quantos ossos tem, mais ou menos, o corpo de um adulto?",
+        "es-ES": "¿Cuántos huesos tiene, más o menos, el cuerpo de un adulto?"
+      },
+      "answers": {
+        "en": [
+          "106",
+          "206",
+          "306",
+          "406"
+        ],
+        "pt-PT": [
+          "106",
+          "206",
+          "306",
+          "406"
+        ],
+        "es-ES": [
+          "106",
+          "206",
+          "306",
+          "406"
+        ]
+      },
+      "correct": 1,
+      "fact": {
+        "en": "Babies are born with around 300; some fuse as they grow.",
+        "pt-PT": "Os bebés nascem com cerca de 300; alguns juntam-se ao crescer.",
+        "es-ES": "Los bebés nacen con unos 300; algunos se fusionan al crecer."
+      },
+      "source": "manual"
+    },
+    {
+      "id": "heart-chambers",
+      "category": "science",
+      "minAge": 10,
+      "text": {
+        "en": "How many chambers does the human heart have?",
+        "pt-PT": "Quantas cavidades tem o coração humano?",
+        "es-ES": "¿Cuántas cavidades tiene el corazón humano?"
+      },
+      "answers": {
+        "en": [
+          "2",
+          "3",
+          "4",
+          "6"
+        ],
+        "pt-PT": [
+          "2",
+          "3",
+          "4",
+          "6"
+        ],
+        "es-ES": [
+          "2",
+          "3",
+          "4",
+          "6"
+        ]
+      },
+      "correct": 2,
+      "fact": {
+        "en": "Two atria and two ventricles.",
+        "pt-PT": "Duas aurículas e dois ventrículos.",
+        "es-ES": "Dos aurículas y dos ventrículos."
+      },
+      "source": "manual"
+    },
+    {
+      "id": "dinosaurs-extinct",
+      "category": "science",
+      "minAge": 12,
+      "text": {
+        "en": "Roughly when did the giant dinosaurs die out?",
+        "pt-PT": "Mais ou menos quando desapareceram os grandes dinossauros?",
+        "es-ES": "Más o menos, ¿cuándo desaparecieron los grandes dinosaurios?"
+      },
+      "answers": {
+        "en": [
+          "1 million years ago",
+          "66 million years ago",
+          "300 million years ago",
+          "1 billion years ago"
+        ],
+        "pt-PT": [
+          "Há 1 milhão de anos",
+          "Há 66 milhões de anos",
+          "Há 300 milhões de anos",
+          "Há mil milhões de anos"
+        ],
+        "es-ES": [
+          "Hace 1 millón de años",
+          "Hace 66 millones de años",
+          "Hace 300 millones de años",
+          "Hace mil millones de años"
+        ]
+      },
+      "correct": 1,
+      "fact": {
+        "en": "Birds are their living descendants.",
+        "pt-PT": "As aves são as suas descendentes vivas.",
+        "es-ES": "Las aves son sus descendientes vivas."
+      },
+      "source": "manual"
+    },
+    {
+      "id": "geologist",
+      "category": "science",
+      "minAge": 10,
+      "text": {
+        "en": "What do we call a scientist who studies rocks?",
+        "pt-PT": "Como se chama o cientista que estuda as rochas?",
+        "es-ES": "¿Cómo se llama el científico que estudia las rocas?"
+      },
+      "answers": {
+        "en": [
+          "Biologist",
+          "Geologist",
+          "Astronomer",
+          "Botanist"
+        ],
+        "pt-PT": [
+          "Biólogo",
+          "Geólogo",
+          "Astrónomo",
+          "Botânico"
+        ],
+        "es-ES": [
+          "Biólogo",
+          "Geólogo",
+          "Astrónomo",
+          "Botánico"
+        ]
+      },
+      "correct": 1,
+      "source": "manual"
+    },
+    {
+      "id": "insect-legs",
+      "category": "nature",
+      "minAge": 6,
+      "text": {
+        "en": "How many legs does an insect have?",
+        "pt-PT": "Quantas patas tem um inseto?",
+        "es-ES": "¿Cuántas patas tiene un insecto?"
+      },
+      "answers": {
+        "en": [
+          "4",
+          "6",
+          "8",
+          "10"
+        ],
+        "pt-PT": [
+          "4",
+          "6",
+          "8",
+          "10"
+        ],
+        "es-ES": [
+          "4",
+          "6",
+          "8",
+          "10"
+        ]
+      },
+      "correct": 1,
+      "source": "manual"
+    },
+    {
+      "id": "octopus-hearts",
+      "category": "nature",
+      "minAge": 9,
+      "text": {
+        "en": "How many hearts does an octopus have?",
+        "pt-PT": "Quantos corações tem um polvo?",
+        "es-ES": "¿Cuántos corazones tiene un pulpo?"
+      },
+      "answers": {
+        "en": [
+          "1",
+          "2",
+          "3",
+          "8"
+        ],
+        "pt-PT": [
+          "1",
+          "2",
+          "3",
+          "8"
+        ],
+        "es-ES": [
+          "1",
+          "2",
+          "3",
+          "8"
+        ]
+      },
+      "correct": 2,
+      "fact": {
+        "en": "Its blood is blue, too.",
+        "pt-PT": "E o sangue dele é azul.",
+        "es-ES": "Y su sangre es azul."
+      },
+      "source": "manual"
+    },
+    {
+      "id": "blue-whale",
+      "category": "nature",
+      "minAge": 8,
+      "text": {
+        "en": "What is the largest animal that has ever lived?",
+        "pt-PT": "Qual é o maior animal que alguma vez existiu?",
+        "es-ES": "¿Cuál es el animal más grande que ha existido?"
+      },
+      "answers": {
+        "en": [
+          "African elephant",
+          "Blue whale",
+          "T. rex",
+          "Giraffe"
+        ],
+        "pt-PT": [
+          "Elefante-africano",
+          "Baleia-azul",
+          "Tiranossauro",
+          "Girafa"
+        ],
+        "es-ES": [
+          "Elefante africano",
+          "Ballena azul",
+          "Tiranosaurio",
+          "Jirafa"
+        ]
+      },
+      "correct": 1,
+      "source": "manual"
+    },
+    {
+      "id": "tallest-animal",
+      "category": "nature",
+      "minAge": 6,
+      "text": {
+        "en": "What is the tallest animal in the world?",
+        "pt-PT": "Qual é o animal mais alto do mundo?",
+        "es-ES": "¿Cuál es el animal más alto del mundo?"
+      },
+      "answers": {
+        "en": [
+          "Elephant",
+          "Giraffe",
+          "Camel",
+          "Ostrich"
+        ],
+        "pt-PT": [
+          "Elefante",
+          "Girafa",
+          "Camelo",
+          "Avestruz"
+        ],
+        "es-ES": [
+          "Elefante",
+          "Jirafa",
+          "Camello",
+          "Avestruz"
+        ]
+      },
+      "correct": 1,
+      "source": "manual"
+    },
+    {
+      "id": "bees-honey",
+      "category": "nature",
+      "minAge": 6,
+      "text": {
+        "en": "What do bees make from the nectar of flowers?",
+        "pt-PT": "O que fazem as abelhas com o néctar das flores?",
+        "es-ES": "¿Qué hacen las abejas con el néctar de las flores?"
+      },
+      "answers": {
+        "en": [
+          "Milk",
+          "Honey",
+          "Silk",
+          "Jam"
+        ],
+        "pt-PT": [
+          "Leite",
+          "Mel",
+          "Seda",
+          "Compota"
+        ],
+        "es-ES": [
+          "Leche",
+          "Miel",
+          "Seda",
+          "Mermelada"
+        ]
+      },
+      "correct": 1,
+      "source": "manual"
+    },
+    {
+      "id": "caterpillar",
+      "category": "nature",
+      "minAge": 6,
+      "text": {
+        "en": "What does a caterpillar turn into?",
+        "pt-PT": "Em que se transforma uma lagarta?",
+        "es-ES": "¿En qué se convierte una oruga?"
+      },
+      "answers": {
+        "en": [
+          "Butterfly",
+          "Beetle",
+          "Bee",
+          "Dragonfly"
+        ],
+        "pt-PT": [
+          "Borboleta",
+          "Escaravelho",
+          "Abelha",
+          "Libélula"
+        ],
+        "es-ES": [
+          "Mariposa",
+          "Escarabajo",
+          "Abeja",
+          "Libélula"
+        ]
+      },
+      "correct": 0,
+      "source": "manual"
+    },
+    {
+      "id": "penguin-flight",
+      "category": "nature",
+      "minAge": 6,
+      "text": {
+        "en": "Which of these birds cannot fly?",
+        "pt-PT": "Qual destas aves não consegue voar?",
+        "es-ES": "¿Cuál de estas aves no puede volar?"
+      },
+      "answers": {
+        "en": [
+          "Eagle",
+          "Penguin",
+          "Parrot",
+          "Swallow"
+        ],
+        "pt-PT": [
+          "Águia",
+          "Pinguim",
+          "Papagaio",
+          "Andorinha"
+        ],
+        "es-ES": [
+          "Águila",
+          "Pingüino",
+          "Loro",
+          "Golondrina"
+        ]
+      },
+      "correct": 1,
+      "fact": {
+        "en": "Penguins 'fly' underwater instead.",
+        "pt-PT": "Os pinguins 'voam' debaixo de água.",
+        "es-ES": "Los pingüinos 'vuelan' bajo el agua."
+      },
+      "source": "manual"
+    },
+    {
+      "id": "tadpole",
+      "category": "nature",
+      "minAge": 7,
+      "text": {
+        "en": "What is a baby frog called?",
+        "pt-PT": "Como se chama uma rã bebé?",
+        "es-ES": "¿Cómo se llama una rana recién nacida?"
+      },
+      "answers": {
+        "en": [
+          "Tadpole",
+          "Duckling",
+          "Puppy",
+          "Foal"
+        ],
+        "pt-PT": [
+          "Girino",
+          "Patinho",
+          "Cachorrinho",
+          "Potro"
+        ],
+        "es-ES": [
+          "Renacuajo",
+          "Patito",
+          "Cachorro",
+          "Potro"
+        ]
+      },
+      "correct": 0,
+      "source": "manual"
+    },
+    {
+      "id": "panda-bamboo",
+      "category": "nature",
+      "minAge": 6,
+      "text": {
+        "en": "What does a giant panda mostly eat?",
+        "pt-PT": "O que come principalmente um panda-gigante?",
+        "es-ES": "¿Qué come principalmente un panda gigante?"
+      },
+      "answers": {
+        "en": [
+          "Fish",
+          "Bamboo",
+          "Insects",
+          "Fruit"
+        ],
+        "pt-PT": [
+          "Peixe",
+          "Bambu",
+          "Insetos",
+          "Fruta"
+        ],
+        "es-ES": [
+          "Pescado",
+          "Bambú",
+          "Insectos",
+          "Fruta"
+        ]
+      },
+      "correct": 1,
+      "source": "manual"
+    },
+    {
+      "id": "camel-hump",
+      "category": "nature",
+      "minAge": 10,
+      "text": {
+        "en": "What does a camel store in its hump?",
+        "pt-PT": "O que guarda um camelo na bossa?",
+        "es-ES": "¿Qué guarda un camello en su joroba?"
+      },
+      "answers": {
+        "en": [
+          "Water",
+          "Fat",
+          "Milk",
+          "Air"
+        ],
+        "pt-PT": [
+          "Água",
+          "Gordura",
+          "Leite",
+          "Ar"
+        ],
+        "es-ES": [
+          "Agua",
+          "Grasa",
+          "Leche",
+          "Aire"
+        ]
+      },
+      "correct": 1,
+      "fact": {
+        "en": "Not water: that's a common myth.",
+        "pt-PT": "Não é água: isso é um mito comum.",
+        "es-ES": "No es agua: es un mito muy común."
+      },
+      "source": "manual"
+    },
+    {
+      "id": "bat-flight",
+      "category": "nature",
+      "minAge": 9,
+      "text": {
+        "en": "Which is the only mammal that can truly fly?",
+        "pt-PT": "Qual é o único mamífero que consegue mesmo voar?",
+        "es-ES": "¿Cuál es el único mamífero que puede volar de verdad?"
+      },
+      "answers": {
+        "en": [
+          "Flying squirrel",
+          "Bat",
+          "Flying fish",
+          "Hummingbird"
+        ],
+        "pt-PT": [
+          "Esquilo-voador",
+          "Morcego",
+          "Peixe-voador",
+          "Beija-flor"
+        ],
+        "es-ES": [
+          "Ardilla voladora",
+          "Murciélago",
+          "Pez volador",
+          "Colibrí"
+        ]
+      },
+      "correct": 1,
+      "fact": {
+        "en": "Flying squirrels only glide.",
+        "pt-PT": "Os esquilos-voadores só planam.",
+        "es-ES": "Las ardillas voladoras solo planean."
+      },
+      "source": "manual"
+    },
+    {
+      "id": "hummingbird-backwards",
+      "category": "nature",
+      "minAge": 10,
+      "text": {
+        "en": "Which bird can fly backwards?",
+        "pt-PT": "Que ave consegue voar para trás?",
+        "es-ES": "¿Qué ave puede volar hacia atrás?"
+      },
+      "answers": {
+        "en": [
+          "Eagle",
+          "Hummingbird",
+          "Owl",
+          "Pigeon"
+        ],
+        "pt-PT": [
+          "Águia",
+          "Beija-flor",
+          "Coruja",
+          "Pombo"
+        ],
+        "es-ES": [
+          "Águila",
+          "Colibrí",
+          "Búho",
+          "Paloma"
+        ]
+      },
+      "correct": 1,
+      "source": "manual"
+    },
+    {
+      "id": "dolphin-mammal",
+      "category": "nature",
+      "minAge": 8,
+      "text": {
+        "en": "A dolphin is a…",
+        "pt-PT": "Um golfinho é um…",
+        "es-ES": "Un delfín es un…"
+      },
+      "answers": {
+        "en": [
+          "Fish",
+          "Mammal",
+          "Reptile",
+          "Amphibian"
+        ],
+        "pt-PT": [
+          "Peixe",
+          "Mamífero",
+          "Réptil",
+          "Anfíbio"
+        ],
+        "es-ES": [
+          "Pez",
+          "Mamífero",
+          "Reptil",
+          "Anfibio"
+        ]
+      },
+      "correct": 1,
+      "fact": {
+        "en": "It breathes air and feeds its babies milk.",
+        "pt-PT": "Respira ar e alimenta as crias com leite.",
+        "es-ES": "Respira aire y alimenta a sus crías con leche."
+      },
+      "source": "manual"
+    },
+    {
+      "id": "tree-rings",
+      "category": "nature",
+      "minAge": 8,
+      "text": {
+        "en": "What can you learn by counting the rings in a tree trunk?",
+        "pt-PT": "O que se descobre ao contar os anéis de um tronco de árvore?",
+        "es-ES": "¿Qué se descubre al contar los anillos del tronco de un árbol?"
+      },
+      "answers": {
+        "en": [
+          "Its height",
+          "Its age",
+          "How much rain fell",
+          "How many leaves it had"
+        ],
+        "pt-PT": [
+          "A altura",
+          "A idade",
+          "Quanta chuva caiu",
+          "Quantas folhas tinha"
+        ],
+        "es-ES": [
+          "Su altura",
+          "Su edad",
+          "Cuánta lluvia cayó",
+          "Cuántas hojas tenía"
+        ]
+      },
+      "correct": 1,
+      "fact": {
+        "en": "Usually one ring grows each year.",
+        "pt-PT": "Normalmente cresce um anel por ano.",
+        "es-ES": "Normalmente crece un anillo cada año."
+      },
+      "source": "manual"
+    },
+    {
+      "id": "kangaroo-home",
+      "category": "nature",
+      "minAge": 6,
+      "text": {
+        "en": "In which country do kangaroos live in the wild?",
+        "pt-PT": "Em que país vivem os cangurus em liberdade?",
+        "es-ES": "¿En qué país viven los canguros en libertad?"
+      },
+      "answers": {
+        "en": [
+          "Brazil",
+          "Australia",
+          "India",
+          "Kenya"
+        ],
+        "pt-PT": [
+          "Brasil",
+          "Austrália",
+          "Índia",
+          "Quénia"
+        ],
+        "es-ES": [
+          "Brasil",
+          "Australia",
+          "India",
+          "Kenia"
+        ]
+      },
+      "correct": 1,
+      "source": "manual"
+    },
+    {
+      "id": "largest-country",
+      "category": "geography",
+      "minAge": 9,
+      "text": {
+        "en": "Which is the largest country in the world by area?",
+        "pt-PT": "Qual é o maior país do mundo em área?",
+        "es-ES": "¿Cuál es el país más grande del mundo en superficie?"
+      },
+      "answers": {
+        "en": [
+          "Canada",
+          "China",
+          "Russia",
+          "United States"
+        ],
+        "pt-PT": [
+          "Canadá",
+          "China",
+          "Rússia",
+          "Estados Unidos"
+        ],
+        "es-ES": [
+          "Canadá",
+          "China",
+          "Rusia",
+          "Estados Unidos"
+        ]
+      },
+      "correct": 2,
+      "source": "manual"
+    },
+    {
+      "id": "highest-mountain",
+      "category": "geography",
+      "minAge": 8,
+      "text": {
+        "en": "What is the highest mountain on Earth?",
+        "pt-PT": "Qual é a montanha mais alta da Terra?",
+        "es-ES": "¿Cuál es la montaña más alta de la Tierra?"
+      },
+      "answers": {
+        "en": [
+          "K2",
+          "Everest",
+          "Kilimanjaro",
+          "Mont Blanc"
+        ],
+        "pt-PT": [
+          "K2",
+          "Evereste",
+          "Kilimanjaro",
+          "Monte Branco"
+        ],
+        "es-ES": [
+          "K2",
+          "Everest",
+          "Kilimanjaro",
+          "Mont Blanc"
+        ]
+      },
+      "correct": 1,
+      "source": "manual"
+    },
+    {
+      "id": "sahara",
+      "category": "geography",
+      "minAge": 10,
+      "text": {
+        "en": "What is the largest hot desert in the world?",
+        "pt-PT": "Qual é o maior deserto quente do mundo?",
+        "es-ES": "¿Cuál es el mayor desierto cálido del mundo?"
+      },
+      "answers": {
+        "en": [
+          "Gobi",
+          "Sahara",
+          "Kalahari",
+          "Atacama"
+        ],
+        "pt-PT": [
+          "Gobi",
+          "Sahara",
+          "Kalahari",
+          "Atacama"
+        ],
+        "es-ES": [
+          "Gobi",
+          "Sahara",
+          "Kalahari",
+          "Atacama"
+        ]
+      },
+      "correct": 1,
+      "source": "manual"
+    },
+    {
+      "id": "japan-capital",
+      "category": "geography",
+      "minAge": 8,
+      "text": {
+        "en": "What is the capital of Japan?",
+        "pt-PT": "Qual é a capital do Japão?",
+        "es-ES": "¿Cuál es la capital de Japón?"
+      },
+      "answers": {
+        "en": [
+          "Kyoto",
+          "Tokyo",
+          "Osaka",
+          "Seoul"
+        ],
+        "pt-PT": [
+          "Quioto",
+          "Tóquio",
+          "Osaka",
+          "Seul"
+        ],
+        "es-ES": [
+          "Kioto",
+          "Tokio",
+          "Osaka",
+          "Seúl"
+        ]
+      },
+      "correct": 1,
+      "source": "manual"
+    },
+    {
+      "id": "canada-capital",
+      "category": "geography",
+      "minAge": 12,
+      "text": {
+        "en": "What is the capital of Canada?",
+        "pt-PT": "Qual é a capital do Canadá?",
+        "es-ES": "¿Cuál es la capital de Canadá?"
+      },
+      "answers": {
+        "en": [
+          "Toronto",
+          "Ottawa",
+          "Montreal",
+          "Vancouver"
+        ],
+        "pt-PT": [
+          "Toronto",
+          "Otava",
+          "Montreal",
+          "Vancouver"
+        ],
+        "es-ES": [
+          "Toronto",
+          "Ottawa",
+          "Montreal",
+          "Vancouver"
+        ]
+      },
+      "correct": 1,
+      "source": "manual"
+    },
+    {
+      "id": "brazil-language",
+      "category": "geography",
+      "minAge": 9,
+      "text": {
+        "en": "What is the main language spoken in Brazil?",
+        "pt-PT": "Qual é a principal língua falada no Brasil?",
+        "es-ES": "¿Cuál es el idioma principal de Brasil?"
+      },
+      "answers": {
+        "en": [
+          "Spanish",
+          "Portuguese",
+          "French",
+          "English"
+        ],
+        "pt-PT": [
+          "Espanhol",
+          "Português",
+          "Francês",
+          "Inglês"
+        ],
+        "es-ES": [
+          "Español",
+          "Portugués",
+          "Francés",
+          "Inglés"
+        ]
+      },
+      "correct": 1,
+      "source": "manual"
+    },
+    {
+      "id": "italy-boot",
+      "category": "geography",
+      "minAge": 7,
+      "text": {
+        "en": "Which European country is shaped like a boot?",
+        "pt-PT": "Que país europeu tem a forma de uma bota?",
+        "es-ES": "¿Qué país europeo tiene forma de bota?"
+      },
+      "answers": {
+        "en": [
+          "Greece",
+          "Italy",
+          "Norway",
+          "France"
+        ],
+        "pt-PT": [
+          "Grécia",
+          "Itália",
+          "Noruega",
+          "França"
+        ],
+        "es-ES": [
+          "Grecia",
+          "Italia",
+          "Noruega",
+          "Francia"
+        ]
+      },
+      "correct": 1,
+      "source": "manual"
+    },
+    {
+      "id": "smallest-country",
+      "category": "geography",
+      "minAge": 10,
+      "text": {
+        "en": "What is the smallest country in the world?",
+        "pt-PT": "Qual é o país mais pequeno do mundo?",
+        "es-ES": "¿Cuál es el país más pequeño del mundo?"
+      },
+      "answers": {
+        "en": [
+          "Monaco",
+          "Vatican City",
+          "San Marino",
+          "Malta"
+        ],
+        "pt-PT": [
+          "Mónaco",
+          "Vaticano",
+          "São Marinho",
+          "Malta"
+        ],
+        "es-ES": [
+          "Mónaco",
+          "Ciudad del Vaticano",
+          "San Marino",
+          "Malta"
+        ]
+      },
+      "correct": 1,
+      "fact": {
+        "en": "It sits entirely inside the city of Rome.",
+        "pt-PT": "Fica inteiramente dentro da cidade de Roma.",
+        "es-ES": "Está completamente dentro de la ciudad de Roma."
+      },
+      "source": "manual"
+    },
+    {
+      "id": "giza-pyramids",
+      "category": "geography",
+      "minAge": 8,
+      "text": {
+        "en": "In which country are the Pyramids of Giza?",
+        "pt-PT": "Em que país ficam as pirâmides de Gizé?",
+        "es-ES": "¿En qué país están las pirámides de Guiza?"
+      },
+      "answers": {
+        "en": [
+          "Mexico",
+          "Egypt",
+          "Peru",
+          "Greece"
+        ],
+        "pt-PT": [
+          "México",
+          "Egito",
+          "Peru",
+          "Grécia"
+        ],
+        "es-ES": [
+          "México",
+          "Egipto",
+          "Perú",
+          "Grecia"
+        ]
+      },
+      "correct": 1,
+      "source": "manual"
+    },
+    {
+      "id": "atlantic",
+      "category": "geography",
+      "minAge": 9,
+      "text": {
+        "en": "Which ocean lies between Europe and North America?",
+        "pt-PT": "Que oceano fica entre a Europa e a América do Norte?",
+        "es-ES": "¿Qué océano está entre Europa y América del Norte?"
+      },
+      "answers": {
+        "en": [
+          "Pacific",
+          "Atlantic",
+          "Indian",
+          "Arctic"
+        ],
+        "pt-PT": [
+          "Pacífico",
+          "Atlântico",
+          "Índico",
+          "Ártico"
+        ],
+        "es-ES": [
+          "Pacífico",
+          "Atlántico",
+          "Índico",
+          "Ártico"
+        ]
+      },
+      "correct": 1,
+      "source": "manual"
+    },
+    {
+      "id": "largest-island",
+      "category": "geography",
+      "minAge": 11,
+      "text": {
+        "en": "What is the largest island in the world?",
+        "pt-PT": "Qual é a maior ilha do mundo?",
+        "es-ES": "¿Cuál es la isla más grande del mundo?"
+      },
+      "answers": {
+        "en": [
+          "Madagascar",
+          "Greenland",
+          "Borneo",
+          "Iceland"
+        ],
+        "pt-PT": [
+          "Madagáscar",
+          "Gronelândia",
+          "Bornéu",
+          "Islândia"
+        ],
+        "es-ES": [
+          "Madagascar",
+          "Groenlandia",
+          "Borneo",
+          "Islandia"
+        ]
+      },
+      "correct": 1,
+      "fact": {
+        "en": "Australia is bigger, but it counts as a continent.",
+        "pt-PT": "A Austrália é maior, mas conta como continente.",
+        "es-ES": "Australia es más grande, pero cuenta como continente."
+      },
+      "source": "manual"
+    },
+    {
+      "id": "statue-liberty",
+      "category": "geography",
+      "minAge": 9,
+      "text": {
+        "en": "In which city is the Statue of Liberty?",
+        "pt-PT": "Em que cidade fica a Estátua da Liberdade?",
+        "es-ES": "¿En qué ciudad está la Estatua de la Libertad?"
+      },
+      "answers": {
+        "en": [
+          "Washington",
+          "New York",
+          "Boston",
+          "Chicago"
+        ],
+        "pt-PT": [
+          "Washington",
+          "Nova Iorque",
+          "Boston",
+          "Chicago"
+        ],
+        "es-ES": [
+          "Washington",
+          "Nueva York",
+          "Boston",
+          "Chicago"
+        ]
+      },
+      "correct": 1,
+      "fact": {
+        "en": "It was a gift from France.",
+        "pt-PT": "Foi uma oferta da França.",
+        "es-ES": "Fue un regalo de Francia."
+      },
+      "source": "manual"
+    },
+    {
+      "id": "columbus-1492",
+      "category": "history",
+      "minAge": 11,
+      "text": {
+        "en": "In which year did Columbus first reach the Americas?",
+        "pt-PT": "Em que ano chegou Colombo pela primeira vez à América?",
+        "es-ES": "¿En qué año llegó Colón por primera vez a América?"
+      },
+      "answers": {
+        "en": [
+          "1292",
+          "1492",
+          "1592",
+          "1692"
+        ],
+        "pt-PT": [
+          "1292",
+          "1492",
+          "1592",
+          "1692"
+        ],
+        "es-ES": [
+          "1292",
+          "1492",
+          "1592",
+          "1692"
+        ]
+      },
+      "correct": 1,
+      "source": "manual"
+    },
+    {
+      "id": "first-in-space",
+      "category": "history",
+      "minAge": 12,
+      "text": {
+        "en": "Who was the first person to travel into space?",
+        "pt-PT": "Quem foi a primeira pessoa a viajar até ao espaço?",
+        "es-ES": "¿Quién fue la primera persona en viajar al espacio?"
+      },
+      "answers": {
+        "en": [
+          "Neil Armstrong",
+          "Yuri Gagarin",
+          "Buzz Aldrin",
+          "Valentina Tereshkova"
+        ],
+        "pt-PT": [
+          "Neil Armstrong",
+          "Iuri Gagarin",
+          "Buzz Aldrin",
+          "Valentina Tereshkova"
+        ],
+        "es-ES": [
+          "Neil Armstrong",
+          "Yuri Gagarin",
+          "Buzz Aldrin",
+          "Valentina Tereshkova"
+        ]
+      },
+      "correct": 1,
+      "fact": {
+        "en": "He orbited the Earth in 1961.",
+        "pt-PT": "Deu a volta à Terra em 1961.",
+        "es-ES": "Dio la vuelta a la Tierra en 1961."
+      },
+      "source": "manual"
+    },
+    {
+      "id": "olympics-greece",
+      "category": "history",
+      "minAge": 9,
+      "text": {
+        "en": "The Olympic Games began in ancient…",
+        "pt-PT": "Os Jogos Olímpicos começaram na antiga…",
+        "es-ES": "Los Juegos Olímpicos empezaron en la antigua…"
+      },
+      "answers": {
+        "en": [
+          "Rome",
+          "Greece",
+          "Egypt",
+          "Persia"
+        ],
+        "pt-PT": [
+          "Roma",
+          "Grécia",
+          "Egito",
+          "Pérsia"
+        ],
+        "es-ES": [
+          "Roma",
+          "Grecia",
+          "Egipto",
+          "Persia"
+        ]
+      },
+      "correct": 1,
+      "source": "manual"
+    },
+    {
+      "id": "roman-ten",
+      "category": "history",
+      "minAge": 8,
+      "text": {
+        "en": "Which number is X in Roman numerals?",
+        "pt-PT": "Que número é o X em numeração romana?",
+        "es-ES": "¿Qué número es la X en números romanos?"
+      },
+      "answers": {
+        "en": [
+          "5",
+          "10",
+          "50",
+          "100"
+        ],
+        "pt-PT": [
+          "5",
+          "10",
+          "50",
+          "100"
+        ],
+        "es-ES": [
+          "5",
+          "10",
+          "50",
+          "100"
+        ]
+      },
+      "correct": 1,
+      "source": "manual"
+    },
+    {
+      "id": "titanic-1912",
+      "category": "history",
+      "minAge": 12,
+      "text": {
+        "en": "In which year did the Titanic sink?",
+        "pt-PT": "Em que ano se afundou o Titanic?",
+        "es-ES": "¿En qué año se hundió el Titanic?"
+      },
+      "answers": {
+        "en": [
+          "1898",
+          "1912",
+          "1929",
+          "1945"
+        ],
+        "pt-PT": [
+          "1898",
+          "1912",
+          "1929",
+          "1945"
+        ],
+        "es-ES": [
+          "1898",
+          "1912",
+          "1929",
+          "1945"
+        ]
+      },
+      "correct": 1,
+      "fact": {
+        "en": "It was on its very first voyage.",
+        "pt-PT": "Era a sua primeira viagem.",
+        "es-ES": "Era su primer viaje."
+      },
+      "source": "manual"
+    },
+    {
+      "id": "printing-press",
+      "category": "history",
+      "minAge": 13,
+      "text": {
+        "en": "Who built the first printing press with movable metal type in Europe?",
+        "pt-PT": "Quem criou a primeira prensa com tipos móveis de metal na Europa?",
+        "es-ES": "¿Quién creó la primera imprenta de tipos móviles de metal en Europa?"
+      },
+      "answers": {
+        "en": [
+          "Johannes Gutenberg",
+          "Galileo Galilei",
+          "Isaac Newton",
+          "Leonardo da Vinci"
+        ],
+        "pt-PT": [
+          "Johannes Gutenberg",
+          "Galileu Galilei",
+          "Isaac Newton",
+          "Leonardo da Vinci"
+        ],
+        "es-ES": [
+          "Johannes Gutenberg",
+          "Galileo Galilei",
+          "Isaac Newton",
+          "Leonardo da Vinci"
+        ]
+      },
+      "correct": 0,
+      "fact": {
+        "en": "Around 1450, in Germany.",
+        "pt-PT": "Por volta de 1450, na Alemanha.",
+        "es-ES": "Hacia 1450, en Alemania."
+      },
+      "source": "manual"
+    },
+    {
+      "id": "great-wall",
+      "category": "history",
+      "minAge": 8,
+      "text": {
+        "en": "Which country is home to the Great Wall?",
+        "pt-PT": "Em que país fica a Grande Muralha?",
+        "es-ES": "¿En qué país está la Gran Muralla?"
+      },
+      "answers": {
+        "en": [
+          "Japan",
+          "China",
+          "India",
+          "Mongolia"
+        ],
+        "pt-PT": [
+          "Japão",
+          "China",
+          "Índia",
+          "Mongólia"
+        ],
+        "es-ES": [
+          "Japón",
+          "China",
+          "India",
+          "Mongolia"
+        ]
+      },
+      "correct": 1,
+      "source": "manual"
+    },
+    {
+      "id": "starry-night",
+      "category": "art",
+      "minAge": 11,
+      "text": {
+        "en": "Who painted The Starry Night?",
+        "pt-PT": "Quem pintou A Noite Estrelada?",
+        "es-ES": "¿Quién pintó La noche estrellada?"
+      },
+      "answers": {
+        "en": [
+          "Claude Monet",
+          "Vincent van Gogh",
+          "Pablo Picasso",
+          "Rembrandt"
+        ],
+        "pt-PT": [
+          "Claude Monet",
+          "Vincent van Gogh",
+          "Pablo Picasso",
+          "Rembrandt"
+        ],
+        "es-ES": [
+          "Claude Monet",
+          "Vincent van Gogh",
+          "Pablo Picasso",
+          "Rembrandt"
+        ]
+      },
+      "correct": 1,
+      "source": "manual"
+    },
+    {
+      "id": "mix-green",
+      "category": "art",
+      "minAge": 6,
+      "text": {
+        "en": "Which colour do you get by mixing blue and yellow?",
+        "pt-PT": "Que cor se obtém ao misturar azul e amarelo?",
+        "es-ES": "¿Qué color sale al mezclar azul y amarillo?"
+      },
+      "answers": {
+        "en": [
+          "Purple",
+          "Green",
+          "Orange",
+          "Brown"
+        ],
+        "pt-PT": [
+          "Roxo",
+          "Verde",
+          "Laranja",
+          "Castanho"
+        ],
+        "es-ES": [
+          "Morado",
+          "Verde",
+          "Naranja",
+          "Marrón"
+        ]
+      },
+      "correct": 1,
+      "source": "manual"
+    },
+    {
+      "id": "piano-keys",
+      "category": "music",
+      "minAge": 11,
+      "text": {
+        "en": "How many keys does a standard piano have?",
+        "pt-PT": "Quantas teclas tem um piano normal?",
+        "es-ES": "¿Cuántas teclas tiene un piano normal?"
+      },
+      "answers": {
+        "en": [
+          "52",
+          "76",
+          "88",
+          "100"
+        ],
+        "pt-PT": [
+          "52",
+          "76",
+          "88",
+          "100"
+        ],
+        "es-ES": [
+          "52",
+          "76",
+          "88",
+          "100"
+        ]
+      },
+      "correct": 2,
+      "fact": {
+        "en": "52 white keys and 36 black keys.",
+        "pt-PT": "52 teclas brancas e 36 pretas.",
+        "es-ES": "52 teclas blancas y 36 negras."
+      },
+      "source": "manual"
+    },
+    {
+      "id": "string-instrument",
+      "category": "music",
+      "minAge": 7,
+      "text": {
+        "en": "Which of these is a string instrument?",
+        "pt-PT": "Qual destes é um instrumento de cordas?",
+        "es-ES": "¿Cuál de estos es un instrumento de cuerda?"
+      },
+      "answers": {
+        "en": [
+          "Trumpet",
+          "Violin",
+          "Flute",
+          "Drum"
+        ],
+        "pt-PT": [
+          "Trompete",
+          "Violino",
+          "Flauta",
+          "Tambor"
+        ],
+        "es-ES": [
+          "Trompeta",
+          "Violín",
+          "Flauta",
+          "Tambor"
+        ]
+      },
+      "correct": 1,
+      "source": "manual"
+    },
+    {
+      "id": "beatles-city",
+      "category": "music",
+      "minAge": 12,
+      "text": {
+        "en": "The Beatles came from which English city?",
+        "pt-PT": "Os Beatles eram de que cidade inglesa?",
+        "es-ES": "¿De qué ciudad inglesa eran los Beatles?"
+      },
+      "answers": {
+        "en": [
+          "London",
+          "Liverpool",
+          "Manchester",
+          "Birmingham"
+        ],
+        "pt-PT": [
+          "Londres",
+          "Liverpool",
+          "Manchester",
+          "Birmingham"
+        ],
+        "es-ES": [
+          "Londres",
+          "Liverpool",
+          "Mánchester",
+          "Birmingham"
+        ]
+      },
+      "correct": 1,
+      "source": "manual"
+    },
+    {
+      "id": "football-eleven",
+      "category": "sports",
+      "minAge": 7,
+      "text": {
+        "en": "How many players does each football team have on the pitch?",
+        "pt-PT": "Quantos jogadores tem cada equipa de futebol em campo?",
+        "es-ES": "¿Cuántos jugadores tiene cada equipo de fútbol en el campo?"
+      },
+      "answers": {
+        "en": [
+          "9",
+          "10",
+          "11",
+          "12"
+        ],
+        "pt-PT": [
+          "9",
+          "10",
+          "11",
+          "12"
+        ],
+        "es-ES": [
+          "9",
+          "10",
+          "11",
+          "12"
+        ]
+      },
+      "correct": 2,
+      "source": "manual"
+    },
+    {
+      "id": "olympic-rings",
+      "category": "sports",
+      "minAge": 7,
+      "text": {
+        "en": "How many rings are on the Olympic flag?",
+        "pt-PT": "Quantos anéis tem a bandeira olímpica?",
+        "es-ES": "¿Cuántos aros tiene la bandera olímpica?"
+      },
+      "answers": {
+        "en": [
+          "4",
+          "5",
+          "6",
+          "7"
+        ],
+        "pt-PT": [
+          "4",
+          "5",
+          "6",
+          "7"
+        ],
+        "es-ES": [
+          "4",
+          "5",
+          "6",
+          "7"
+        ]
+      },
+      "correct": 1,
+      "source": "manual"
+    },
+    {
+      "id": "marathon-distance",
+      "category": "sports",
+      "minAge": 12,
+      "text": {
+        "en": "Roughly how long is a marathon?",
+        "pt-PT": "Mais ou menos, quanto mede uma maratona?",
+        "es-ES": "Más o menos, ¿cuánto mide un maratón?"
+      },
+      "answers": {
+        "en": [
+          "About 21 km",
+          "About 42 km",
+          "About 50 km",
+          "About 100 km"
+        ],
+        "pt-PT": [
+          "Cerca de 21 km",
+          "Cerca de 42 km",
+          "Cerca de 50 km",
+          "Cerca de 100 km"
+        ],
+        "es-ES": [
+          "Unos 21 km",
+          "Unos 42 km",
+          "Unos 50 km",
+          "Unos 100 km"
+        ]
+      },
+      "correct": 1,
+      "fact": {
+        "en": "Exactly 42.195 km.",
+        "pt-PT": "Exatamente 42,195 km.",
+        "es-ES": "Exactamente 42,195 km."
+      },
+      "source": "manual"
+    },
+    {
+      "id": "rugby-try",
+      "category": "sports",
+      "minAge": 10,
+      "text": {
+        "en": "In which sport do you score a 'try'?",
+        "pt-PT": "Em que desporto se marca um 'ensaio'?",
+        "es-ES": "¿En qué deporte se marca un 'ensayo'?"
+      },
+      "answers": {
+        "en": [
+          "Football",
+          "Rugby",
+          "Tennis",
+          "Golf"
+        ],
+        "pt-PT": [
+          "Futebol",
+          "Râguebi",
+          "Ténis",
+          "Golfe"
+        ],
+        "es-ES": [
+          "Fútbol",
+          "Rugby",
+          "Tenis",
+          "Golf"
+        ]
+      },
+      "correct": 1,
+      "source": "manual"
+    },
+    {
+      "id": "hexagon-sides",
+      "category": "maths",
+      "minAge": 7,
+      "text": {
+        "en": "How many sides does a hexagon have?",
+        "pt-PT": "Quantos lados tem um hexágono?",
+        "es-ES": "¿Cuántos lados tiene un hexágono?"
+      },
+      "answers": {
+        "en": [
+          "5",
+          "6",
+          "7",
+          "8"
+        ],
+        "pt-PT": [
+          "5",
+          "6",
+          "7",
+          "8"
+        ],
+        "es-ES": [
+          "5",
+          "6",
+          "7",
+          "8"
+        ]
+      },
+      "correct": 1,
+      "fact": {
+        "en": "Like the cells in a honeycomb.",
+        "pt-PT": "Como as células de um favo de mel.",
+        "es-ES": "Como las celdas de un panal."
+      },
+      "source": "manual"
+    },
+    {
+      "id": "dozen",
+      "category": "maths",
+      "minAge": 6,
+      "text": {
+        "en": "How many eggs are in a dozen?",
+        "pt-PT": "Quantos ovos tem uma dúzia?",
+        "es-ES": "¿Cuántos huevos hay en una docena?"
+      },
+      "answers": {
+        "en": [
+          "6",
+          "10",
+          "12",
+          "20"
+        ],
+        "pt-PT": [
+          "6",
+          "10",
+          "12",
+          "20"
+        ],
+        "es-ES": [
+          "6",
+          "10",
+          "12",
+          "20"
+        ]
+      },
+      "correct": 2,
+      "source": "manual"
+    },
+    {
+      "id": "leap-year",
+      "category": "maths",
+      "minAge": 8,
+      "text": {
+        "en": "How many days are in a leap year?",
+        "pt-PT": "Quantos dias tem um ano bissexto?",
+        "es-ES": "¿Cuántos días tiene un año bisiesto?"
+      },
+      "answers": {
+        "en": [
+          "364",
+          "365",
+          "366",
+          "367"
+        ],
+        "pt-PT": [
+          "364",
+          "365",
+          "366",
+          "367"
+        ],
+        "es-ES": [
+          "364",
+          "365",
+          "366",
+          "367"
+        ]
+      },
+      "correct": 2,
+      "fact": {
+        "en": "The extra day is 29 February.",
+        "pt-PT": "O dia a mais é 29 de fevereiro.",
+        "es-ES": "El día extra es el 29 de febrero."
+      },
+      "source": "manual"
+    },
+    {
+      "id": "right-angle",
+      "category": "maths",
+      "minAge": 9,
+      "text": {
+        "en": "How many degrees are in a right angle?",
+        "pt-PT": "Quantos graus tem um ângulo reto?",
+        "es-ES": "¿Cuántos grados tiene un ángulo recto?"
+      },
+      "answers": {
+        "en": [
+          "45°",
+          "90°",
+          "180°",
+          "360°"
+        ],
+        "pt-PT": [
+          "45°",
+          "90°",
+          "180°",
+          "360°"
+        ],
+        "es-ES": [
+          "45°",
+          "90°",
+          "180°",
+          "360°"
+        ]
+      },
+      "correct": 1,
+      "source": "manual"
+    },
+    {
+      "id": "triangle-angles",
+      "category": "maths",
+      "minAge": 12,
+      "text": {
+        "en": "The three angles of a triangle always add up to…",
+        "pt-PT": "Os três ângulos de um triângulo somam sempre…",
+        "es-ES": "Los tres ángulos de un triángulo siempre suman…"
+      },
+      "answers": {
+        "en": [
+          "90°",
+          "180°",
+          "270°",
+          "360°"
+        ],
+        "pt-PT": [
+          "90°",
+          "180°",
+          "270°",
+          "360°"
+        ],
+        "es-ES": [
+          "90°",
+          "180°",
+          "270°",
+          "360°"
+        ]
+      },
+      "correct": 1,
+      "source": "manual"
+    },
+    {
+      "id": "prime-seven",
+      "category": "maths",
+      "minAge": 11,
+      "text": {
+        "en": "Which of these is a prime number?",
+        "pt-PT": "Qual destes é um número primo?",
+        "es-ES": "¿Cuál de estos es un número primo?"
+      },
+      "answers": {
+        "en": [
+          "9",
+          "7",
+          "15",
+          "21"
+        ],
+        "pt-PT": [
+          "9",
+          "7",
+          "15",
+          "21"
+        ],
+        "es-ES": [
+          "9",
+          "7",
+          "15",
+          "21"
+        ]
+      },
+      "correct": 1,
+      "fact": {
+        "en": "It can only be divided by 1 and itself.",
+        "pt-PT": "Só se divide por 1 e por si próprio.",
+        "es-ES": "Solo se puede dividir entre 1 y sí mismo."
+      },
+      "source": "manual"
+    },
+    {
+      "id": "minutes-day",
+      "category": "maths",
+      "minAge": 12,
+      "text": {
+        "en": "How many minutes are in one day?",
+        "pt-PT": "Quantos minutos tem um dia?",
+        "es-ES": "¿Cuántos minutos tiene un día?"
+      },
+      "answers": {
+        "en": [
+          "960",
+          "1,440",
+          "2,400",
+          "3,600"
+        ],
+        "pt-PT": [
+          "960",
+          "1440",
+          "2400",
+          "3600"
+        ],
+        "es-ES": [
+          "960",
+          "1440",
+          "2400",
+          "3600"
+        ]
+      },
+      "correct": 1,
+      "fact": {
+        "en": "24 × 60 = 1,440.",
+        "pt-PT": "24 × 60 = 1440.",
+        "es-ES": "24 × 60 = 1440."
+      },
+      "source": "manual"
+    },
+    {
+      "id": "pi-digits",
+      "category": "maths",
+      "minAge": 11,
+      "text": {
+        "en": "The number pi (π) starts with which digits?",
+        "pt-PT": "O número pi (π) começa por que algarismos?",
+        "es-ES": "¿Por qué cifras empieza el número pi (π)?"
+      },
+      "answers": {
+        "en": [
+          "2.71",
+          "3.14",
+          "1.61",
+          "1.41"
+        ],
+        "pt-PT": [
+          "2,71",
+          "3,14",
+          "1,61",
+          "1,41"
+        ],
+        "es-ES": [
+          "2,71",
+          "3,14",
+          "1,61",
+          "1,41"
+        ]
+      },
+      "correct": 1,
+      "source": "manual"
+    },
+    {
+      "id": "www",
+      "category": "technology",
+      "minAge": 11,
+      "text": {
+        "en": "What does 'www' stand for in a web address?",
+        "pt-PT": "O que significa 'www' num endereço de internet?",
+        "es-ES": "¿Qué significa 'www' en una dirección de internet?"
+      },
+      "answers": {
+        "en": [
+          "World Wide Web",
+          "Wide World Web",
+          "Web World Wide",
+          "World Web Window"
+        ],
+        "pt-PT": [
+          "World Wide Web",
+          "Wide World Web",
+          "Web World Wide",
+          "World Web Window"
+        ],
+        "es-ES": [
+          "World Wide Web",
+          "Wide World Web",
+          "Web World Wide",
+          "World Web Window"
+        ]
+      },
+      "correct": 0,
+      "source": "manual"
+    },
+    {
+      "id": "guacamole",
+      "category": "food",
+      "minAge": 9,
+      "text": {
+        "en": "Guacamole is mainly made from which fruit?",
+        "pt-PT": "O guacamole é feito sobretudo de que fruto?",
+        "es-ES": "¿De qué fruta se hace principalmente el guacamole?"
+      },
+      "answers": {
+        "en": [
+          "Avocado",
+          "Pea",
+          "Cucumber",
+          "Lime"
+        ],
+        "pt-PT": [
+          "Abacate",
+          "Ervilha",
+          "Pepino",
+          "Lima"
+        ],
+        "es-ES": [
+          "Aguacate",
+          "Guisante",
+          "Pepino",
+          "Lima"
+        ]
+      },
+      "correct": 0,
+      "source": "manual"
+    },
+    {
+      "id": "sushi-country",
+      "category": "food",
+      "minAge": 7,
+      "text": {
+        "en": "Sushi comes from which country?",
+        "pt-PT": "O sushi é originário de que país?",
+        "es-ES": "¿De qué país es originario el sushi?"
+      },
+      "answers": {
+        "en": [
+          "China",
+          "Japan",
+          "Thailand",
+          "Korea"
+        ],
+        "pt-PT": [
+          "China",
+          "Japão",
+          "Tailândia",
+          "Coreia"
+        ],
+        "es-ES": [
+          "China",
+          "Japón",
+          "Tailandia",
+          "Corea"
+        ]
+      },
+      "correct": 1,
+      "source": "manual"
+    },
+    {
+      "id": "feta-greece",
+      "category": "food",
+      "minAge": 11,
+      "text": {
+        "en": "Feta cheese comes from which country?",
+        "pt-PT": "O queijo feta é originário de que país?",
+        "es-ES": "¿De qué país es originario el queso feta?"
+      },
+      "answers": {
+        "en": [
+          "Italy",
+          "Greece",
+          "France",
+          "Turkey"
+        ],
+        "pt-PT": [
+          "Itália",
+          "Grécia",
+          "França",
+          "Turquia"
+        ],
+        "es-ES": [
+          "Italia",
+          "Grecia",
+          "Francia",
+          "Turquía"
+        ]
+      },
+      "correct": 1,
+      "source": "manual"
+    },
+    {
+      "id": "bacalhau-365",
+      "category": "food",
+      "minAge": 10,
+      "regions": [
+        "PT"
+      ],
+      "text": {
+        "en": "Portuguese cooks are said to know 365 recipes for which fish?",
+        "pt-PT": "Diz-se que há 365 receitas, uma por dia, de que peixe?",
+        "es-ES": "Se dice que en Portugal hay 365 recetas de ¿qué pescado?"
+      },
+      "answers": {
+        "en": [
+          "Sardine",
+          "Salt cod",
+          "Tuna",
+          "Salmon"
+        ],
+        "pt-PT": [
+          "Sardinha",
+          "Bacalhau",
+          "Atum",
+          "Salmão"
+        ],
+        "es-ES": [
+          "Sardina",
+          "Bacalao",
+          "Atún",
+          "Salmón"
+        ]
+      },
+      "correct": 1,
+      "fact": {
+        "en": "Some say there are 1,001.",
+        "pt-PT": "Há quem diga que são 1001.",
+        "es-ES": "Hay quien dice que son 1001."
+      },
+      "source": "manual"
+    },
+    {
+      "id": "francesinha-porto",
+      "category": "food",
+      "minAge": 10,
+      "regions": [
+        "PT"
+      ],
+      "text": {
+        "en": "The francesinha sandwich is a speciality of which city?",
+        "pt-PT": "A francesinha é uma especialidade de que cidade?",
+        "es-ES": "La francesinha es una especialidad de ¿qué ciudad?"
+      },
+      "answers": {
+        "en": [
+          "Lisbon",
+          "Porto",
+          "Coimbra",
+          "Faro"
+        ],
+        "pt-PT": [
+          "Lisboa",
+          "Porto",
+          "Coimbra",
+          "Faro"
+        ],
+        "es-ES": [
+          "Lisboa",
+          "Oporto",
+          "Coímbra",
+          "Faro"
+        ]
+      },
+      "correct": 1,
+      "source": "manual"
+    },
+    {
+      "id": "lusiadas-camoes",
+      "category": "art",
+      "minAge": 12,
+      "regions": [
+        "PT"
+      ],
+      "text": {
+        "en": "Who wrote Os Lusíadas, Portugal's great epic poem?",
+        "pt-PT": "Quem escreveu Os Lusíadas?",
+        "es-ES": "¿Quién escribió Os Lusíadas, el gran poema épico de Portugal?"
+      },
+      "answers": {
+        "en": [
+          "Fernando Pessoa",
+          "Luís de Camões",
+          "Eça de Queirós",
+          "José Saramago"
+        ],
+        "pt-PT": [
+          "Fernando Pessoa",
+          "Luís de Camões",
+          "Eça de Queirós",
+          "José Saramago"
+        ],
+        "es-ES": [
+          "Fernando Pessoa",
+          "Luís de Camões",
+          "Eça de Queirós",
+          "José Saramago"
+        ]
+      },
+      "correct": 1,
+      "fact": {
+        "en": "It tells of Vasco da Gama's voyage to India.",
+        "pt-PT": "Conta a viagem de Vasco da Gama à Índia.",
+        "es-ES": "Narra el viaje de Vasco da Gama a la India."
+      },
+      "source": "manual"
+    },
+    {
+      "id": "saramago-nobel",
+      "category": "art",
+      "minAge": 14,
+      "regions": [
+        "PT"
+      ],
+      "text": {
+        "en": "Which Portuguese writer won the Nobel Prize in Literature in 1998?",
+        "pt-PT": "Que escritor português ganhou o Prémio Nobel da Literatura em 1998?",
+        "es-ES": "¿Qué escritor portugués ganó el Premio Nobel de Literatura en 1998?"
+      },
+      "answers": {
+        "en": [
+          "Fernando Pessoa",
+          "José Saramago",
+          "António Lobo Antunes",
+          "Eça de Queirós"
+        ],
+        "pt-PT": [
+          "Fernando Pessoa",
+          "José Saramago",
+          "António Lobo Antunes",
+          "Eça de Queirós"
+        ],
+        "es-ES": [
+          "Fernando Pessoa",
+          "José Saramago",
+          "António Lobo Antunes",
+          "Eça de Queirós"
+        ]
+      },
+      "correct": 1,
+      "source": "manual"
+    },
+    {
+      "id": "coimbra-fado",
+      "category": "music",
+      "minAge": 12,
+      "regions": [
+        "PT"
+      ],
+      "text": {
+        "en": "Besides Lisbon, which city has its own style of fado?",
+        "pt-PT": "Além de Lisboa, que cidade tem o seu próprio estilo de fado?",
+        "es-ES": "Además de Lisboa, ¿qué ciudad tiene su propio estilo de fado?"
+      },
+      "answers": {
+        "en": [
+          "Porto",
+          "Coimbra",
+          "Braga",
+          "Faro"
+        ],
+        "pt-PT": [
+          "Porto",
+          "Coimbra",
+          "Braga",
+          "Faro"
+        ],
+        "es-ES": [
+          "Oporto",
+          "Coímbra",
+          "Braga",
+          "Faro"
+        ]
+      },
+      "correct": 1,
+      "fact": {
+        "en": "It is traditionally sung by men, often students.",
+        "pt-PT": "É tradicionalmente cantado por homens, muitas vezes estudantes.",
+        "es-ES": "Tradicionalmente lo cantan hombres, a menudo estudiantes."
+      },
+      "source": "manual"
+    },
+    {
+      "id": "lisbon-earthquake",
+      "category": "history",
+      "minAge": 13,
+      "regions": [
+        "PT"
+      ],
+      "text": {
+        "en": "In which year was Lisbon destroyed by a great earthquake?",
+        "pt-PT": "Em que ano foi Lisboa destruída por um grande terramoto?",
+        "es-ES": "¿En qué año fue destruida Lisboa por un gran terremoto?"
+      },
+      "answers": {
+        "en": [
+          "1655",
+          "1755",
+          "1855",
+          "1955"
+        ],
+        "pt-PT": [
+          "1655",
+          "1755",
+          "1855",
+          "1955"
+        ],
+        "es-ES": [
+          "1655",
+          "1755",
+          "1855",
+          "1955"
+        ]
+      },
+      "correct": 1,
+      "fact": {
+        "en": "It struck on All Saints' Day, 1 November.",
+        "pt-PT": "Aconteceu no Dia de Todos os Santos, 1 de novembro.",
+        "es-ES": "Ocurrió el Día de Todos los Santos, el 1 de noviembre."
+      },
+      "source": "manual"
+    },
+    {
+      "id": "carnation-revolution",
+      "category": "history",
+      "minAge": 11,
+      "regions": [
+        "PT"
+      ],
+      "text": {
+        "en": "Portugal's revolution of 25 April 1974 is named after which flower?",
+        "pt-PT": "A revolução de 25 de Abril de 1974 ficou conhecida por que flor?",
+        "es-ES": "¿Qué flor da nombre a la revolución portuguesa del 25 de abril de 1974?"
+      },
+      "answers": {
+        "en": [
+          "Rose",
+          "Carnation",
+          "Tulip",
+          "Sunflower"
+        ],
+        "pt-PT": [
+          "Rosa",
+          "Cravo",
+          "Túlipa",
+          "Girassol"
+        ],
+        "es-ES": [
+          "Rosa",
+          "Clavel",
+          "Tulipán",
+          "Girasol"
+        ]
+      },
+      "correct": 1,
+      "fact": {
+        "en": "Soldiers put carnations in their rifles.",
+        "pt-PT": "Os soldados puseram cravos nas espingardas.",
+        "es-ES": "Los soldados pusieron claveles en sus fusiles."
+      },
+      "source": "manual"
+    },
+    {
+      "id": "portugal-highest",
+      "category": "geography",
+      "minAge": 13,
+      "regions": [
+        "PT"
+      ],
+      "text": {
+        "en": "What is the highest mountain in Portugal?",
+        "pt-PT": "Qual é a montanha mais alta de Portugal?",
+        "es-ES": "¿Cuál es la montaña más alta de Portugal?"
+      },
+      "answers": {
+        "en": [
+          "Serra da Estrela",
+          "Pico",
+          "Gerês",
+          "Marão"
+        ],
+        "pt-PT": [
+          "Serra da Estrela",
+          "Pico",
+          "Gerês",
+          "Marão"
+        ],
+        "es-ES": [
+          "Serra da Estrela",
+          "Pico",
+          "Gerês",
+          "Marão"
+        ]
+      },
+      "correct": 1,
+      "fact": {
+        "en": "It is a volcano on the Azores island of the same name.",
+        "pt-PT": "É um vulcão na ilha açoriana com o mesmo nome.",
+        "es-ES": "Es un volcán en la isla azoriana del mismo nombre."
+      },
+      "source": "manual"
+    },
+    {
+      "id": "funchal-madeira",
+      "category": "geography",
+      "minAge": 11,
+      "regions": [
+        "PT"
+      ],
+      "text": {
+        "en": "Funchal is the capital of which Portuguese islands?",
+        "pt-PT": "O Funchal é a capital de que arquipélago português?",
+        "es-ES": "Funchal es la capital de ¿qué archipiélago portugués?"
+      },
+      "answers": {
+        "en": [
+          "Azores",
+          "Madeira",
+          "Canary Islands",
+          "Cape Verde"
+        ],
+        "pt-PT": [
+          "Açores",
+          "Madeira",
+          "Canárias",
+          "Cabo Verde"
+        ],
+        "es-ES": [
+          "Azores",
+          "Madeira",
+          "Canarias",
+          "Cabo Verde"
+        ]
+      },
+      "correct": 1,
+      "source": "manual"
+    },
+    {
+      "id": "barcelos-rooster",
+      "category": "art",
+      "minAge": 8,
+      "regions": [
+        "PT"
+      ],
+      "text": {
+        "en": "Which animal is the famous symbol of Barcelos, in Portugal?",
+        "pt-PT": "Que animal é o famoso símbolo de Barcelos?",
+        "es-ES": "¿Qué animal es el famoso símbolo de Barcelos, en Portugal?"
+      },
+      "answers": {
+        "en": [
+          "Bull",
+          "Rooster",
+          "Donkey",
+          "Horse"
+        ],
+        "pt-PT": [
+          "Touro",
+          "Galo",
+          "Burro",
+          "Cavalo"
+        ],
+        "es-ES": [
+          "Toro",
+          "Gallo",
+          "Burro",
+          "Caballo"
+        ]
+      },
+      "correct": 1,
+      "source": "manual"
+    },
+    {
+      "id": "lisbon-bridge",
+      "category": "geography",
+      "minAge": 12,
+      "regions": [
+        "PT"
+      ],
+      "text": {
+        "en": "Lisbon's 25 de Abril Bridge looks a lot like a bridge in which city?",
+        "pt-PT": "A Ponte 25 de Abril, em Lisboa, parece-se com uma ponte de que cidade?",
+        "es-ES": "El puente 25 de Abril de Lisboa se parece a un puente de ¿qué ciudad?"
+      },
+      "answers": {
+        "en": [
+          "New York",
+          "San Francisco",
+          "London",
+          "Sydney"
+        ],
+        "pt-PT": [
+          "Nova Iorque",
+          "São Francisco",
+          "Londres",
+          "Sydney"
+        ],
+        "es-ES": [
+          "Nueva York",
+          "San Francisco",
+          "Londres",
+          "Sídney"
+        ]
+      },
+      "correct": 1,
+      "fact": {
+        "en": "Both are red suspension bridges.",
+        "pt-PT": "Ambas são pontes suspensas vermelhas.",
+        "es-ES": "Ambos son puentes colgantes rojos."
+      },
+      "source": "manual"
+    },
+    {
+      "id": "elcano-1522",
+      "category": "history",
+      "minAge": 13,
+      "regions": [
+        "ES",
+        "PT"
+      ],
+      "text": {
+        "en": "Who captained the first voyage around the world to its end, in 1522?",
+        "pt-PT": "Quem comandou até ao fim a primeira viagem à volta do mundo, em 1522?",
+        "es-ES": "¿Quién capitaneó hasta el final la primera vuelta al mundo, en 1522?"
+      },
+      "answers": {
+        "en": [
+          "Hernán Cortés",
+          "Juan Sebastián Elcano",
+          "Francisco Pizarro",
+          "Christopher Columbus"
+        ],
+        "pt-PT": [
+          "Hernán Cortés",
+          "Juan Sebastián Elcano",
+          "Francisco Pizarro",
+          "Cristóvão Colombo"
+        ],
+        "es-ES": [
+          "Hernán Cortés",
+          "Juan Sebastián Elcano",
+          "Francisco Pizarro",
+          "Cristóbal Colón"
+        ]
+      },
+      "correct": 1,
+      "fact": {
+        "en": "Magellan led it at first but died on the way.",
+        "pt-PT": "Fernão de Magalhães comandou-a no início, mas morreu pelo caminho.",
+        "es-ES": "Magallanes la dirigió al principio, pero murió por el camino."
+      },
+      "source": "manual"
+    },
+    {
+      "id": "guernica",
+      "category": "art",
+      "minAge": 13,
+      "regions": [
+        "ES"
+      ],
+      "text": {
+        "en": "Who painted Guernica?",
+        "pt-PT": "Quem pintou Guernica?",
+        "es-ES": "¿Quién pintó el Guernica?"
+      },
+      "answers": {
+        "en": [
+          "Salvador Dalí",
+          "Pablo Picasso",
+          "Joan Miró",
+          "Diego Velázquez"
+        ],
+        "pt-PT": [
+          "Salvador Dalí",
+          "Pablo Picasso",
+          "Joan Miró",
+          "Diego Velázquez"
+        ],
+        "es-ES": [
+          "Salvador Dalí",
+          "Pablo Picasso",
+          "Joan Miró",
+          "Diego Velázquez"
+        ]
+      },
+      "correct": 1,
+      "fact": {
+        "en": "It hangs in the Reina Sofía museum in Madrid.",
+        "pt-PT": "Está no museu Reina Sofía, em Madrid.",
+        "es-ES": "Está en el Museo Reina Sofía de Madrid."
+      },
+      "source": "manual"
+    },
+    {
+      "id": "las-meninas",
+      "category": "art",
+      "minAge": 13,
+      "regions": [
+        "ES"
+      ],
+      "text": {
+        "en": "Who painted Las Meninas?",
+        "pt-PT": "Quem pintou As Meninas?",
+        "es-ES": "¿Quién pintó Las meninas?"
+      },
+      "answers": {
+        "en": [
+          "Francisco de Goya",
+          "Diego Velázquez",
+          "El Greco",
+          "Bartolomé Murillo"
+        ],
+        "pt-PT": [
+          "Francisco de Goya",
+          "Diego Velázquez",
+          "El Greco",
+          "Bartolomé Murillo"
+        ],
+        "es-ES": [
+          "Francisco de Goya",
+          "Diego Velázquez",
+          "El Greco",
+          "Bartolomé Murillo"
+        ]
+      },
+      "correct": 1,
+      "fact": {
+        "en": "The painter included himself in the picture.",
+        "pt-PT": "O pintor retratou-se a si próprio no quadro.",
+        "es-ES": "El pintor se retrató a sí mismo en el cuadro."
+      },
+      "source": "manual"
+    },
+    {
+      "id": "picasso-malaga",
+      "category": "art",
+      "minAge": 13,
+      "regions": [
+        "ES"
+      ],
+      "text": {
+        "en": "In which Spanish city was Pablo Picasso born?",
+        "pt-PT": "Em que cidade espanhola nasceu Pablo Picasso?",
+        "es-ES": "¿En qué ciudad española nació Pablo Picasso?"
+      },
+      "answers": {
+        "en": [
+          "Barcelona",
+          "Málaga",
+          "Madrid",
+          "Seville"
+        ],
+        "pt-PT": [
+          "Barcelona",
+          "Málaga",
+          "Madrid",
+          "Sevilha"
+        ],
+        "es-ES": [
+          "Barcelona",
+          "Málaga",
+          "Madrid",
+          "Sevilla"
+        ]
+      },
+      "correct": 1,
+      "source": "manual"
+    },
+    {
+      "id": "don-quixote",
+      "category": "art",
+      "minAge": 12,
+      "regions": [
+        "ES"
+      ],
+      "text": {
+        "en": "Who wrote Don Quixote?",
+        "pt-PT": "Quem escreveu Dom Quixote?",
+        "es-ES": "¿Quién escribió Don Quijote?"
+      },
+      "answers": {
+        "en": [
+          "Lope de Vega",
+          "Miguel de Cervantes",
+          "Federico García Lorca",
+          "Calderón de la Barca"
+        ],
+        "pt-PT": [
+          "Lope de Vega",
+          "Miguel de Cervantes",
+          "Federico García Lorca",
+          "Calderón de la Barca"
+        ],
+        "es-ES": [
+          "Lope de Vega",
+          "Miguel de Cervantes",
+          "Federico García Lorca",
+          "Calderón de la Barca"
+        ]
+      },
+      "correct": 1,
+      "fact": {
+        "en": "Don Quixote famously fights windmills, thinking they are giants.",
+        "pt-PT": "O Dom Quixote luta contra moinhos de vento, pensando que são gigantes.",
+        "es-ES": "Don Quijote lucha contra molinos de viento creyendo que son gigantes."
+      },
+      "source": "manual"
+    },
+    {
+      "id": "flamenco-andalusia",
+      "category": "music",
+      "minAge": 10,
+      "regions": [
+        "ES"
+      ],
+      "text": {
+        "en": "Flamenco comes from which region of Spain?",
+        "pt-PT": "O flamenco é originário de que região de Espanha?",
+        "es-ES": "¿De qué región de España es originario el flamenco?"
+      },
+      "answers": {
+        "en": [
+          "Catalonia",
+          "Andalusia",
+          "Galicia",
+          "Basque Country"
+        ],
+        "pt-PT": [
+          "Catalunha",
+          "Andaluzia",
+          "Galiza",
+          "País Basco"
+        ],
+        "es-ES": [
+          "Cataluña",
+          "Andalucía",
+          "Galicia",
+          "País Vasco"
+        ]
+      },
+      "correct": 1,
+      "source": "manual"
+    },
+    {
+      "id": "prado-madrid",
+      "category": "art",
+      "minAge": 12,
+      "regions": [
+        "ES"
+      ],
+      "text": {
+        "en": "Which famous art museum is in Madrid?",
+        "pt-PT": "Que famoso museu de arte fica em Madrid?",
+        "es-ES": "¿Qué famoso museo de arte está en Madrid?"
+      },
+      "answers": {
+        "en": [
+          "The Louvre",
+          "The Prado",
+          "The Uffizi",
+          "The Rijksmuseum"
+        ],
+        "pt-PT": [
+          "Louvre",
+          "Prado",
+          "Uffizi",
+          "Rijksmuseum"
+        ],
+        "es-ES": [
+          "Louvre",
+          "Prado",
+          "Uffizi",
+          "Rijksmuseum"
+        ]
+      },
+      "correct": 1,
+      "source": "manual"
+    },
+    {
+      "id": "alhambra-granada",
+      "category": "geography",
+      "minAge": 11,
+      "regions": [
+        "ES"
+      ],
+      "text": {
+        "en": "In which city is the Alhambra palace?",
+        "pt-PT": "Em que cidade fica o palácio da Alhambra?",
+        "es-ES": "¿En qué ciudad está la Alhambra?"
+      },
+      "answers": {
+        "en": [
+          "Seville",
+          "Granada",
+          "Córdoba",
+          "Toledo"
+        ],
+        "pt-PT": [
+          "Sevilha",
+          "Granada",
+          "Córdova",
+          "Toledo"
+        ],
+        "es-ES": [
+          "Sevilla",
+          "Granada",
+          "Córdoba",
+          "Toledo"
+        ]
+      },
+      "correct": 1,
+      "source": "manual"
+    },
+    {
+      "id": "canaries-africa",
+      "category": "geography",
+      "minAge": 10,
+      "regions": [
+        "ES"
+      ],
+      "text": {
+        "en": "The Canary Islands lie off the coast of which continent?",
+        "pt-PT": "As Canárias ficam ao largo da costa de que continente?",
+        "es-ES": "Las islas Canarias están frente a la costa de ¿qué continente?"
+      },
+      "answers": {
+        "en": [
+          "Europe",
+          "Africa",
+          "South America",
+          "Asia"
+        ],
+        "pt-PT": [
+          "Europa",
+          "África",
+          "América do Sul",
+          "Ásia"
+        ],
+        "es-ES": [
+          "Europa",
+          "África",
+          "América del Sur",
+          "Asia"
+        ]
+      },
+      "correct": 1,
+      "source": "manual"
+    },
+    {
+      "id": "teide-tenerife",
+      "category": "geography",
+      "minAge": 12,
+      "regions": [
+        "ES"
+      ],
+      "text": {
+        "en": "Spain's highest mountain, the Teide, is on which island?",
+        "pt-PT": "A montanha mais alta de Espanha, o Teide, fica em que ilha?",
+        "es-ES": "La montaña más alta de España, el Teide, ¿en qué isla está?"
+      },
+      "answers": {
+        "en": [
+          "Gran Canaria",
+          "Tenerife",
+          "Majorca",
+          "Ibiza"
+        ],
+        "pt-PT": [
+          "Gran Canária",
+          "Tenerife",
+          "Maiorca",
+          "Ibiza"
+        ],
+        "es-ES": [
+          "Gran Canaria",
+          "Tenerife",
+          "Mallorca",
+          "Ibiza"
+        ]
+      },
+      "correct": 1,
+      "fact": {
+        "en": "It is a volcano.",
+        "pt-PT": "É um vulcão.",
+        "es-ES": "Es un volcán."
+      },
+      "source": "manual"
+    },
+    {
+      "id": "tomatina",
+      "category": "history",
+      "minAge": 7,
+      "regions": [
+        "ES"
+      ],
+      "text": {
+        "en": "At Spain's Tomatina festival, what do people throw at each other?",
+        "pt-PT": "Na festa da Tomatina, em Espanha, o que é que as pessoas atiram?",
+        "es-ES": "En la Tomatina, ¿qué se lanza la gente?"
+      },
+      "answers": {
+        "en": [
+          "Oranges",
+          "Tomatoes",
+          "Flour",
+          "Water balloons"
+        ],
+        "pt-PT": [
+          "Laranjas",
+          "Tomates",
+          "Farinha",
+          "Balões de água"
+        ],
+        "es-ES": [
+          "Naranjas",
+          "Tomates",
+          "Harina",
+          "Globos de agua"
+        ]
+      },
+      "correct": 1,
+      "fact": {
+        "en": "It happens every August in Buñol, near Valencia.",
+        "pt-PT": "Acontece todos os agostos em Buñol, perto de Valência.",
+        "es-ES": "Se celebra cada agosto en Buñol, cerca de Valencia."
+      },
+      "source": "manual"
+    },
+    {
+      "id": "twelve-grapes",
+      "category": "food",
+      "minAge": 8,
+      "regions": [
+        "ES"
+      ],
+      "text": {
+        "en": "In Spain, how many grapes do people eat at midnight on New Year's Eve?",
+        "pt-PT": "Em Espanha, quantas uvas se comem à meia-noite na passagem de ano?",
+        "es-ES": "En Nochevieja, ¿cuántas uvas se comen a medianoche?"
+      },
+      "answers": {
+        "en": [
+          "7",
+          "10",
+          "12",
+          "20"
+        ],
+        "pt-PT": [
+          "7",
+          "10",
+          "12",
+          "20"
+        ],
+        "es-ES": [
+          "7",
+          "10",
+          "12",
+          "20"
+        ]
+      },
+      "correct": 2,
+      "fact": {
+        "en": "One for each chime of the clock.",
+        "pt-PT": "Uma por cada badalada do relógio.",
+        "es-ES": "Una por cada campanada del reloj."
+      },
+      "source": "manual"
+    },
+    {
+      "id": "reyes-magos",
+      "category": "history",
+      "minAge": 7,
+      "regions": [
+        "ES"
+      ],
+      "text": {
+        "en": "In Spain, who traditionally brings children presents on 6 January?",
+        "pt-PT": "Em Espanha, quem traz as prendas às crianças a 6 de janeiro?",
+        "es-ES": "¿Quién trae tradicionalmente los regalos a los niños el 6 de enero?"
+      },
+      "answers": {
+        "en": [
+          "Father Christmas",
+          "The Three Kings",
+          "An elf",
+          "The Befana"
+        ],
+        "pt-PT": [
+          "Pai Natal",
+          "Os Reis Magos",
+          "Um duende",
+          "A Befana"
+        ],
+        "es-ES": [
+          "Papá Noel",
+          "Los Reyes Magos",
+          "Un duende",
+          "La Befana"
+        ]
+      },
+      "correct": 1,
+      "source": "manual"
+    },
+    {
+      "id": "tortilla-potato",
+      "category": "food",
+      "minAge": 8,
+      "regions": [
+        "ES"
+      ],
+      "text": {
+        "en": "Besides eggs, what is the main ingredient of a Spanish tortilla?",
+        "pt-PT": "Além de ovos, qual é o ingrediente principal da tortilha espanhola?",
+        "es-ES": "Además del huevo, ¿cuál es el ingrediente clave de la tortilla española?"
+      },
+      "answers": {
+        "en": [
+          "Rice",
+          "Potato",
+          "Corn",
+          "Bread"
+        ],
+        "pt-PT": [
+          "Arroz",
+          "Batata",
+          "Milho",
+          "Pão"
+        ],
+        "es-ES": [
+          "Arroz",
+          "Patata",
+          "Maíz",
+          "Pan"
+        ]
+      },
+      "correct": 1,
+      "fact": {
+        "en": "Whether to add onion is a famous debate.",
+        "pt-PT": "Pôr ou não pôr cebola é um debate famoso.",
+        "es-ES": "Con o sin cebolla: un debate eterno."
+      },
+      "source": "manual"
+    },
+    {
+      "id": "gazpacho-tomato",
+      "category": "food",
+      "minAge": 9,
+      "regions": [
+        "ES"
+      ],
+      "text": {
+        "en": "What is the main ingredient of gazpacho?",
+        "pt-PT": "Qual é o ingrediente principal do gaspacho?",
+        "es-ES": "¿Cuál es el ingrediente principal del gazpacho?"
+      },
+      "answers": {
+        "en": [
+          "Potato",
+          "Tomato",
+          "Pumpkin",
+          "Carrot"
+        ],
+        "pt-PT": [
+          "Batata",
+          "Tomate",
+          "Abóbora",
+          "Cenoura"
+        ],
+        "es-ES": [
+          "Patata",
+          "Tomate",
+          "Calabaza",
+          "Zanahoria"
+        ]
+      },
+      "correct": 1,
+      "fact": {
+        "en": "It's a soup served cold.",
+        "pt-PT": "É uma sopa que se serve fria.",
+        "es-ES": "Es una sopa que se sirve fría."
+      },
+      "source": "manual"
+    },
+    {
+      "id": "churros-chocolate",
+      "category": "food",
+      "minAge": 7,
+      "regions": [
+        "ES"
+      ],
+      "text": {
+        "en": "In Spain, churros are often dipped in…",
+        "pt-PT": "Em Espanha, os churros molham-se muitas vezes em…",
+        "es-ES": "En España, los churros se suelen mojar en…"
+      },
+      "answers": {
+        "en": [
+          "Honey",
+          "Hot chocolate",
+          "Yoghurt",
+          "Orange juice"
+        ],
+        "pt-PT": [
+          "Mel",
+          "Chocolate quente",
+          "Iogurte",
+          "Sumo de laranja"
+        ],
+        "es-ES": [
+          "Miel",
+          "Chocolate caliente",
+          "Yogur",
+          "Zumo de naranja"
+        ]
+      },
+      "correct": 1,
+      "source": "manual"
+    },
+    {
+      "id": "copenhagen-capital",
+      "category": "geography",
+      "minAge": 8,
+      "regions": [
+        "DK"
+      ],
+      "text": {
+        "en": "What is the capital of Denmark?",
+        "pt-PT": "Qual é a capital da Dinamarca?",
+        "es-ES": "¿Cuál es la capital de Dinamarca?"
+      },
+      "answers": {
+        "en": [
+          "Oslo",
+          "Copenhagen",
+          "Stockholm",
+          "Helsinki"
+        ],
+        "pt-PT": [
+          "Oslo",
+          "Copenhaga",
+          "Estocolmo",
+          "Helsínquia"
+        ],
+        "es-ES": [
+          "Oslo",
+          "Copenhague",
+          "Estocolmo",
+          "Helsinki"
+        ]
+      },
+      "correct": 1,
+      "source": "manual"
+    },
+    {
+      "id": "danish-flag",
+      "category": "history",
+      "minAge": 8,
+      "regions": [
+        "DK"
+      ],
+      "text": {
+        "en": "What colours is the Danish flag?",
+        "pt-PT": "De que cores é a bandeira da Dinamarca?",
+        "es-ES": "¿De qué colores es la bandera de Dinamarca?"
+      },
+      "answers": {
+        "en": [
+          "Blue and yellow",
+          "Red and white",
+          "Green and white",
+          "Black and red"
+        ],
+        "pt-PT": [
+          "Azul e amarelo",
+          "Vermelho e branco",
+          "Verde e branco",
+          "Preto e vermelho"
+        ],
+        "es-ES": [
+          "Azul y amarillo",
+          "Rojo y blanco",
+          "Verde y blanco",
+          "Negro y rojo"
+        ]
+      },
+      "correct": 1,
+      "fact": {
+        "en": "Danes say it's the oldest national flag still in use.",
+        "pt-PT": "Os dinamarqueses dizem que é a bandeira nacional mais antiga ainda em uso.",
+        "es-ES": "Los daneses dicen que es la bandera nacional más antigua aún en uso."
+      },
+      "source": "manual"
+    },
+    {
+      "id": "tivoli-copenhagen",
+      "category": "geography",
+      "minAge": 10,
+      "regions": [
+        "DK"
+      ],
+      "text": {
+        "en": "Tivoli, one of the oldest amusement parks, is in which city?",
+        "pt-PT": "O Tivoli, um dos parques de diversões mais antigos, fica em que cidade?",
+        "es-ES": "El Tivoli, uno de los parques de atracciones más antiguos, está en…"
+      },
+      "answers": {
+        "en": [
+          "Aarhus",
+          "Copenhagen",
+          "Odense",
+          "Aalborg"
+        ],
+        "pt-PT": [
+          "Aarhus",
+          "Copenhaga",
+          "Odense",
+          "Aalborg"
+        ],
+        "es-ES": [
+          "Aarhus",
+          "Copenhague",
+          "Odense",
+          "Aalborg"
+        ]
+      },
+      "correct": 1,
+      "fact": {
+        "en": "It opened in 1843.",
+        "pt-PT": "Abriu em 1843.",
+        "es-ES": "Abrió en 1843."
+      },
+      "source": "manual"
+    },
+    {
+      "id": "greenland-denmark",
+      "category": "geography",
+      "minAge": 11,
+      "regions": [
+        "DK"
+      ],
+      "text": {
+        "en": "Which huge Arctic island is part of the Kingdom of Denmark?",
+        "pt-PT": "Que enorme ilha do Ártico faz parte do Reino da Dinamarca?",
+        "es-ES": "¿Qué enorme isla del Ártico forma parte del Reino de Dinamarca?"
+      },
+      "answers": {
+        "en": [
+          "Iceland",
+          "Greenland",
+          "Svalbard",
+          "Ireland"
+        ],
+        "pt-PT": [
+          "Islândia",
+          "Gronelândia",
+          "Svalbard",
+          "Irlanda"
+        ],
+        "es-ES": [
+          "Islandia",
+          "Groenlandia",
+          "Svalbard",
+          "Irlanda"
+        ]
+      },
+      "correct": 1,
+      "source": "manual"
+    },
+    {
+      "id": "oresund-sweden",
+      "category": "geography",
+      "minAge": 13,
+      "regions": [
+        "DK"
+      ],
+      "text": {
+        "en": "The Øresund Bridge links Denmark with which country?",
+        "pt-PT": "A ponte do Øresund liga a Dinamarca a que país?",
+        "es-ES": "El puente de Øresund une Dinamarca con ¿qué país?"
+      },
+      "answers": {
+        "en": [
+          "Norway",
+          "Sweden",
+          "Germany",
+          "Poland"
+        ],
+        "pt-PT": [
+          "Noruega",
+          "Suécia",
+          "Alemanha",
+          "Polónia"
+        ],
+        "es-ES": [
+          "Noruega",
+          "Suecia",
+          "Alemania",
+          "Polonia"
+        ]
+      },
+      "correct": 1,
+      "source": "manual"
+    },
+    {
+      "id": "vikings",
+      "category": "history",
+      "minAge": 9,
+      "regions": [
+        "DK"
+      ],
+      "text": {
+        "en": "Which seafarers sailed from Denmark in longships 1,000 years ago?",
+        "pt-PT": "Que navegadores partiam da Dinamarca em barcos longos há 1000 anos?",
+        "es-ES": "¿Qué navegantes salían de Dinamarca en barcos largos hace 1000 años?"
+      },
+      "answers": {
+        "en": [
+          "The Romans",
+          "The Vikings",
+          "The Celts",
+          "The Phoenicians"
+        ],
+        "pt-PT": [
+          "Os romanos",
+          "Os vikings",
+          "Os celtas",
+          "Os fenícios"
+        ],
+        "es-ES": [
+          "Los romanos",
+          "Los vikingos",
+          "Los celtas",
+          "Los fenicios"
+        ]
+      },
+      "correct": 1,
+      "source": "manual"
+    },
+    {
+      "id": "hygge",
+      "category": "art",
+      "minAge": 12,
+      "regions": [
+        "DK"
+      ],
+      "text": {
+        "en": "Which Danish word describes a cosy, warm, comfortable feeling?",
+        "pt-PT": "Que palavra dinamarquesa descreve uma sensação de aconchego e conforto?",
+        "es-ES": "¿Qué palabra danesa describe una sensación acogedora y cálida?"
+      },
+      "answers": {
+        "en": [
+          "Hygge",
+          "Skål",
+          "Lagom",
+          "Sisu"
+        ],
+        "pt-PT": [
+          "Hygge",
+          "Skål",
+          "Lagom",
+          "Sisu"
+        ],
+        "es-ES": [
+          "Hygge",
+          "Skål",
+          "Lagom",
+          "Sisu"
+        ]
+      },
+      "correct": 0,
+      "fact": {
+        "en": "Lagom is Swedish and sisu is Finnish.",
+        "pt-PT": "Lagom é sueco e sisu é finlandês.",
+        "es-ES": "Lagom es sueco y sisu es finlandés."
+      },
+      "source": "manual"
+    },
+    {
+      "id": "smorrebrod",
+      "category": "food",
+      "minAge": 12,
+      "regions": [
+        "DK"
+      ],
+      "text": {
+        "en": "In Denmark, what is smørrebrød?",
+        "pt-PT": "Na Dinamarca, o que é o smørrebrød?",
+        "es-ES": "En Dinamarca, ¿qué es el smørrebrød?"
+      },
+      "answers": {
+        "en": [
+          "A cake",
+          "An open sandwich",
+          "A fish soup",
+          "A beer"
+        ],
+        "pt-PT": [
+          "Um bolo",
+          "Uma sanduíche aberta",
+          "Uma sopa de peixe",
+          "Uma cerveja"
+        ],
+        "es-ES": [
+          "Un pastel",
+          "Un sándwich abierto",
+          "Una sopa de pescado",
+          "Una cerveza"
+        ]
+      },
+      "correct": 1,
+      "fact": {
+        "en": "It's usually made on dark rye bread.",
+        "pt-PT": "Faz-se normalmente com pão escuro de centeio.",
+        "es-ES": "Suele hacerse con pan oscuro de centeno."
+      },
+      "source": "manual"
+    },
+    {
+      "id": "wienerbrod",
+      "category": "food",
+      "minAge": 13,
+      "regions": [
+        "DK"
+      ],
+      "text": {
+        "en": "Danes call Danish pastries wienerbrød, meaning bread from…",
+        "pt-PT": "Os dinamarqueses chamam wienerbrød aos seus folhados, ou seja, pão de…",
+        "es-ES": "Los daneses llaman wienerbrød a sus bollos, es decir, pan de…"
+      },
+      "answers": {
+        "en": [
+          "Vienna",
+          "Paris",
+          "Berlin",
+          "Copenhagen"
+        ],
+        "pt-PT": [
+          "Viena",
+          "Paris",
+          "Berlim",
+          "Copenhaga"
+        ],
+        "es-ES": [
+          "Viena",
+          "París",
+          "Berlín",
+          "Copenhague"
+        ]
+      },
+      "correct": 0,
+      "fact": {
+        "en": "Austrian bakers brought the recipe in the 1800s.",
+        "pt-PT": "Foram pasteleiros austríacos que trouxeram a receita no século XIX.",
+        "es-ES": "Fueron pasteleros austriacos quienes trajeron la receta en el siglo XIX."
       },
       "source": "manual"
     }

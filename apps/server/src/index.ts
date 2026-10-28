@@ -9,6 +9,7 @@ import { MAX_SEATS, RoomStore, isMood } from './rooms.js';
 import { Couch } from './couch.js';
 import { loadPacks, pickQuestions, summarize } from './packs.js';
 import { TriviaGame, parseSettings } from './trivia.js';
+import { DB_FILE, Settings, isHealthy, openDatabase, schemaVersion, serverSecret } from './storage.js';
 
 const PORT = Number(process.env.PORT ?? 3000);
 const HOST = process.env.HOST ?? '0.0.0.0';
@@ -24,8 +25,22 @@ const packs = await loadPacks(PACKS_DIR, app.log);
 app.get('/api/packs', async () => packs.map(summarize));
 
 const VERSION = (process.env.APP_VERSION ?? 'dev').slice(0, 12);
-app.get('/healthz', async () => ({ ok: true, version: VERSION }));
 app.log.info({ version: VERSION }, 'starting couch potato');
+
+// ---- Storage: one SQLite file in /data. Games still run without it, so a volume problem never spoils a game night. ----
+const DATA_DIR = process.env.DATA_DIR ?? path.resolve(here, '../data');
+const DB_PATH = path.join(DATA_DIR, DB_FILE);
+let db: ReturnType<typeof openDatabase> | null = null;
+try {
+  db = openDatabase(DB_PATH);
+  // Made once and kept, so host sign-ins can outlive restarts and image updates.
+  serverSecret(new Settings(db));
+  app.log.info({ file: DB_PATH, schema: schemaVersion(db) }, 'storage ready');
+} catch (err) {
+  app.log.error({ err, file: DB_PATH }, 'storage unavailable — is the /data volume mounted and writable by the node user? See docs/DEPLOY.md');
+}
+
+app.get('/healthz', async () => ({ ok: true, version: VERSION, storage: isHealthy(db) }));
 
 if (existsSync(WEB_DIR)) {
   await app.register(fastifyStatic, { root: WEB_DIR, wildcard: false });
@@ -255,5 +270,15 @@ setInterval(() => {
   }
   if (removed.length) app.log.info({ removed }, 'expired empty rooms');
 }, 60_000).unref();
+
+// Close the database cleanly when the container stops so the WAL is folded back into the file.
+for (const signal of ['SIGTERM', 'SIGINT'] as const) {
+  process.once(signal, () => {
+    void app.close().finally(() => {
+      db?.close();
+      process.exit(0);
+    });
+  });
+}
 
 await app.listen({ port: PORT, host: HOST });
