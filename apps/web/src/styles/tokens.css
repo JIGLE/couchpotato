@@ -80,6 +80,23 @@
   --morph-raised: -6px -6px 14px var(--edge-light), 8px 8px 20px var(--edge-dark);
   --morph-inset: inset -4px -4px 10px var(--edge-light), inset 5px 5px 12px var(--edge-dark);
 
+  /* The potatoes. Characters keep their own colours in every mood, like a cast in costume. */
+  --potato-outline: #2a1a10;
+  --potato-eye: #1c120c;
+  --potato-shine: rgba(255, 252, 240, 0.75);
+  --potato-blush: rgba(236, 98, 82, 0.5);
+  --potato-skin: #d9a35f;        --potato-skin-shade: #a8743a;
+  --potato-boiled: #f0dcaa;      --potato-boiled-shade: #cdb078;
+  --potato-gold: #f5c04e;        --potato-gold-shade: #cf8f24;
+  --potato-mash: #f7edcc;        --potato-mash-shade: #d9c792;
+  --potato-hash: #e3a344;        --potato-hash-shade: #a9661f;
+  --potato-sweet: #e2763a;       --potato-sweet-shade: #a9481f;
+  --potato-foil: #cfd4dc;        --potato-foil-shade: #8f98a6;
+  --potato-char: #4a2c1a;
+  --potato-butter: #ffd84a;
+  --potato-salt: #fffaf0;
+  --potato-steam: rgba(255, 255, 255, 0.5);
+
   --dur-press: 120ms;
   --dur-screen: 280ms;
   --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);

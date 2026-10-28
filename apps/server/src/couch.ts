@@ -2,8 +2,8 @@
 // Kept free of Socket.IO so it can be unit-tested.
 
 import { randomBytes } from 'node:crypto';
-import type { CushionColour, Player } from '@couchpotato/shared';
-import { MAX_SEATS, cushion, freeSeat } from './rooms.js';
+import type { CushionColour, Player, PotatoKind } from '@couchpotato/shared';
+import { MAX_SEATS, cushion, freePotato, freeSeat, isPotato } from './rooms.js';
 
 /** A dropped phone keeps its seat this long. */
 export const HOLD_MS = 2 * 60 * 1000;
@@ -27,6 +27,7 @@ interface Seated {
   name: string;
   seat: number;
   colour: CushionColour;
+  potato: PotatoKind;
   socketId: string | null;
   awaySince: number | null;
 }
@@ -43,10 +44,11 @@ export class Couch {
   ) {}
 
   /**
-   * Sit a phone down. A known token gets its old seat back (and keeps its colour);
-   * otherwise the phone takes the lowest free seat. Away players still hold their seats.
+   * Sit a phone down. A known token gets its old seat back (and keeps its colour and potato);
+   * otherwise the phone takes the lowest free seat and the potato it asked for, or a free one if that is taken.
+   * Away players still hold their seats and potatoes.
    */
-  sit(token: unknown, socketId: string, name: string, colour: unknown): SitResult {
+  sit(token: unknown, socketId: string, name: string, colour: unknown, potato?: unknown): SitResult {
     const known = isToken(token) ? this.byToken.get(token) : undefined;
     if (known) {
       known.socketId = socketId;
@@ -56,7 +58,8 @@ export class Couch {
     }
 
     const seat = freeSeat([...this.byToken.values()].map((p) => p.seat), this.seats);
-    if (seat === -1) return { ok: false, reason: 'full' };
+    const kind = freePotato(potato, this.takenPotatoes());
+    if (seat === -1 || !kind) return { ok: false, reason: 'full' };
 
     const seated: Seated = {
       token: this.makeToken(), // always ours; a phone never picks its own token
@@ -64,11 +67,21 @@ export class Couch {
       name,
       seat,
       colour: cushion(colour, seat),
+      potato: kind,
       socketId,
       awaySince: null,
     };
     this.byToken.set(seated.token, seated);
     return { ok: true, player: toPlayer(seated), token: seated.token, rejoined: false };
+  }
+
+  /** Swap this phone's potato for one nobody else has. Returns true if it changed. */
+  pick(socketId: string, potato: unknown): boolean {
+    const p = this.bySocket(socketId);
+    if (!p || !isPotato(potato) || p.potato === potato) return false;
+    if (this.takenPotatoes().includes(potato)) return false;
+    p.potato = potato;
+    return true;
   }
 
   /** The phone's connection dropped. Hold the seat. Ignores sockets that were already replaced. */
@@ -110,6 +123,10 @@ export class Couch {
     return [...this.byToken.values()].map(toPlayer).sort((a, b) => a.seat - b.seat);
   }
 
+  private takenPotatoes(): PotatoKind[] {
+    return [...this.byToken.values()].map((p) => p.potato);
+  }
+
   private bySocket(socketId: string): Seated | undefined {
     for (const p of this.byToken.values()) if (p.socketId === socketId) return p;
     return undefined;
@@ -117,5 +134,5 @@ export class Couch {
 }
 
 function toPlayer(p: Seated): Player {
-  return { id: p.id, name: p.name, seat: p.seat, colour: p.colour, away: p.awaySince !== null };
+  return { id: p.id, name: p.name, seat: p.seat, colour: p.colour, potato: p.potato, away: p.awaySince !== null };
 }

@@ -2,7 +2,9 @@
 <script lang="ts">
   import type { GameView, Player, Standing } from '@couchpotato/shared';
   import { tile } from '../../lib/game';
-  import { seatColour, initial } from '../../lib/seats';
+  import type { PotatoKind } from '@couchpotato/shared';
+  import { seatColour } from '../../lib/seats';
+  import Potato from '../../lib/Potato.svelte';
   import Timer from '../../lib/Timer.svelte';
 
   let {
@@ -21,6 +23,7 @@
   });
   const colourOf = (id: string) => seatColour(byId.get(id)?.colour ?? 0);
   const nameOf = (id: string) => byId.get(id)?.name ?? '?';
+  const potatoOf = (id: string): PotatoKind => byId.get(id)?.potato ?? 'boiled';
 
   /** Podium order on screen: 2nd, 1st, 3rd. */
   const podium = $derived.by(() => {
@@ -70,7 +73,7 @@
           <div class="pickers">
             {#each view.pickedBy[i] as id (id)}
               {@const c = colourOf(id)}
-              <span class="mini" style:background={c.bg} style:color={c.fg} title={nameOf(id)}>{initial(nameOf(id))}</span>
+              <span class="mini" style:background={c.bg} style:color={c.fg} title={nameOf(id)}><Potato kind={potatoOf(id)} size={40} still /></span>
             {/each}
           </div>
         </div>
@@ -92,7 +95,7 @@
           {@const c = colourOf(s.id)}
           <li class:first={i === 0} class:away={s.away}>
             <span class="mono rank">{s.rank}</span>
-            <span class="av" style:background={c.bg} style:color={c.fg}>{initial(s.name)}</span>
+            <span class="av" style:background={c.bg}><Potato kind={potatoOf(s.id)} size={48} still asleep={s.away} /></span>
             <span class="name">{s.name}</span>
             <span class="mono moved">{s.moved > 0 ? `▲ ${s.moved}` : s.moved < 0 ? `▼ ${-s.moved}` : ''}</span>
             <span class="mono score">{s.score.toLocaleString()}</span>
@@ -109,7 +112,7 @@
           {@const c = colourOf(s.id)}
           {@const h = heights[i]}
           <div class="stand" class:away={s.away}>
-            <span class="av big" class:winner={s.rank === 1} style:background={c.bg} style:color={c.fg}>{initial(s.name)}</span>
+            <span class="av big" class:winner={s.rank === 1} style:background={c.bg}><Potato kind={potatoOf(s.id)} size={s.rank === 1 ? 116 : 90} delay={i * 0.5} /></span>
             <span class="name">{s.name}</span>
             <div class="bar-col" style:height={h}>
               <span class="place">{s.rank}</span>

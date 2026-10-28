@@ -11,13 +11,17 @@ export type Mood = 'lamp' | 'velvet' | 'midnight' | 'sunday';
 /** Number of cushion colours a player can pick (the four tile colours of the mood). */
 export type CushionColour = 0 | 1 | 2 | 3;
 
-/** A phone sitting on the couch. `seat` is 0-based; `colour` is the cushion they picked. */
+/** The potato characters. One of each per room, so eight potatoes for eight seats. */
+export type PotatoKind = 'boiled' | 'grilled' | 'chip' | 'fry' | 'mashed' | 'jacket' | 'hashbrown' | 'sweet';
+
+/** A phone sitting on the couch. `seat` is 0-based; `colour` is the cushion they picked; `potato` is who they play as. */
 export interface Player {
   /** Public id, safe to show to everyone. Never the rejoin token. */
   id: string;
   name: string;
   seat: number;
   colour: CushionColour;
+  potato: PotatoKind;
   /** Connection dropped; the seat is held for a couple of minutes in case they come back. */
   away: boolean;
 }
@@ -53,11 +57,13 @@ export interface ClientToServer {
    * A client announces itself right after connecting.
    * - TV without `code`: create a new room.
    * - TV with `code`: reconnect to its room (a new room is made if it expired).
-   * - Phone: must send the `code` it wants to join.
+   * - Phone: must send the `code` it wants to join. A `potato` that is taken is swapped for a free one.
    */
-  'hello': (payload: { screen: Screen; code?: string; name?: string; colour?: CushionColour; token?: string; mood?: Mood }) => void;
+  'hello': (payload: { screen: Screen; code?: string; name?: string; colour?: CushionColour; potato?: PotatoKind; token?: string; mood?: Mood }) => void;
   /** The TV changes the room's mood. */
   'room:mood': (payload: { mood: Mood }) => void;
+  /** A phone swaps to another potato. Only in the lobby, and only to one nobody else is playing. */
+  'potato:pick': (payload: { potato: PotatoKind }) => void;
   /** A phone gets up from the couch on purpose; its seat frees straight away. */
   'leave': () => void;
   /** Phase 0 smoke test: a phone taps the big button. */

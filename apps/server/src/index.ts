@@ -120,7 +120,7 @@ function broadcastGame(code: string, only?: string) {
 }
 
 io.on('connection', (socket) => {
-  socket.on('hello', ({ screen, code, name, colour, token, mood }) => {
+  socket.on('hello', ({ screen, code, name, colour, potato, token, mood }) => {
     if (members.has(socket.id)) return; // one hello per connection
     if (screen !== 'tv' && screen !== 'phone') return;
 
@@ -136,7 +136,7 @@ io.on('connection', (socket) => {
 
     let joined: { code: string; playerId?: string; token?: string } = { code: room.code };
     if (screen === 'phone') {
-      const sat = couchFor(room.code).sit(token, socket.id, name?.trim().slice(0, 20) || 'Potato', colour);
+      const sat = couchFor(room.code).sit(token, socket.id, name?.trim().slice(0, 20) || 'Potato', colour, potato);
       if (!sat.ok) {
         socket.emit('room:error', { reason: 'full', code: room.code });
         return;
@@ -217,6 +217,12 @@ io.on('connection', (socket) => {
     room.taps += 1;
     room.lastTapBy = player.name;
     io.to(room.code).emit('tap:count', { count: room.taps, lastBy: room.lastTapBy, lastById: player.id });
+  });
+
+  socket.on('potato:pick', (payload) => {
+    const me = members.get(socket.id);
+    if (me?.screen !== 'phone' || games.has(me.code)) return; // no costume changes mid-game
+    if (couchFor(me.code).pick(socket.id, payload?.potato)) broadcastRoom(me.code);
   });
 
   socket.on('leave', () => {

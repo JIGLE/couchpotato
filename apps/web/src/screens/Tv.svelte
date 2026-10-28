@@ -7,7 +7,8 @@
   import TvSetup from './tv/TvSetup.svelte';
   import TvGame from './tv/TvGame.svelte';
   import { connect } from '../lib/socket';
-  import { seatColour, initial } from '../lib/seats';
+  import { seatColour } from '../lib/seats';
+  import Potato from '../lib/Potato.svelte';
   import Logo from '../lib/Logo.svelte';
   import Ambient from '../lib/Ambient.svelte';
   import Stage from '../lib/Stage.svelte';
@@ -134,9 +135,8 @@
                     class:wiggle={wiggle?.id === player.id}
                     class:away={player.away}
                     style:background={c.bg}
-                    style:color={c.fg}
                   >
-                    {initial(player.name)}
+                    <Potato kind={player.potato} size={100} asleep={player.away} delay={seat * 0.37} />
                   </div>
                 {/key}
                 <span class="name" class:muted={player.away}>{player.name}</span>
@@ -207,13 +207,13 @@
   .seats { flex: 1; list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); align-content: center; gap: 20px 16px; }
   .seats li { position: relative; display: flex; flex-direction: column; align-items: center; gap: 8px; min-width: 0; }
   .avatar {
-    width: 92px; height: 92px; border-radius: 50%; display: grid; place-items: center;
-    font-family: var(--font-display); font-size: 36px; font-weight: 700; box-shadow: 6px 8px 18px var(--edge-dark);
-    animation: pop 320ms var(--ease-out);
+    width: 104px; height: 104px; border-radius: 50%; display: grid; place-items: center;
+    box-shadow: 6px 8px 18px var(--edge-dark);
+    animation: land 560ms var(--ease-out);
   }
   .avatar.empty { background: var(--surface-2); color: var(--ink-muted); box-shadow: var(--morph-inset); animation: none; }
   .avatar.wiggle { animation: wiggle 420ms var(--ease-out); }
-  .avatar.away { opacity: 0.4; box-shadow: none; animation: breathe 1.6s ease-in-out infinite; }
+  .avatar.away { opacity: 0.55; box-shadow: none; animation: none; }
   .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
   .name { font-size: 32px; font-weight: 700; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .couch-foot { display: flex; justify-content: space-between; align-items: center; gap: 16px; font-size: 32px; font-weight: 600; }
@@ -223,7 +223,12 @@
   }
   .start:disabled { opacity: 0.45; cursor: default; box-shadow: none; }
 
-  @keyframes pop { from { transform: scale(0.6); } 60% { transform: scale(1.06); } }
-  @keyframes breathe { 50% { opacity: 0.2; } }
+  /* Drop in from above, squash on the cushion, settle. The full sofa physics comes with the living room. */
+  @keyframes land {
+    0% { transform: translateY(-120px) scale(0.9, 1.12); opacity: 0; }
+    50% { transform: translateY(0) scale(1.14, 0.84); opacity: 1; }
+    70% { transform: translateY(-8px) scale(0.96, 1.05); }
+    85% { transform: translateY(0) scale(1.03, 0.97); }
+  }
   @keyframes wiggle { 25% { transform: rotate(-8deg) scale(1.08); } 75% { transform: rotate(8deg) scale(1.08); } }
 </style>

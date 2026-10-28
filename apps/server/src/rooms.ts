@@ -1,4 +1,4 @@
-import type { CushionColour, Mood } from '@couchpotato/shared';
+import type { CushionColour, Mood, PotatoKind } from '@couchpotato/shared';
 
 // Room bookkeeping, kept free of Socket.IO so it can be unit-tested.
 
@@ -20,6 +20,19 @@ export function cushion(colour: unknown, seat: number): CushionColour {
   return Number.isInteger(colour) && (colour as number) >= 0 && (colour as number) <= 3
     ? (colour as CushionColour)
     : ((Math.max(seat, 0) % 4) as CushionColour);
+}
+
+/** One of each per room; the order is what a phone gets when its pick is taken. Mirrors PotatoKind. */
+export const POTATOES: readonly PotatoKind[] = ['boiled', 'grilled', 'chip', 'fry', 'mashed', 'jacket', 'hashbrown', 'sweet'];
+export function isPotato(v: unknown): v is PotatoKind {
+  return typeof v === 'string' && (POTATOES as readonly string[]).includes(v);
+}
+
+/** The potato a phone asked for if nobody has it, otherwise the first free one (or null when all are taken). */
+export function freePotato(wanted: unknown, taken: Iterable<PotatoKind>): PotatoKind | null {
+  const used = new Set(taken);
+  if (isPotato(wanted) && !used.has(wanted)) return wanted;
+  return POTATOES.find((p) => !used.has(p)) ?? null;
 }
 
 export const MOODS: readonly Mood[] = ['lamp', 'velvet', 'midnight', 'sunday'];

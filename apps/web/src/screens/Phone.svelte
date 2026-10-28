@@ -1,9 +1,12 @@
 <script lang="ts">
   import { onDestroy } from 'svelte';
-  import type { CushionColour, Player } from '@couchpotato/shared';
+  import type { CushionColour, Player, PotatoKind } from '@couchpotato/shared';
   import { connect } from '../lib/socket';
   import Logo from '../lib/Logo.svelte';
-  import { seatColour, initial } from '../lib/seats';
+  import { seatColour } from '../lib/seats';
+  import Potato from '../lib/Potato.svelte';
+  import PotatoPicker from '../lib/PotatoPicker.svelte';
+  import { loadPotato, savePotato } from '../lib/potatoes';
   import type { GameView } from '@couchpotato/shared';
   import PhoneGame from './phone/PhoneGame.svelte';
   import { applyMood } from '../lib/game';
@@ -43,10 +46,15 @@
   ];
   const savedColour = Number(localStorage.getItem('cp:colour'));
   let colour = $state<CushionColour>(([0, 1, 2, 3] as const).find((c) => c === savedColour) ?? 0);
+  let potato = $state<PotatoKind>(loadPotato() ?? 'boiled');
+  let players = $state<Player[]>([]);
+  let swapping = $state(false);
+  /** Potatoes other people on the couch already have, with their names. */
+  const taken = $derived(new Map(players.filter((p) => p.id !== playerId).map((p) => [p.potato, p.name] as const)));
 
   function hello() {
     const token = seatInfo && seatInfo.code === code ? seatInfo.token : undefined;
-    socket.emit('hello', { screen: 'phone', code, name, colour, token });
+    socket.emit('hello', { screen: 'phone', code, name, colour, potato, token });
   }
 
   const socket = connect();
@@ -86,7 +94,13 @@
       : 'Enter the code shown on the TV.';
   });
   socket.on('room:players', (p) => {
+    players = p.players;
     me = p.players.find((pl) => pl.id === playerId) ?? null;
+    // The server has the last word: if our potato was taken it handed us another.
+    if (me && me.potato !== potato) {
+      potato = me.potato;
+      savePotato(potato);
+    }
   });
   socket.on('tap:count', (p) => (count = p.count));
   // Tile colours must match the TV exactly, so phones always wear the room's mood.
@@ -105,6 +119,7 @@
     code = code.trim().toUpperCase();
     localStorage.setItem('cp:name', name);
     localStorage.setItem('cp:colour', String(colour));
+    savePotato(potato);
     // A fresh connection per attempt, so a wrong code can be retried cleanly.
     socket.disconnect().connect();
     socket.once('connect', hello);
@@ -118,6 +133,13 @@
     me = null;
     playerId = null;
     game = null;
+  }
+
+  function swap(kind: PotatoKind) {
+    potato = kind;
+    savePotato(kind);
+    socket.emit('potato:pick', { potato: kind });
+    swapping = false;
   }
 
   function tap() {
@@ -152,6 +174,7 @@
       {#if error}<p id="code-error" class="error" role="alert">{error}</p>{/if}
       <label for="name">YOUR NAME</label>
       <input id="name" bind:value={name} maxlength="20" autocomplete="nickname" placeholder="Nickname" />
+      <PotatoPicker value={potato} onPick={(k) => (potato = k)} />
       <fieldset class="cushions">
         <legend>PICK A CUSHION</legend>
         <div class="swatches">
@@ -172,12 +195,19 @@
     <div class="me">
       {#if me}
         {@const c = seatColour(me.colour)}
-        <div class="avatar" style:background={c.bg} style:color={c.fg}>{initial(me.name)}</div>
+        {#key me.potato}
+          <div class="avatar" style:background={c.bg}><Potato kind={me.potato} size={150} /></div>
+        {/key}
       {/if}
       <h1>{online ? `You're in, ${name}.` : 'Lost the couch for a sec…'}</h1>
       <p class="hint">{online ? 'Look at the TV. The host starts when everyone’s comfy.' : 'Reconnecting…'}</p>
     </div>
-    <button class="tap" onclick={tap} disabled={!online}>Wave at the TV</button>
+    {#if swapping}
+      <PotatoPicker value={potato} {taken} legend="SWAP YOUR POTATO" onPick={swap} />
+    {:else}
+      <button class="tap" onclick={tap} disabled={!online}>Wave at the TV</button>
+    {/if}
+    <button class="leave" onclick={() => (swapping = !swapping)} disabled={!online}>{swapping ? 'Keep this potato' : 'Swap potato'}</button>
     <p class="mono">Room {code} · {count} waves</p>
     <button class="leave" onclick={leave}>Leave the couch</button>
   {/if}
@@ -217,8 +247,14 @@
   .me { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; text-align: center; }
   .me h1 { margin: 0; }
   .avatar {
-    width: 140px; height: 140px; border-radius: 50%; display: grid; place-items: center;
-    font-family: var(--font-display); font-size: 56px; font-weight: 700; box-shadow: var(--morph-raised);
+    width: 168px; height: 168px; border-radius: 50%; display: grid; place-items: center;
+    box-shadow: var(--morph-raised); animation: land 520ms var(--ease-out);
+  }
+  /* A tiny preview of the sofa landing to come: drop, squash, settle. */
+  @keyframes land {
+    0% { transform: translateY(-40px) scale(0.9, 1.1); opacity: 0; }
+    55% { transform: translateY(0) scale(1.12, 0.86); opacity: 1; }
+    75% { transform: scale(0.96, 1.04); }
   }
   .tap {
     min-height: 120px; border-radius: 40px; background: var(--tile-b); color: var(--tile-b-ink);

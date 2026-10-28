@@ -97,3 +97,43 @@ test('a forged or malformed token never steals a seat', () => {
   assert.equal(intruder.player.seat, 1);
   assert.notEqual(intruder.token, '0'.repeat(32), 'the server issues its own token');
 });
+
+test('each phone gets the potato it asked for, or a free one when it is taken', () => {
+  const { couch } = setup();
+  const a = couch.sit(undefined, 's1', 'A', 0, 'chip');
+  const b = couch.sit(undefined, 's2', 'B', 0, 'chip');
+  const c = couch.sit(undefined, 's3', 'C', 0, 'not-a-potato');
+  assert.ok(a.ok && b.ok && c.ok);
+  assert.equal(a.player.potato, 'chip');
+  assert.equal(b.player.potato, 'boiled');
+  assert.equal(c.player.potato, 'grilled');
+});
+
+test('a rejoining phone keeps its potato, even if it asks for another', () => {
+  const { couch } = setup();
+  const a = couch.sit(undefined, 's1', 'A', 0, 'jacket');
+  assert.ok(a.ok);
+  couch.drop('s1');
+  const back = couch.sit(a.token, 's2', 'A', 0, 'fry');
+  assert.ok(back.ok);
+  assert.equal(back.player.potato, 'jacket');
+});
+
+test('a phone can swap to a free potato but not to one someone else has, away or not', () => {
+  const { couch } = setup();
+  couch.sit(undefined, 's1', 'A', 0, 'mashed');
+  couch.sit(undefined, 's2', 'B', 0, 'sweet');
+  couch.drop('s2');
+  assert.equal(couch.pick('s1', 'sweet'), false);
+  assert.equal(couch.pick('s1', 'mashed'), false, 'same potato is not a change');
+  assert.equal(couch.pick('s1', 'nope'), false);
+  assert.equal(couch.pick('s1', 'hashbrown'), true);
+  assert.equal(couch.list()[0].potato, 'hashbrown');
+});
+
+test('eight seats use all eight potatoes', () => {
+  const { couch } = setup();
+  for (let i = 0; i < 8; i++) assert.ok(couch.sit(undefined, `s${i}`, `P${i}`, 0, 'boiled').ok);
+  assert.equal(new Set(couch.list().map((p) => p.potato)).size, 8);
+  assert.equal(couch.sit(undefined, 's9', 'Late', 0).ok, false);
+});
