@@ -3,11 +3,11 @@
   import QRCode from 'qrcode';
   import type { GameSettings, GameView, Player } from '@couchpotato/shared';
   import type { Mood } from '@couchpotato/shared';
-  import { LANGUAGE_NAMES, applyMood, currentMood, loadSettings, saveSettings } from '../lib/game';
-  import TvSetup from './tv/TvSetup.svelte';
+  import { LANGUAGE_NAMES, applyMood, currentMood } from '../lib/game';
   import TvGame from './tv/TvGame.svelte';
   import { connect } from '../lib/socket';
-  import { seatColour, initial } from '../lib/seats';
+  import LivingRoom from '../lib/LivingRoom.svelte';
+  import { potatoName } from '../lib/potatoes';
   import Logo from '../lib/Logo.svelte';
   import Ambient from '../lib/Ambient.svelte';
   import Stage from '../lib/Stage.svelte';
@@ -21,9 +21,8 @@
   let qrSvg = $state('');
   let game = $state<GameView | null>(null);
   let offset = $state(0);
-  let setup = $state(false);
-  let settings = $state<GameSettings>(loadSettings());
-  let notice = $state('');
+  /** What the Head Spud is choosing on their phone, shown as a preview chip. */
+  let setup = $state<GameSettings | null>(null);
   let mood = $state<Mood>(currentMood());
 
   const socket = connect();
@@ -47,30 +46,14 @@
     mood = p.mood;
     applyMood(p.mood);
   });
-  function changeMood(m: Mood) {
-    mood = m;
-    applyMood(m);
-    socket.emit('room:mood', { mood: m });
-  }
   socket.on('game:state', (view) => {
     game = view;
-    if (view) {
-      offset = Date.now() - view.serverNow;
-      setup = false;
-    }
+    if (view) offset = Date.now() - view.serverNow;
   });
-  socket.on('game:error', (p) => {
-    notice = p.reason === 'no-players' ? 'Nobody on the couch yet.' : 'No questions match these settings. Try another language or age.';
-    setup = true;
-  });
+  socket.on('lobby:setup', (p) => (setup = p.settings));
   onDestroy(() => socket.disconnect());
 
-  function startGame() {
-    saveSettings(settings);
-    notice = '';
-    socket.emit('game:start', $state.snapshot(settings));
-  }
-  const endGame = () => socket.emit('game:end');
+  const headSpud = $derived(players.find((p) => p.role === 'head-spud'));
 
   const host = location.host;
   const joinUrl = $derived(code ? `${location.origin}/?code=${code}` : '');
@@ -83,30 +66,27 @@
       .then((svg) => (qrSvg = svg))
       .catch(() => (qrSvg = ''));
   });
-
-  // Seat list: real players in their seats, the rest shown as pressed-in open cushions.
-  const seatList = $derived(
-    Array.from({ length: seats }, (_, seat) => players.find((p) => p.seat === seat) ?? null),
-  );
 </script>
 
 <Ambient />
 <Stage>
+{#if !game}<LivingRoom {players} {seats} {wiggle} />{/if}
 <main>
   <header>
-    <div class="brand"><Logo size={56} /><span>couch<br />potato</span></div>
+    {#if game}<div class="brand"><Logo size={56} /><span>couch<br />potato</span></div>{:else}<span></span>{/if}
     {#if !online}
       <div class="status" role="status">Reconnecting…</div>
     {:else if !game}
-      <div class="chip">Trivia · {LANGUAGE_NAMES[settings.language]} · {settings.rounds} questions</div>
+      <div class="chip" class:live={!!setup}>
+        {#if setup}Trivia · {LANGUAGE_NAMES[setup.language]} · {setup.rounds} questions
+        {:else if headSpud}{headSpud.name} is picking a game…
+        {:else}Scan in, potatoes{/if}
+      </div>
     {/if}
   </header>
 
   {#if game}
-    <TvGame view={game} {offset} {players} onPlayAgain={startGame} onEnd={endGame} />
-  {:else if setup}
-    <TvSetup bind:settings players={players.length} {mood} onMood={changeMood} onStart={startGame} onBack={() => (setup = false)} />
-    {#if notice}<p class="notice" role="alert">{notice}</p>{/if}
+    <TvGame view={game} {offset} {players} />
   {:else}
     <div class="lobby">
       <section class="join" aria-label="How to join">
@@ -116,43 +96,15 @@
         </div>
         <span class="or">or go to <span class="mono">{host}</span></span>
         <div class="code" aria-label="Room code {code.split('').join(' ')}">{code || '····'}</div>
+        <span class="count" role="status">{players.length}/{seats} on the sofa</span>
       </section>
 
-      <section class="couch">
-        <div class="couch-head">
-          <h2>On the couch</h2>
-          <span class="count">{players.length} / {seats}</span>
-        </div>
-        <ul class="seats">
-          {#each seatList as player, seat (player?.id ?? `empty-${seat}`)}
-            <li>
-              {#if player}
-                {@const c = seatColour(player.colour)}
-                {#key wiggle?.id === player.id ? wiggle?.n : 0}
-                  <div
-                    class="avatar"
-                    class:wiggle={wiggle?.id === player.id}
-                    class:away={player.away}
-                    style:background={c.bg}
-                    style:color={c.fg}
-                  >
-                    {initial(player.name)}
-                  </div>
-                {/key}
-                <span class="name" class:muted={player.away}>{player.name}</span>
-                {#if player.away}<span class="sr">is reconnecting</span>{/if}
-              {:else}
-                <div class="avatar empty" aria-hidden="true">+</div>
-                <span class="name muted">Open seat</span>
-              {/if}
-            </li>
-          {/each}
-        </ul>
-        <div class="couch-foot">
-          <span class="muted">{players.length ? 'Everyone in? Start when ready.' : 'Grab the snacks…'}</span>
-          <button class="start" disabled={players.length === 0} onclick={() => (setup = true)}>Start game</button>
-        </div>
-      </section>
+      <ul class="sr" aria-label="On the sofa">
+        {#each players as player (player.id)}
+          <li>{player.name}, {potatoName(player.potato)}{player.role === 'head-spud' ? ', Head Spud' : ''}{player.away ? ', reconnecting' : ''}</li>
+        {/each}
+      </ul>
+
     </div>
   {/if}
 </main>
@@ -160,6 +112,7 @@
 
 <style>
   main {
+    position: relative; z-index: 1;
     height: 100%; box-sizing: border-box; padding: 36px 56px 40px;
     display: flex; flex-direction: column; gap: 28px;
   }
@@ -171,59 +124,30 @@
     font-size: 32px; font-weight: 600; color: var(--ink-muted); padding: 6px 22px; border-radius: var(--radius-pill);
     background: var(--surface-1); box-shadow: var(--morph-inset);
   }
-  .notice { margin: 0; font-size: 32px; font-weight: 600; color: var(--wrong); }
-  .muted { color: var(--ink-muted); }
   .mono { font-family: var(--font-mono); font-weight: 500; color: var(--ink); }
   .label { font-size: 32px; font-weight: 700; letter-spacing: 0.08em; color: var(--ink-muted); }
+  .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 
-  .lobby { flex: 1; min-height: 0; display: flex; gap: 32px; }
+  .lobby { flex: 1; min-height: 0; position: relative; }
 
   .join {
-    width: 400px; flex-shrink: 0; box-sizing: border-box; padding: 24px 28px; border-radius: 32px;
-    background: var(--surface-1); box-shadow: var(--morph-raised);
+    position: absolute; left: 0; top: 0; bottom: 0; width: 320px; box-sizing: border-box; padding: 22px 24px; border-radius: 32px;
+    background: color-mix(in srgb, var(--surface-1) 92%, transparent); box-shadow: var(--morph-raised);
     display: flex; flex-direction: column; align-items: center; justify-content: space-between;
   }
   .qr {
-    width: 236px; height: 236px; padding: 16px; box-sizing: border-box; border-radius: var(--radius-md);
+    width: 216px; height: 216px; padding: 14px; box-sizing: border-box; border-radius: var(--radius-md);
     background: #f2ede4; /* fixed light ground for the QR, see script */
     box-shadow: 0 0 60px var(--glow), 6px 8px 18px var(--edge-dark);
   }
   .qr :global(svg) { width: 100%; height: 100%; display: block; }
-  .or { font-size: 32px; font-weight: 600; color: var(--ink-muted); text-align: center; overflow-wrap: anywhere; }
+  .or { font-size: 32px; font-weight: 600; color: var(--ink-muted); text-align: center; overflow-wrap: anywhere; line-height: 1.15; }
   .code {
-    font-family: var(--font-mono); font-weight: 700; font-size: 64px; line-height: 1; letter-spacing: 0.18em;
-    color: var(--ink-on-spud); background: var(--spud); padding: 16px 28px 16px 40px;
+    font-family: var(--font-mono); font-weight: 700; font-size: 56px; line-height: 1; letter-spacing: 0.16em;
+    color: var(--ink-on-spud); background: var(--spud); padding: 14px 22px 14px 32px;
     border-radius: var(--radius-pill); box-shadow: 0 0 50px var(--glow), 6px 8px 18px var(--edge-dark);
   }
 
-  .couch {
-    flex: 1; min-width: 0; box-sizing: border-box; padding: 24px 32px; border-radius: 32px;
-    background: var(--surface-1); box-shadow: var(--morph-raised);
-    display: flex; flex-direction: column; gap: 20px;
-  }
-  .couch-head { display: flex; justify-content: space-between; align-items: baseline; }
-  h2 { margin: 0; font-family: var(--font-display); font-weight: 500; font-size: 32px; }
-  .count { font-family: var(--font-mono); font-size: 32px; font-weight: 700; color: var(--spud); }
-  .seats { flex: 1; list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); align-content: center; gap: 20px 16px; }
-  .seats li { position: relative; display: flex; flex-direction: column; align-items: center; gap: 8px; min-width: 0; }
-  .avatar {
-    width: 92px; height: 92px; border-radius: 50%; display: grid; place-items: center;
-    font-family: var(--font-display); font-size: 36px; font-weight: 700; box-shadow: 6px 8px 18px var(--edge-dark);
-    animation: pop 320ms var(--ease-out);
-  }
-  .avatar.empty { background: var(--surface-2); color: var(--ink-muted); box-shadow: var(--morph-inset); animation: none; }
-  .avatar.wiggle { animation: wiggle 420ms var(--ease-out); }
-  .avatar.away { opacity: 0.4; box-shadow: none; animation: breathe 1.6s ease-in-out infinite; }
-  .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
-  .name { font-size: 32px; font-weight: 700; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .couch-foot { display: flex; justify-content: space-between; align-items: center; gap: 16px; font-size: 32px; font-weight: 600; }
-  .start {
-    flex-shrink: 0; border: 0; cursor: pointer; font: 700 32px var(--font-sans); padding: 18px 40px; border-radius: var(--radius-pill);
-    background: var(--spud); color: var(--ink-on-spud); box-shadow: 0 0 50px var(--glow), 6px 8px 18px var(--edge-dark);
-  }
-  .start:disabled { opacity: 0.45; cursor: default; box-shadow: none; }
-
-  @keyframes pop { from { transform: scale(0.6); } 60% { transform: scale(1.06); } }
-  @keyframes breathe { 50% { opacity: 0.2; } }
-  @keyframes wiggle { 25% { transform: rotate(-8deg) scale(1.08); } 75% { transform: rotate(8deg) scale(1.08); } }
+  .count { font-size: 32px; font-weight: 700; color: var(--spud); }
+  .chip.live { color: var(--ink); }
 </style>

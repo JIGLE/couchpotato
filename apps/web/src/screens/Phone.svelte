@@ -1,12 +1,16 @@
 <script lang="ts">
   import { onDestroy } from 'svelte';
-  import type { CushionColour, Player } from '@couchpotato/shared';
+  import type { CushionColour, Player, PotatoKind } from '@couchpotato/shared';
   import { connect } from '../lib/socket';
   import Logo from '../lib/Logo.svelte';
-  import { seatColour, initial } from '../lib/seats';
-  import type { GameView } from '@couchpotato/shared';
+  import { seatColour } from '../lib/seats';
+  import Potato from '../lib/Potato.svelte';
+  import PotatoPicker from '../lib/PotatoPicker.svelte';
+  import { POTATOES, loadPotato, savePotato } from '../lib/potatoes';
+  import type { GameSettings, GameView, Mood } from '@couchpotato/shared';
   import PhoneGame from './phone/PhoneGame.svelte';
-  import { applyMood } from '../lib/game';
+  import HostSetup from './phone/HostSetup.svelte';
+  import { applyMood, loadSettings, saveSettings } from '../lib/game';
 
   /** The seat this phone last sat in. The token lets the server give it back after a refresh. */
   type SavedSeat = { code: string; token: string };
@@ -43,10 +47,18 @@
   ];
   const savedColour = Number(localStorage.getItem('cp:colour'));
   let colour = $state<CushionColour>(([0, 1, 2, 3] as const).find((c) => c === savedColour) ?? 0);
+  let potato = $state<PotatoKind>(loadPotato() ?? 'boiled');
+  let players = $state<Player[]>([]);
+  let swapping = $state(false);
+  /** Potatoes other people on the couch already have, with their names. Once all eight are in use they can repeat. */
+  const taken = $derived.by(() => {
+    const others = new Map(players.filter((p) => p.id !== playerId).map((p) => [p.potato, p.name] as const));
+    return others.size >= POTATOES.length ? new Map<PotatoKind, string>() : others;
+  });
 
   function hello() {
     const token = seatInfo && seatInfo.code === code ? seatInfo.token : undefined;
-    socket.emit('hello', { screen: 'phone', code, name, colour, token });
+    socket.emit('hello', { screen: 'phone', code, name, colour, potato, token });
   }
 
   const socket = connect();
@@ -82,21 +94,54 @@
     }
     error =
       p.reason === 'not-found' ? `No room called ${p.code}. Check the code on the TV.`
-      : p.reason === 'full' ? 'The couch is full — all 8 seats are taken.'
+      : p.reason === 'full' ? 'The couch is full — all 12 seats are taken.'
       : 'Enter the code shown on the TV.';
   });
   socket.on('room:players', (p) => {
+    players = p.players;
     me = p.players.find((pl) => pl.id === playerId) ?? null;
+    // The server has the last word: if our potato was taken it handed us another.
+    if (me && me.potato !== potato) {
+      potato = me.potato;
+      savePotato(potato);
+    }
   });
   socket.on('tap:count', (p) => (count = p.count));
   // Tile colours must match the TV exactly, so phones always wear the room's mood.
-  socket.on('room:mood', (p) => applyMood(p.mood, false));
+  let mood = $state<Mood>('lamp');
+  socket.on('room:mood', (p) => {
+    mood = p.mood;
+    applyMood(p.mood, false);
+  });
+
   let game = $state<GameView | null>(null);
   let offset = $state(0);
   socket.on('game:state', (view) => {
     game = view;
     if (view) offset = Date.now() - view.serverNow;
   });
+
+  // The Head Spud runs the night from here: settings, mood, start, and the end-of-game buttons.
+  const isHost = $derived(me?.role === 'head-spud');
+  const headSpud = $derived(players.find((p) => p.role === 'head-spud'));
+  let settings = $state<GameSettings>(loadSettings());
+  let notice = $state('');
+  socket.on('game:error', (p) => {
+    notice = p.reason === 'no-players' ? 'Nobody on the couch yet.' : 'No questions match these settings. Try another language or age.';
+  });
+  // Share the choices as they are made so the TV can show what's coming.
+  $effect(() => {
+    if (!isHost || game || !online) return;
+    const snap = $state.snapshot(settings);
+    saveSettings(snap);
+    socket.emit('lobby:setup', snap);
+  });
+  function startGame() {
+    notice = '';
+    socket.emit('game:start', $state.snapshot(settings));
+  }
+  const endGame = () => socket.emit('game:end');
+  const changeMood = (m: Mood) => socket.emit('room:mood', { mood: m });
   onDestroy(() => socket.disconnect());
 
   function join(e: SubmitEvent) {
@@ -105,6 +150,7 @@
     code = code.trim().toUpperCase();
     localStorage.setItem('cp:name', name);
     localStorage.setItem('cp:colour', String(colour));
+    savePotato(potato);
     // A fresh connection per attempt, so a wrong code can be retried cleanly.
     socket.disconnect().connect();
     socket.once('connect', hello);
@@ -118,6 +164,13 @@
     me = null;
     playerId = null;
     game = null;
+  }
+
+  function swap(kind: PotatoKind) {
+    potato = kind;
+    savePotato(kind);
+    socket.emit('potato:pick', { potato: kind });
+    swapping = false;
   }
 
   function tap() {
@@ -152,6 +205,7 @@
       {#if error}<p id="code-error" class="error" role="alert">{error}</p>{/if}
       <label for="name">YOUR NAME</label>
       <input id="name" bind:value={name} maxlength="20" autocomplete="nickname" placeholder="Nickname" />
+      <PotatoPicker value={potato} onPick={(k) => (potato = k)} />
       <fieldset class="cushions">
         <legend>PICK A CUSHION</legend>
         <div class="swatches">
@@ -168,16 +222,42 @@
     </form>
   {:else if game}
     <PhoneGame view={game} {offset} {playerId} onAnswer={(choice) => socket.emit('game:answer', { choice })} />
+    {#if isHost}
+      <div class="remote" aria-label="Head Spud remote">
+        {#if game.phase === 'podium'}
+          <button class="ghost" onclick={endGame}>Back to lobby</button>
+          <button class="primary" onclick={startGame}>Play again</button>
+        {:else}
+          <button class="leave" onclick={endGame}>End game for everyone</button>
+        {/if}
+      </div>
+    {/if}
   {:else}
     <div class="me">
       {#if me}
         {@const c = seatColour(me.colour)}
-        <div class="avatar" style:background={c.bg} style:color={c.fg}>{initial(me.name)}</div>
+        {#key me.potato}
+          <div class="avatar" style:background={c.bg}><Potato kind={me.potato} size={150} /></div>
+        {/key}
       {/if}
+      {#if isHost}<span class="crown">HEAD SPUD</span>{/if}
       <h1>{online ? `You're in, ${name}.` : 'Lost the couch for a sec…'}</h1>
-      <p class="hint">{online ? 'Look at the TV. The host starts when everyone’s comfy.' : 'Reconnecting…'}</p>
+      <p class="hint">
+        {#if !online}Reconnecting…
+        {:else if isHost}You run tonight. Pick the game below and start when everyone's comfy.
+        {:else if headSpud}{headSpud.name} is the Head Spud and starts the game.
+        {:else}Look at the TV.{/if}
+      </p>
     </div>
-    <button class="tap" onclick={tap} disabled={!online}>Wave at the TV</button>
+    {#if isHost && !swapping}
+      <HostSetup bind:settings players={players.length} {mood} {notice} onMood={changeMood} onStart={startGame} />
+    {/if}
+    {#if swapping}
+      <PotatoPicker value={potato} {taken} legend="SWAP YOUR POTATO" onPick={swap} />
+    {:else}
+      <button class="tap" onclick={tap} disabled={!online}>Bounce your potato</button>
+    {/if}
+    <button class="leave" onclick={() => (swapping = !swapping)} disabled={!online}>{swapping ? 'Keep this potato' : 'Swap potato'}</button>
     <p class="mono">Room {code} · {count} waves</p>
     <button class="leave" onclick={leave}>Leave the couch</button>
   {/if}
@@ -217,8 +297,14 @@
   .me { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; text-align: center; }
   .me h1 { margin: 0; }
   .avatar {
-    width: 140px; height: 140px; border-radius: 50%; display: grid; place-items: center;
-    font-family: var(--font-display); font-size: 56px; font-weight: 700; box-shadow: var(--morph-raised);
+    width: 168px; height: 168px; border-radius: 50%; display: grid; place-items: center;
+    box-shadow: var(--morph-raised); animation: land 520ms var(--ease-out);
+  }
+  /* A tiny preview of the sofa landing to come: drop, squash, settle. */
+  @keyframes land {
+    0% { transform: translateY(-40px) scale(0.9, 1.1); opacity: 0; }
+    55% { transform: translateY(0) scale(1.12, 0.86); opacity: 1; }
+    75% { transform: scale(0.96, 1.04); }
   }
   .tap {
     min-height: 120px; border-radius: 40px; background: var(--tile-b); color: var(--tile-b-ink);
@@ -229,5 +315,13 @@
     min-height: 56px; border-radius: var(--radius-pill); background: transparent; color: var(--ink-muted);
     font-size: 15px; box-shadow: none;
   }
+  .crown {
+    padding: 6px 14px; border-radius: var(--radius-pill); background: var(--spud); color: var(--ink-on-spud);
+    font: 700 13px var(--font-display); letter-spacing: 0.08em; box-shadow: 0 0 24px var(--glow);
+  }
+  .remote { display: flex; gap: 12px; }
+  .remote button { flex: 1; min-height: 56px; border-radius: var(--radius-pill); }
+  .ghost { background: var(--surface-1); color: var(--ink); box-shadow: var(--morph-raised); }
+  .remote .primary { margin-top: 0; }
   .mono { margin: 0; text-align: center; font-family: var(--font-mono); color: var(--ink-muted); }
 </style>

@@ -66,7 +66,8 @@ const rooms = new RoomStore();
 /** Seats per room. A seat survives the phone's connection; see couch.ts. */
 const couches = new Map<string, Couch>();
 /** What each live socket is: a TV or a phone, and in which room. */
-const members = new Map<string, { screen: Screen; code: string }>();
+type Member = { screen: Screen; code: string };
+const members = new Map<string, Member>();
 
 /** The game running in each room, plus question ids already played there (so the next game feels fresh). */
 const games = new Map<string, TriviaGame>();
@@ -120,7 +121,7 @@ function broadcastGame(code: string, only?: string) {
 }
 
 io.on('connection', (socket) => {
-  socket.on('hello', ({ screen, code, name, colour, token, mood }) => {
+  socket.on('hello', ({ screen, code, name, colour, potato, token, mood }) => {
     if (members.has(socket.id)) return; // one hello per connection
     if (screen !== 'tv' && screen !== 'phone') return;
 
@@ -136,7 +137,7 @@ io.on('connection', (socket) => {
 
     let joined: { code: string; playerId?: string; token?: string } = { code: room.code };
     if (screen === 'phone') {
-      const sat = couchFor(room.code).sit(token, socket.id, name?.trim().slice(0, 20) || 'Potato', colour);
+      const sat = couchFor(room.code).sit(token, socket.id, name?.trim().slice(0, 20) || 'Potato', colour, potato);
       if (!sat.ok) {
         socket.emit('room:error', { reason: 'full', code: room.code });
         return;
@@ -154,23 +155,38 @@ io.on('connection', (socket) => {
     }
     socket.emit('room:joined', joined);
     socket.emit('room:mood', { mood: room.mood });
+    socket.emit('lobby:setup', { settings: room.setup });
     socket.emit('tap:count', { count: room.taps, lastBy: room.lastTapBy, lastById: null });
     broadcastRoom(room.code);
     broadcastGame(room.code, socket.id);
   });
 
+  /** The TV and the Head Spud's phone may run the room; other phones only play. */
+  const inCharge = (me: Member | undefined): me is Member =>
+    !!me && (me.screen === 'tv' || couchFor(me.code).isHeadSpud(socket.id));
+
   socket.on('room:mood', (payload) => {
     const me = members.get(socket.id);
     const room = me && rooms.get(me.code);
-    if (me?.screen !== 'tv' || !room || !isMood(payload?.mood)) return;
+    if (!inCharge(me) || !room || !isMood(payload?.mood)) return;
     room.mood = payload.mood;
     io.to(room.code).emit('room:mood', { mood: room.mood });
   });
 
+  socket.on('lobby:setup', (raw) => {
+    const me = members.get(socket.id);
+    const room = me && rooms.get(me.code);
+    if (!inCharge(me) || !room || games.has(me.code)) return;
+    room.setup = parseSettings(raw);
+    io.to(room.code).emit('lobby:setup', { settings: room.setup });
+  });
+
   socket.on('game:start', (raw) => {
     const me = members.get(socket.id);
-    if (me?.screen !== 'tv') return; // Phase 3: only a signed-in host
+    if (!inCharge(me)) return; // Phase 3: only a signed-in host
     const settings = parseSettings(raw);
+    const room = rooms.get(me.code);
+    if (room) room.setup = settings;
     const players = couchFor(me.code).list();
     if (!players.length) return void socket.emit('game:error', { reason: 'no-players' });
 
@@ -204,7 +220,7 @@ io.on('connection', (socket) => {
 
   socket.on('game:end', () => {
     const me = members.get(socket.id);
-    if (me?.screen !== 'tv' || !games.has(me.code)) return;
+    if (!inCharge(me) || !games.has(me.code)) return;
     endGame(me.code);
   });
 
@@ -217,6 +233,12 @@ io.on('connection', (socket) => {
     room.taps += 1;
     room.lastTapBy = player.name;
     io.to(room.code).emit('tap:count', { count: room.taps, lastBy: room.lastTapBy, lastById: player.id });
+  });
+
+  socket.on('potato:pick', (payload) => {
+    const me = members.get(socket.id);
+    if (me?.screen !== 'phone' || games.has(me.code)) return; // no costume changes mid-game
+    if (couchFor(me.code).pick(socket.id, payload?.potato)) broadcastRoom(me.code);
   });
 
   socket.on('leave', () => {

@@ -1,12 +1,12 @@
-import type { CushionColour, Mood } from '@couchpotato/shared';
+import type { CushionColour, GameSettings, Mood, PotatoKind } from '@couchpotato/shared';
 
 // Room bookkeeping, kept free of Socket.IO so it can be unit-tested.
 
 /** No 0/O or 1/I — they are easy to misread on a TV across the room. */
 export const CODE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 export const CODE_LENGTH = 4;
-/** Phones per room. Matches the 8 seats on the TV lobby. */
-export const MAX_SEATS = 8;
+/** Phones per room. Matches the 12 seats on the TV lobby's sofa. */
+export const MAX_SEATS = 12;
 
 /** The lowest seat nobody is using, or -1 when the couch is full. */
 export function freeSeat(taken: Iterable<number>, max = MAX_SEATS): number {
@@ -20,6 +20,33 @@ export function cushion(colour: unknown, seat: number): CushionColour {
   return Number.isInteger(colour) && (colour as number) >= 0 && (colour as number) <= 3
     ? (colour as CushionColour)
     : ((Math.max(seat, 0) % 4) as CushionColour);
+}
+
+/** Every kind is used once before any repeats; the order is what a phone gets when its pick is taken. Mirrors PotatoKind. */
+export const POTATOES: readonly PotatoKind[] = ['boiled', 'grilled', 'chip', 'fry', 'mashed', 'jacket', 'hashbrown', 'sweet'];
+export function isPotato(v: unknown): v is PotatoKind {
+  return typeof v === 'string' && (POTATOES as readonly string[]).includes(v);
+}
+
+/**
+ * The potato a phone asked for if nobody has it, otherwise the first free one. Once all eight are
+ * in use, kinds repeat: the phone keeps what it asked for, or gets the least-used kind.
+ */
+export function freePotato(wanted: unknown, taken: Iterable<PotatoKind>): PotatoKind {
+  const list = [...taken];
+  const used = new Set(list);
+  if (isPotato(wanted) && !used.has(wanted)) return wanted;
+  const free = POTATOES.find((p) => !used.has(p));
+  if (free) return free;
+  if (isPotato(wanted)) return wanted;
+  const count = (k: PotatoKind) => list.filter((t) => t === k).length;
+  return POTATOES.reduce((best, k) => (count(k) < count(best) ? k : best));
+}
+
+/** True while some kind is still unused, so picks must stay unique. */
+export function allKindsUsed(taken: Iterable<PotatoKind>): boolean {
+  const used = new Set(taken);
+  return POTATOES.every((p) => used.has(p));
 }
 
 export const MOODS: readonly Mood[] = ['lamp', 'velvet', 'midnight', 'sunday'];
@@ -42,6 +69,8 @@ export interface Room {
   lastTapBy: string | null;
   /** Colour mood every screen in the room uses. */
   mood: Mood;
+  /** The settings the Head Spud is choosing, shown on the TV before the game starts. */
+  setup: GameSettings | null;
 }
 
 export type Rng = () => number;
@@ -67,7 +96,7 @@ export class RoomStore {
 
   create(): Room {
     const code = generateCode((c) => this.rooms.has(c), this.rng);
-    const room: Room = { code, createdAt: this.now(), members: new Set(), emptySince: this.now(), taps: 0, lastTapBy: null, mood: 'lamp' };
+    const room: Room = { code, createdAt: this.now(), members: new Set(), emptySince: this.now(), taps: 0, lastTapBy: null, mood: 'lamp', setup: null };
     this.rooms.set(code, room);
     return room;
   }

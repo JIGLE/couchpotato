@@ -2,16 +2,16 @@
 <script lang="ts">
   import type { GameView, Player, Standing } from '@couchpotato/shared';
   import { tile } from '../../lib/game';
-  import { seatColour, initial } from '../../lib/seats';
+  import type { PotatoKind } from '@couchpotato/shared';
+  import { seatColour } from '../../lib/seats';
+  import Potato from '../../lib/Potato.svelte';
   import Timer from '../../lib/Timer.svelte';
 
   let {
     view,
     offset,
     players,
-    onPlayAgain,
-    onEnd,
-  }: { view: GameView; offset: number; players: Player[]; onPlayAgain: () => void; onEnd: () => void } = $props();
+  }: { view: GameView; offset: number; players: Player[] } = $props();
 
   // Players who left mid-game keep their place on the leaderboard, so remember their cushion colour.
   const seen = new Map<string, Player>();
@@ -21,6 +21,7 @@
   });
   const colourOf = (id: string) => seatColour(byId.get(id)?.colour ?? 0);
   const nameOf = (id: string) => byId.get(id)?.name ?? '?';
+  const potatoOf = (id: string): PotatoKind => byId.get(id)?.potato ?? 'boiled';
 
   /** Podium order on screen: 2nd, 1st, 3rd. */
   const podium = $derived.by(() => {
@@ -70,7 +71,7 @@
           <div class="pickers">
             {#each view.pickedBy[i] as id (id)}
               {@const c = colourOf(id)}
-              <span class="mini" style:background={c.bg} style:color={c.fg} title={nameOf(id)}>{initial(nameOf(id))}</span>
+              <span class="mini" style:background={c.bg} style:color={c.fg} title={nameOf(id)}><Potato kind={potatoOf(id)} size={40} still /></span>
             {/each}
           </div>
         </div>
@@ -92,7 +93,7 @@
           {@const c = colourOf(s.id)}
           <li class:first={i === 0} class:away={s.away}>
             <span class="mono rank">{s.rank}</span>
-            <span class="av" style:background={c.bg} style:color={c.fg}>{initial(s.name)}</span>
+            <span class="av" style:background={c.bg}><Potato kind={potatoOf(s.id)} size={48} still asleep={s.away} /></span>
             <span class="name">{s.name}</span>
             <span class="mono moved">{s.moved > 0 ? `▲ ${s.moved}` : s.moved < 0 ? `▼ ${-s.moved}` : ''}</span>
             <span class="mono score">{s.score.toLocaleString()}</span>
@@ -109,7 +110,7 @@
           {@const c = colourOf(s.id)}
           {@const h = heights[i]}
           <div class="stand" class:away={s.away}>
-            <span class="av big" class:winner={s.rank === 1} style:background={c.bg} style:color={c.fg}>{initial(s.name)}</span>
+            <span class="av big" class:winner={s.rank === 1} style:background={c.bg}><Potato kind={potatoOf(s.id)} size={s.rank === 1 ? 116 : 90} delay={i * 0.5} /></span>
             <span class="name">{s.name}</span>
             <div class="bar-col" style:height={h}>
               <span class="place">{s.rank}</span>
@@ -124,16 +125,9 @@
         {:else}
           <span></span>
         {/if}
-        <div class="buttons">
-          <button class="ghost" onclick={onEnd}>Lobby</button>
-          <button class="primary" onclick={onPlayAgain}>Play again</button>
-        </div>
+        <span class="muted">The Head Spud picks what's next.</span>
       </div>
     </div>
-  {/if}
-
-  {#if view.phase !== 'podium'}
-    <button class="end" onclick={onEnd} aria-label="End game">✕</button>
   {/if}
 </section>
 
@@ -197,16 +191,6 @@
   }
   .place { font: 700 56px var(--font-display); color: var(--spud); }
   .actions { width: 100%; display: flex; justify-content: space-between; align-items: center; font-size: 32px; font-weight: 600; padding-top: 16px; }
-  .buttons { display: flex; gap: 16px; }
-  .buttons button { border: 0; cursor: pointer; padding: 18px 36px; border-radius: var(--radius-pill); font: 700 32px var(--font-sans); }
-  .primary { background: var(--spud); color: var(--ink-on-spud); box-shadow: 0 0 40px var(--glow), 6px 8px 18px var(--edge-dark); }
-  .ghost { background: var(--surface-1); color: var(--ink); box-shadow: var(--morph-raised); }
-
-  .end {
-    position: absolute; top: -4px; right: 0; width: 56px; height: 56px; border-radius: 50%; border: 0; cursor: pointer;
-    background: var(--surface-1); color: var(--ink-muted); font-size: 32px; box-shadow: var(--morph-raised); opacity: 0.6;
-  }
-  .end:hover, .end:focus-visible { opacity: 1; }
 
   @keyframes rise { from { opacity: 0; transform: translateY(24px); } }
   @keyframes pop { from { transform: scale(0.4); opacity: 0; } 70% { transform: scale(1.08); } }
