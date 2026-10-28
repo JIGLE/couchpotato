@@ -24,3 +24,4 @@ write a new line that supersedes it instead.
 - 2026-10-26 · The mood belongs to the room: the TV sets it, phones follow · answer tiles must be the same colours on every screen
 - 2026-10-26 · TV screens are laid out on a fixed 1280×720 stage scaled to fit the display · identical layout on any TV, projector or laptop, nothing cropped
 - 2026-10-28 · Persistent storage is one SQLite file in `/data` via Node's built-in `node:sqlite`, schema versioned with `PRAGMA user_version`; games keep running if storage fails · no native module to build on Alpine, one file to back up, a volume problem must not spoil a game night
+- 2026-10-28 · Late joiners sit out until the next question starts, whether they arrive during a question, reveal or leaderboard; nobody joins at the podium; players who leave stay on the leaderboard greyed out · a fair start from the average score, and the final podium only shows people who played

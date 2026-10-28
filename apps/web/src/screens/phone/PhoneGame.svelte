@@ -31,7 +31,18 @@
     view.phase === 'leaderboard' || view.phase === 'podium' ? view.standings.find((s) => s.id === playerId) : undefined,
   );
   const total = $derived(view.phase === 'leaderboard' || view.phase === 'podium' ? view.standings.length : 0);
+  /** Joined mid-game and sits out until the next question starts. */
+  const waiting = $derived(
+    view.phase === 'question' ? !view.canAnswer : view.phase === 'reveal' || view.phase === 'leaderboard' ? !!view.waiting : false,
+  );
 </script>
+
+{#snippet nextRound()}
+  <div class="centre">
+    <h1>You're in next round</h1>
+    <p class="muted">The game had already started. Grab a snack — you play from the next question, starting from the room's average score.</p>
+  </div>
+{/snippet}
 
 <section class="game">
   {#if view.phase === 'question'}
@@ -39,11 +50,8 @@
       <span class="mono">ROUND {view.round} / {view.rounds}</span>
       {#if view.endsAt}<Timer endsAt={view.endsAt} {offset} size={56} />{/if}
     </div>
-    {#if !view.canAnswer}
-      <div class="centre">
-        <h1>You're in next round</h1>
-        <p class="muted">This question had already started. Grab a snack — you start from the room's average score.</p>
-      </div>
+    {#if waiting}
+      {@render nextRound()}
     {:else}
       <p class="status" role="status">{myChoice === null ? 'Read the question on the TV, then tap.' : 'Locked in. Fingers crossed.'}</p>
       <div class="pad" class:two={view.choices === 2}>
@@ -66,35 +74,43 @@
       </div>
     {/if}
   {:else if view.phase === 'reveal'}
-    <div class="top"><span class="mono">ROUND {view.round} / {view.rounds}</span><span class="mono">{me ? `#${me.rank}` : ''}</span></div>
-    <div class="centre result" class:good={me?.correct}>
-      {#if me}
-        <div class="badge" aria-hidden="true">{me.correct ? '✓' : '✕'}</div>
-        <h1>{me.correct ? (me.streak >= 3 ? `${me.streak} in a row!` : 'Nailed it!') : me.choice === null ? 'Too slow!' : 'Not this time'}</h1>
-        <p class="points mono">+{me.lastPoints}</p>
-        <p class="muted">
-          {#if me.correct}
-            {me.rank === 1 ? "You're in the lead." : `You're #${me.rank}.`}
-          {:else}
-            The answer was {tile(view.correct).name}. {me.rank === 1 ? 'Still in the lead.' : 'Still in it.'}
-          {/if}
-        </p>
-      {:else}
-        <h1>Look at the TV</h1>
-      {/if}
-    </div>
+    <div class="top"><span class="mono">ROUND {view.round} / {view.rounds}</span><span class="mono">{me && !waiting ? `#${me.rank}` : ''}</span></div>
+    {#if waiting}
+      {@render nextRound()}
+    {:else}
+      <div class="centre result" class:good={me?.correct}>
+        {#if me}
+          <div class="badge" aria-hidden="true">{me.correct ? '✓' : '✕'}</div>
+          <h1>{me.correct ? (me.streak >= 3 ? `${me.streak} in a row!` : 'Nailed it!') : me.choice === null ? 'Too slow!' : 'Not this time'}</h1>
+          <p class="points mono">+{me.lastPoints}</p>
+          <p class="muted">
+            {#if me.correct}
+              {me.rank === 1 ? "You're in the lead." : `You're #${me.rank}.`}
+            {:else}
+              The answer was {tile(view.correct).name}. {me.rank === 1 ? 'Still in the lead.' : 'Still in it.'}
+            {/if}
+          </p>
+        {:else}
+          <h1>Look at the TV</h1>
+        {/if}
+      </div>
+    {/if}
   {:else if view.phase === 'leaderboard'}
     <div class="top"><span class="mono">AFTER ROUND {view.round} / {view.rounds}</span></div>
-    <div class="centre">
-      {#if standing}
-        <p class="place mono">#{standing.rank}</p>
-        <h1>{standing.rank === 1 ? "You're in the lead" : `${total} on the couch`}</h1>
-        <p class="mono muted">{standing.score.toLocaleString()} points{standing.moved > 0 ? ` · up ${standing.moved}` : ''}</p>
-      {:else}
-        <h1>Scores are on the TV</h1>
-      {/if}
-      <p class="muted">Next question coming up…</p>
-    </div>
+    {#if waiting}
+      {@render nextRound()}
+    {:else}
+      <div class="centre">
+        {#if standing}
+          <p class="place mono">#{standing.rank}</p>
+          <h1>{standing.rank === 1 ? "You're in the lead" : `${total} on the couch`}</h1>
+          <p class="mono muted">{standing.score.toLocaleString()} points{standing.moved > 0 ? ` · up ${standing.moved}` : ''}</p>
+        {:else}
+          <h1>Scores are on the TV</h1>
+        {/if}
+        <p class="muted">Next question coming up…</p>
+      </div>
+    {/if}
   {:else}
     <div class="centre">
       {#if standing}

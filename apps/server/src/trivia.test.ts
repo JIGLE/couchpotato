@@ -179,6 +179,87 @@ test('someone joining mid-question waits for the next one and starts from the av
   assert.ok(t.g.answer('lina', 1, t.now), 'and plays from the next question');
 });
 
+test('someone joining during the reveal or leaderboard sits out until the next question', () => {
+  const t = game(3);
+  t.g.answer('maya', 1, t.now);
+  t.g.answer('jose', 1, t.now);
+  t.g.advance(t.now); // reveal of question 1
+  t.g.addPlayer('lina', 'Lina', t.at(1_000));
+  t.g.setPresent(['maya', 'jose', 'lina'], t.now);
+  const reveal = t.g.phoneView('lina', t.now);
+  assert.ok(reveal.phase === 'reveal' && reveal.waiting === true, "Lina sees 'You're in next round', not 'Too slow!'");
+  const maya = t.g.phoneView('maya', t.now);
+  assert.ok(maya.phase === 'reveal' && maya.waiting === false);
+
+  t.g.advance(t.at(REVEAL_MS));
+  t.g.addPlayer('ana', 'Ana', t.at(1_000));
+  t.g.setPresent(['maya', 'jose', 'lina', 'ana'], t.now);
+  const board = t.g.phoneView('ana', t.now);
+  assert.ok(board.phase === 'leaderboard' && board.waiting === true);
+  assert.equal(t.g.standings().find((x) => x.id === 'ana')!.score, MAX_POINTS, 'average of everyone already seated');
+
+  t.g.advance(t.at(LEADERBOARD_MS));
+  for (const id of ['lina', 'ana']) {
+    const v = t.g.phoneView(id, t.now);
+    assert.ok(v.phase === 'question' && v.canAnswer, `${id} plays question 2`);
+  }
+  assert.ok(t.g.answer('lina', 1, t.now));
+  assert.ok(t.g.answer('ana', 1, t.now));
+});
+
+test('nobody joins once the podium is up', () => {
+  const t = game(1);
+  t.next();
+  assert.equal(t.g.over, true);
+  t.g.addPlayer('lina', 'Lina', t.now);
+  assert.equal(t.g.standings().some((x) => x.id === 'lina'), false);
+});
+
+test('a player who leaves keeps their score, shown as away', () => {
+  const t = game(2);
+  t.g.answer('maya', 1, t.now);
+  t.g.answer('jose', 1, t.now);
+  t.g.advance(t.now);
+  t.g.setPresent(['maya'], t.now); // Jose leaves
+  const jose = t.g.standings().find((x) => x.id === 'jose')!;
+  assert.equal(jose.score, MAX_POINTS);
+  assert.equal(jose.away, true);
+  assert.equal(t.g.standings().find((x) => x.id === 'maya')!.away, false);
+  t.g.setPresent(['maya', 'jose'], t.now); // and comes back
+  assert.equal(t.g.standings().find((x) => x.id === 'jose')!.away, false);
+});
+
+test('the last unanswered player leaving ends the question straight away', () => {
+  const t = game(2, 0); // no time limit, so only answers can end it
+  t.g.answer('maya', 1, t.at(1_000));
+  assert.equal(t.g.advance(t.now), false, 'waiting for Jose');
+  t.g.setPresent(['maya'], t.at(1_000));
+  assert.equal(t.g.advance(t.now), true);
+  assert.equal(phase(t.g.tvView(t.now)), 'reveal');
+});
+
+test('a game with no time limit never stalls when everyone who could answer has left', () => {
+  const t = game(2, 0);
+  t.at(1_000);
+  t.g.addPlayer('lina', 'Lina', t.now); // waits for question 2
+  t.g.setPresent(['maya', 'jose', 'lina'], t.now);
+  assert.equal(t.g.advance(t.now), false);
+  t.g.setPresent(['lina'], t.at(1_000)); // Maya and Jose leave without answering
+  assert.equal(t.g.advance(t.now), true, "Lina isn't left looking at 'You're in next round' forever");
+  t.g.advance(t.at(REVEAL_MS));
+  t.g.advance(t.at(LEADERBOARD_MS));
+  assert.ok(t.g.answer('lina', 1, t.now));
+  assert.equal(t.g.advance(t.now), true, 'and her answer ends question 2');
+});
+
+test('someone who answered and then left still counts as locked in', () => {
+  const t = game();
+  t.g.answer('jose', 1, t.now);
+  t.g.setPresent(['maya'], t.now);
+  const v = t.g.tvView(t.now);
+  assert.ok(v.phase === 'question' && v.answered === 1 && v.players === 2, '1 of 2, never 1 of 1 or 2 of 1');
+});
+
 test('no time limit: the question waits until everyone has answered', () => {
   const t = game(1, 0);
   assert.equal(t.g.tvView(t.now).phase === 'question' && t.g.tvView(t.now).endsAt, null);
