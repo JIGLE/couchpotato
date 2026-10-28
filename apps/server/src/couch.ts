@@ -3,7 +3,7 @@
 
 import { randomBytes } from 'node:crypto';
 import type { CushionColour, Player, PotatoKind, Role } from '@couchpotato/shared';
-import { MAX_SEATS, cushion, freePotato, freeSeat, isPotato } from './rooms.js';
+import { MAX_SEATS, allKindsUsed, cushion, freePotato, freeSeat, isPotato } from './rooms.js';
 
 /** A dropped phone keeps its seat this long. */
 export const HOLD_MS = 2 * 60 * 1000;
@@ -48,7 +48,8 @@ export class Couch {
 
   /**
    * Sit a phone down. A known token gets its old seat back (and keeps its colour and potato);
-   * otherwise the phone takes the lowest free seat and the potato it asked for, or a free one if that is taken.
+   * otherwise the phone takes the lowest free seat and the potato it asked for, or a free one if that is taken
+   * (once all eight kinds are in use, kinds repeat).
    * Away players still hold their seats and potatoes.
    */
   sit(token: unknown, socketId: string, name: string, colour: unknown, potato?: unknown): SitResult {
@@ -62,7 +63,7 @@ export class Couch {
 
     const seat = freeSeat([...this.byToken.values()].map((p) => p.seat), this.seats);
     const kind = freePotato(potato, this.takenPotatoes());
-    if (seat === -1 || !kind) return { ok: false, reason: 'full' };
+    if (seat === -1) return { ok: false, reason: 'full' };
 
     const seated: Seated = {
       token: this.makeToken(), // always ours; a phone never picks its own token
@@ -79,11 +80,12 @@ export class Couch {
     return { ok: true, player: this.toPlayer(seated), token: seated.token, rejoined: false };
   }
 
-  /** Swap this phone's potato for one nobody else has. Returns true if it changed. */
+  /** Swap this phone's potato for one nobody else has (any kind, once all eight are in use). Returns true if it changed. */
   pick(socketId: string, potato: unknown): boolean {
     const p = this.bySocket(socketId);
     if (!p || !isPotato(potato) || p.potato === potato) return false;
-    if (this.takenPotatoes().includes(potato)) return false;
+    const taken = this.takenPotatoes();
+    if (taken.includes(potato) && !allKindsUsed(taken)) return false;
     p.potato = potato;
     return true;
   }

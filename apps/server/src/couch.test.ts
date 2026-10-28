@@ -1,8 +1,9 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { Couch, HOLD_MS, isToken, newToken } from './couch.ts';
+import { MAX_SEATS } from './rooms.ts';
 
-function setup(seats = 8) {
+function setup(seats = MAX_SEATS) {
   let now = 0;
   const couch = new Couch(() => now, newToken, seats);
   return { couch, tick: (ms: number) => (now += ms) };
@@ -131,11 +132,30 @@ test('a phone can swap to a free potato but not to one someone else has, away or
   assert.equal(couch.list()[0].potato, 'hashbrown');
 });
 
-test('eight seats use all eight potatoes', () => {
+test('the first eight seats use all eight potatoes, then kinds repeat up to twelve seats', () => {
   const { couch } = setup();
   for (let i = 0; i < 8; i++) assert.ok(couch.sit(undefined, `s${i}`, `P${i}`, 0, 'boiled').ok);
   assert.equal(new Set(couch.list().map((p) => p.potato)).size, 8);
-  assert.equal(couch.sit(undefined, 's9', 'Late', 0).ok, false);
+  const ninth = couch.sit(undefined, 's8', 'Nine', 0, 'chip');
+  assert.ok(ninth.ok);
+  assert.equal(ninth.player.potato, 'chip', 'a repeat keeps the pick');
+  const tenth = couch.sit(undefined, 's9', 'Ten', 0, 'not-a-potato');
+  assert.ok(tenth.ok);
+  assert.notEqual(tenth.player.potato, 'chip', 'no pick gets the least-used kind');
+  assert.ok(couch.sit(undefined, 's10', 'Eleven', 0).ok);
+  assert.ok(couch.sit(undefined, 's11', 'Twelve', 0).ok);
+  assert.equal(couch.list().length, 12);
+  assert.equal(couch.sit(undefined, 's12', 'Late', 0).ok, false);
+});
+
+test('once all eight potatoes are in use, a phone can swap to one someone else has', () => {
+  const { couch } = setup();
+  for (let i = 0; i < 8; i++) couch.sit(undefined, `s${i}`, `P${i}`, 0);
+  const mine = couch.list()[0].potato;
+  const theirs = couch.list()[1].potato;
+  assert.notEqual(mine, theirs);
+  assert.equal(couch.pick('s0', theirs), true);
+  assert.equal(couch.list()[0].potato, theirs);
 });
 
 test('the first phone on the couch is the Head Spud; the role passes on when they leave, not when they drop', () => {

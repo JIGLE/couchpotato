@@ -38,7 +38,7 @@ export const MATERIALS: Record<PotatoKind, Material> = {
 export const SOFA = {
   left: 458,
   right: 1182,
-  seats: 8,
+  seats: 12,
   armTop: 404,
   backEdge: 430,
   frontEdge: 468,

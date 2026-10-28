@@ -11,7 +11,7 @@
 
   let {
     players,
-    seats = 8,
+    seats = SOFA.seats,
     wiggle = null,
   }: { players: Player[]; seats?: number; wiggle?: { id: string; n: number } | null } = $props();
 
@@ -330,24 +330,27 @@
     ctx.globalAlpha = 1;
   }
 
-  /** Name tags under the sofa in the player's cushion colour, alternating rows so long names have room. */
+  /** Name tags under the sofa in the player's cushion colour, staggered over two rows (three on a full twelve-seat sofa) so long names have room. */
   function drawNames(ctx: CanvasRenderingContext2D) {
     ctx.font = '800 32px Manrope, system-ui, sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
+    const rows = SOFA.seats > 8 ? 3 : 2;
+    const maxText = Math.min(156, (rows * (SOFA.right - SOFA.left)) / SOFA.seats - 36);
     for (const p of players) {
       if (p.seat >= seats) continue;
       const x = seatX(p.seat);
-      const y = p.seat % 2 ? 640 : 592;
+      const row = p.seat % rows;
+      const y = 592 + row * 48;
       let name = (p.role === 'head-spud' ? '♛ ' : '') + p.name;
-      while (ctx.measureText(name).width > 156 && name.length > 2) name = name.slice(0, -2) + '…';
+      while (ctx.measureText(name).width > maxText && name.length > 2) name = name.slice(0, -2) + '…';
       const w = ctx.measureText(name).width + 28;
       const tile = colours.tiles[p.colour % 4];
       ctx.globalAlpha = p.away ? 0.55 : 1;
       ctx.strokeStyle = colours.outline;
       ctx.lineWidth = 3;
-      // The lower row gets a little stalk up to its seat.
-      if (p.seat % 2) {
+      // Lower rows get a little stalk up to their seat.
+      if (row) {
         ctx.beginPath();
         ctx.moveTo(x, 574);
         ctx.lineTo(x, y - 22);

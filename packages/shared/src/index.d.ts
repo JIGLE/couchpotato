@@ -11,7 +11,7 @@ export type Mood = 'lamp' | 'velvet' | 'midnight' | 'sunday';
 /** Number of cushion colours a player can pick (the four tile colours of the mood). */
 export type CushionColour = 0 | 1 | 2 | 3;
 
-/** The potato characters. One of each per room, so eight potatoes for eight seats. */
+/** The potato characters. Each room uses every kind once before any repeats (rooms seat up to twelve). */
 export type PotatoKind = 'boiled' | 'grilled' | 'chip' | 'fry' | 'mashed' | 'jacket' | 'hashbrown' | 'sweet';
 
 /**

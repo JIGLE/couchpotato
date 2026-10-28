@@ -6,7 +6,7 @@
   import { seatColour } from '../lib/seats';
   import Potato from '../lib/Potato.svelte';
   import PotatoPicker from '../lib/PotatoPicker.svelte';
-  import { loadPotato, savePotato } from '../lib/potatoes';
+  import { POTATOES, loadPotato, savePotato } from '../lib/potatoes';
   import type { GameSettings, GameView, Mood } from '@couchpotato/shared';
   import PhoneGame from './phone/PhoneGame.svelte';
   import HostSetup from './phone/HostSetup.svelte';
@@ -50,8 +50,11 @@
   let potato = $state<PotatoKind>(loadPotato() ?? 'boiled');
   let players = $state<Player[]>([]);
   let swapping = $state(false);
-  /** Potatoes other people on the couch already have, with their names. */
-  const taken = $derived(new Map(players.filter((p) => p.id !== playerId).map((p) => [p.potato, p.name] as const)));
+  /** Potatoes other people on the couch already have, with their names. Once all eight are in use they can repeat. */
+  const taken = $derived.by(() => {
+    const others = new Map(players.filter((p) => p.id !== playerId).map((p) => [p.potato, p.name] as const));
+    return others.size >= POTATOES.length ? new Map<PotatoKind, string>() : others;
+  });
 
   function hello() {
     const token = seatInfo && seatInfo.code === code ? seatInfo.token : undefined;
@@ -91,7 +94,7 @@
     }
     error =
       p.reason === 'not-found' ? `No room called ${p.code}. Check the code on the TV.`
-      : p.reason === 'full' ? 'The couch is full — all 8 seats are taken.'
+      : p.reason === 'full' ? 'The couch is full — all 12 seats are taken.'
       : 'Enter the code shown on the TV.';
   });
   socket.on('room:players', (p) => {

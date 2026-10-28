@@ -7,7 +7,8 @@ import Potato from '../Potato.svelte';
 import { POTATOES, POTATO_LOOKS, type PotatoFace } from '../potatoes';
 
 /** Sprites are drawn into a 100-unit box scaled to this many stage pixels. */
-export const SPRITE = 124;
+/** Drawn size of a potato on the TV, in room pixels; sized so twelve fit along the sofa. */
+export const SPRITE = 88;
 const RASTER = 256;
 const FACES: PotatoFace[] = ['happy', 'blink', 'sleep', 'ouch'];
 
