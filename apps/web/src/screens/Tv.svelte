@@ -122,7 +122,7 @@
 {/if}
 <main>
   <header>
-    {#if game}<div class="brand"><Logo size={56} /><span>couch<br />potato</span></div>{:else}<span></span>{/if}
+    {#if game || pairing}<div class="brand"><Logo size={64} /><span>couch<br />potato</span></div>{:else}<span></span>{/if}
     {#if !online}
       <div class="status" role="status">Reconnecting…</div>
     {:else if pairing}
@@ -188,7 +188,7 @@
   }
   header { height: 56px; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
   .brand { display: flex; align-items: center; gap: 12px; }
-  .brand span { font-family: var(--font-display); font-weight: 600; font-size: 24px; line-height: 24px; letter-spacing: -0.03em; }
+  .brand span { font-family: var(--font-display); font-weight: 600; font-size: 32px; line-height: 30px; letter-spacing: -0.03em; }
   .status { font-size: 32px; font-weight: 600; color: var(--spud); }
   .chip {
     font-size: 32px; font-weight: 600; color: var(--ink-muted); padding: 6px 22px; border-radius: var(--radius-pill);
@@ -216,7 +216,8 @@
     box-shadow: 0 0 60px var(--glow), 6px 8px 18px var(--edge-dark);
   }
   .qr :global(svg) { width: 100%; height: 100%; display: block; }
-  .or { font-size: 32px; font-weight: 700; color: var(--ink-muted); white-space: nowrap; line-height: 1.15; }
+  .or { font-size: 32px; font-weight: 700; color: var(--ink-muted); line-height: 1.15; overflow-wrap: anywhere; }
+  .join .or { white-space: nowrap; }
   .code {
     font-family: var(--font-mono); font-weight: 700; font-size: 48px; line-height: 1; letter-spacing: 0.16em;
     color: var(--ink-on-spud); background: var(--spud); padding: 8px 16px 8px 24px;
@@ -229,19 +230,20 @@
   .lights { position: absolute; inset: 0; transition: filter 1400ms var(--ease-out), opacity 1400ms var(--ease-out); }
   .lights.off { filter: brightness(0.32) saturate(0.6) blur(2px); opacity: 0.85; }
 
+  /* Sized to its content and centred in the space under the header, so the dimmed room shows around it. */
   .claim {
-    flex: 1; min-height: 0; align-self: center; display: flex; align-items: center; gap: 56px;
-    padding: 40px 56px; border-radius: 40px; box-sizing: border-box; max-width: 1080px;
+    margin: auto 0; align-self: center; display: flex; align-items: center; gap: 36px;
+    padding: 28px 40px 28px 28px; border-radius: 36px; box-sizing: border-box; max-width: 860px;
     background: color-mix(in srgb, var(--surface-1) 90%, transparent); box-shadow: var(--morph-raised);
     animation: pop 600ms var(--ease-out);
   }
-  .qr.big { width: 340px; height: 340px; padding: 20px; flex-shrink: 0; }
+  .qr.big { width: 236px; height: 236px; padding: 14px; flex-shrink: 0; }
   .fade { width: 100%; height: 100%; animation: fade 500ms var(--ease-out); }
   .fade :global(svg) { width: 100%; height: 100%; display: block; }
-  .pitch { display: flex; flex-direction: column; align-items: flex-start; gap: 18px; }
-  .pitch h1 { margin: 0; font: 600 48px/1.1 var(--font-display); letter-spacing: -0.02em; }
+  .pitch { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; min-width: 0; }
+  .pitch h1 { margin: 0; font: 600 36px/1.12 var(--font-display); letter-spacing: -0.02em; text-wrap: balance; }
   .pitch .or { margin: 0; text-align: left; }
-  .code.small { font-size: 48px; padding: 12px 20px 12px 28px; }
+  .code.small { font-size: 40px; padding: 8px 16px 8px 24px; margin-top: 4px; }
   .renew { width: 100%; height: 8px; border-radius: var(--radius-pill); background: var(--surface-2); overflow: hidden; }
   .renew span { display: block; height: 100%; background: var(--spud); transform-origin: left; transition: transform 250ms linear; }
   .welcome { animation: pop 600ms var(--ease-out); }
