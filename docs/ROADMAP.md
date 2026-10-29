@@ -53,5 +53,6 @@ Design reference for every screen: the *Couch Potato — Lobby & Join* canvas.
   - [x] Living room scene: front-on room, one twelve-seat sofa (was eight), neon logo sign, cushions in each player's colour; slim join panel on the left
   - [x] Landing physics: soft-body potatoes (shape matching), spring-chain cushions, squash faces, dust, idle hops
   - [x] Head Spud (interim): first phone in gets setup, Start and the in-game remote; the TV is display-only
+  - [x] 3D living room (three.js): angled room with a twelve-seat L chesterfield, a pre-baked supersampled room plate so frames only draw the potatoes, one lighting setup per mood, join card low in the bottom-left; the 2D sofa stays as the fallback without WebGL2
   - [ ] Head Spud claim QR (with Phase 3 host accounts)
-  - [ ] One living room per mood, sound, snack throw
+  - [ ] Sound, snack throw
