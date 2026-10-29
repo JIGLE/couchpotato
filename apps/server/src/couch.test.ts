@@ -179,3 +179,32 @@ test('the first phone on the couch is the Head Spud; the role passes on when the
   assert.equal(role('Maya'), 'head-spud');
   assert.ok(couch.isHeadSpud('s3'));
 });
+
+test('the phone that claimed the TV is Head Spud, even if it arrived later; the role passes on when it leaves', () => {
+  const { couch } = setup();
+  couch.sit(undefined, 's1', 'Maya', 0);
+  couch.sit(undefined, 's2', 'Jose', 1);
+  assert.equal(couch.isHeadSpud('s1'), true, 'longest seated by default');
+  assert.equal(couch.crown('s2'), true);
+  assert.equal(couch.isHeadSpud('s2'), true);
+  assert.equal(couch.isHeadSpud('s1'), false);
+  assert.equal(couch.list().find((p) => p.name === 'Jose')?.role, 'head-spud');
+
+  couch.drop('s2');
+  assert.equal(couch.isHeadSpud('s1'), false, 'a dropped Head Spud keeps the role while the seat is held');
+  couch.leave('s1');
+  couch.sit(undefined, 's3', 'Ana', 2);
+  const jose = couch.list().find((p) => p.name === 'Jose');
+  assert.equal(jose?.role, 'head-spud');
+  assert.equal(couch.crown('nobody'), false);
+});
+
+test('when the crowned phone leaves, the longest-seated phone becomes Head Spud', () => {
+  const { couch } = setup();
+  couch.sit(undefined, 's1', 'Maya', 0);
+  couch.sit(undefined, 's2', 'Jose', 1);
+  couch.sit(undefined, 's3', 'Ana', 2);
+  couch.crown('s3');
+  couch.leave('s3');
+  assert.equal(couch.isHeadSpud('s1'), true);
+});

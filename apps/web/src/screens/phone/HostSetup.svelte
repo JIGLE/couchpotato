@@ -46,16 +46,39 @@
     settings = { ...settings, regions: next.length ? next : undefined };
   }
 
+  /** The games on the shelf. Only Trivia is playable until the Phase 4 module contract lands. */
+  const games = [
+    { id: 'trivia', name: 'Trivia Night', badge: '?', blurb: 'Quick-fire questions, answers on your phone', ready: true },
+    { id: 'liars-dice', name: "Liar's Dice", badge: '⚄', blurb: 'Bluff about the dice in your hand', ready: false },
+  ];
+  let picked = $state('trivia');
+
   const minutes = $derived(Math.max(1, Math.round((settings.rounds * ((settings.seconds || 20) + 12)) / 60)));
 </script>
 
 <section class="host" aria-label="Game setup">
-  <div class="game">
-    <div class="badge" aria-hidden="true">?</div>
-    <div>
-      <h2>Trivia Night</h2>
-      <p class="muted">{settings.rounds} questions · ~{minutes} min · {players} on the sofa</p>
-    </div>
+  <span class="label" id="h-game">PICK A GAME</span>
+  <div class="games" role="radiogroup" aria-labelledby="h-game">
+    {#each games as g (g.id)}
+      <button
+        role="radio"
+        class="game"
+        class:on={picked === g.id}
+        aria-checked={picked === g.id}
+        disabled={!g.ready}
+        onclick={() => (picked = g.id)}
+      >
+        <span class="badge" aria-hidden="true">{g.badge}</span>
+        <span class="text">
+          <span class="name">{g.name}</span>
+          <span class="muted">
+            {#if !g.ready}Coming soon
+            {:else if picked === g.id}{settings.rounds} questions · ~{minutes} min · {players} on the sofa
+            {:else}{g.blurb}{/if}
+          </span>
+        </span>
+      </button>
+    {/each}
   </div>
 
   {#snippet group(label: string, id: string)}
@@ -111,14 +134,23 @@
 
 <style>
   .host { display: flex; flex-direction: column; gap: 8px; }
-  .game { display: flex; align-items: center; gap: 16px; margin-bottom: 8px; }
+  .games { display: flex; flex-direction: column; gap: 10px; margin-bottom: 8px; }
+  .game {
+    display: flex; align-items: center; gap: 16px; min-height: 88px; padding: 12px 16px; border: 0; border-radius: 24px;
+    cursor: pointer; text-align: left; background: var(--surface-1); color: var(--ink); box-shadow: var(--morph-raised);
+    transition: transform var(--dur-press), box-shadow var(--dur-press);
+  }
+  .game.on { box-shadow: 0 0 0 3px var(--spud), 0 0 30px var(--glow); }
+  .game:active:not(:disabled) { transform: scale(0.98); }
+  .game:disabled { opacity: 0.5; cursor: default; box-shadow: var(--morph-inset); }
+  .game .text { display: flex; flex-direction: column; }
+  .game .name { font: 600 22px var(--font-display); }
   .badge {
     width: 64px; height: 64px; flex-shrink: 0; border-radius: 22px; display: grid; place-items: center;
     background: var(--spud); color: var(--ink-on-spud); font: 700 36px var(--font-display);
     box-shadow: 0 0 30px var(--glow), 4px 6px 14px var(--edge-dark);
   }
-  h2 { margin: 0; font: 600 24px var(--font-display); }
-  .muted { margin: 4px 0 0; color: var(--ink-muted); font-weight: 600; }
+  .muted { margin-top: 4px; color: var(--ink-muted); font: 600 15px var(--font-sans); }
   .label { margin-top: 8px; font-size: 13px; font-weight: 700; letter-spacing: 0.06em; color: var(--ink-muted); }
   .pills {
     display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 4px; padding: 4px; border-radius: 20px;

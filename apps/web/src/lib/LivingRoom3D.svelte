@@ -12,8 +12,9 @@
     players,
     mood,
     wiggle = null,
+    dim = false,
     onfail,
-  }: { players: Player[]; mood: Mood; wiggle?: { id: string; n: number } | null; onfail: () => void } = $props();
+  }: { players: Player[]; mood: Mood; wiggle?: { id: string; n: number } | null; dim?: boolean; onfail: () => void } = $props();
 
   let canvas: HTMLCanvasElement;
   let tags: HTMLDivElement;
@@ -113,7 +114,7 @@
   });
 </script>
 
-<div class="room" class:ready aria-hidden="true">
+<div class="room" class:ready class:dim aria-hidden="true">
   <canvas bind:this={canvas}></canvas>
   <div class="vignette"></div>
   <div class="tags" bind:this={tags}></div>
@@ -128,8 +129,11 @@
 <style>
   /* The room fills the viewport; overlays are sized in 1280×720 stage units, like the stage itself. */
   .room, .toast { --u: min(calc(100vw / 1280), calc(100vh / 720)); }
-  .room { position: fixed; inset: 0; z-index: 0; opacity: 0; transition: opacity 0.6s var(--ease-out); }
+  .room { position: fixed; inset: 0; z-index: 0; opacity: 0; }
   .room.ready { opacity: 1; }
+  /* Lights off until a host claims the TV (no blur: it would cost a full-screen pass every frame). */
+  .room { transition: opacity 0.6s var(--ease-out), filter 1400ms var(--ease-out); }
+  .room.dim { filter: brightness(0.32) saturate(0.6); }
   canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
   .vignette {
     position: absolute; inset: 0; pointer-events: none;

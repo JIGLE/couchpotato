@@ -1,12 +1,15 @@
 import Fastify from 'fastify';
 import fastifyStatic from '@fastify/static';
-import { Server } from 'socket.io';
+import { Server, type Socket } from 'socket.io';
 import { existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
-import type { ClientToServer, ServerToClient, Screen } from '@couchpotato/shared';
-import { MAX_SEATS, RoomStore, isMood } from './rooms.js';
-import { Couch } from './couch.js';
+import type { ClaimError, ClientToServer, HostAuthError, HostStatus, Mood, ServerToClient, Screen } from '@couchpotato/shared';
+import type { FastifyReply, FastifyRequest } from 'fastify';
+import { MAX_SEATS, RoomStore, isMood, type Room } from './rooms.js';
+import { Couch, isToken, newToken } from './couch.js';
+import { type Host, Hosts, RateLimiter, REMEMBER_MS, SESSION_COOKIE, cleanName, readCookie, sessionCookie } from './hosts.js';
+import { Pairings } from './pairing.js';
 import { loadPacks, pickQuestions, summarize } from './packs.js';
 import { TriviaGame, parseSettings } from './trivia.js';
 import { DB_FILE, Settings, isHealthy, openDatabase, schemaVersion, serverSecret } from './storage.js';
@@ -42,6 +45,90 @@ try {
 
 app.get('/healthz', async () => ({ ok: true, version: VERSION, storage: isHealthy(db) }));
 
+// ---- Host accounts: only a signed-in host can claim a TV and open a room. Players never sign in. ----
+const hosts = db ? new Hosts(db) : null;
+/** OPEN_HOSTING=1 lets any phone claim a TV (handy in development). Without storage there are no accounts, so it is open too. */
+const OPEN_HOSTING = process.env.OPEN_HOSTING === '1';
+const hostsRequired = !!hosts && !OPEN_HOSTING;
+if (!hostsRequired) {
+  app.log.warn(hosts ? 'OPEN_HOSTING is on: any phone can claim a TV' : 'no storage, so no host accounts: any phone can claim a TV');
+} else if (hosts.count() === 0) {
+  // First start: there is no admin page yet, so the first invite goes to the log. More with the CLI (docs/DEPLOY.md).
+  const invite = hosts.openInvites()[0] ?? hosts.createInvite();
+  app.log.warn({ invite: invite.code }, 'no hosts yet: on your phone open /claim, tap "I have an invite" and use this code');
+}
+
+/** Behind the Cloudflare tunnel every request comes from cloudflared; the visitor's address is in this header. */
+const clientIp = (headers: Record<string, unknown>, fallback: string) =>
+  (typeof headers['cf-connecting-ip'] === 'string' ? headers['cf-connecting-ip'] : '') || fallback;
+function hostOf(cookieHeader: string | undefined): Host | undefined {
+  try {
+    return hosts?.session(readCookie(cookieHeader, SESSION_COOKIE));
+  } catch (err) {
+    app.log.error({ err }, 'could not read host session');
+    return undefined;
+  }
+}
+const hostStatus = (host: Host | undefined): HostStatus => ({ host: host ? { name: host.name } : null, required: hostsRequired });
+const isHttps = (req: FastifyRequest) => req.protocol === 'https' || req.headers['x-forwarded-proto'] === 'https';
+
+/** Wrong passwords: 5 per 15 minutes, counted both per address and per host name. Wrong invites count per address. */
+const loginLimit = new RateLimiter(5, 15 * 60 * 1000);
+
+function authError(reply: FastifyReply, status: number, error: HostAuthError, retryAfter?: number) {
+  if (retryAfter) reply.header('retry-after', String(retryAfter));
+  return reply.code(status).send(retryAfter ? { error, retryAfter } : { error });
+}
+
+function signIn(req: FastifyRequest, reply: FastifyReply, host: Host, remember: boolean) {
+  const { token } = hosts!.startSession(host.id, remember);
+  reply.header('set-cookie', sessionCookie(token, remember ? REMEMBER_MS : undefined, isHttps(req)));
+  return hostStatus(host);
+}
+
+/** The keys to rate-limit on, and how long until all of them may try again (seconds, 0 = now). */
+function limits(req: FastifyRequest, name?: unknown) {
+  const keys = [`ip:${clientIp(req.headers, req.ip)}`];
+  if (name !== undefined) keys.push(`name:${cleanName(name).toLowerCase()}`);
+  return { keys, wait: Math.ceil(Math.max(...keys.map((k) => loginLimit.wait(k))) / 1000) };
+}
+
+app.get('/api/host', async (req) => hostStatus(hostOf(req.headers.cookie)));
+
+app.post('/api/host/login', async (req, reply) => {
+  if (!hosts) return authError(reply, 503, 'unavailable');
+  const body = (req.body ?? {}) as Record<string, unknown>;
+  const { keys, wait } = limits(req, body.name);
+  if (wait) return authError(reply, 429, 'slow-down', wait);
+  const host = await hosts.login(body.name, body.password);
+  if (!host) {
+    for (const k of keys) loginLimit.fail(k);
+    return authError(reply, 401, 'wrong');
+  }
+  for (const k of keys) loginLimit.reset(k);
+  return signIn(req, reply, host, body.remember === true);
+});
+
+app.post('/api/host/signup', async (req, reply) => {
+  if (!hosts) return authError(reply, 503, 'unavailable');
+  const body = (req.body ?? {}) as Record<string, unknown>;
+  const { keys, wait } = limits(req);
+  if (wait) return authError(reply, 429, 'slow-down', wait);
+  const result = await hosts.signUp(body.invite, body.name, body.password);
+  if (!result.ok) {
+    if (result.reason === 'bad-invite') for (const k of keys) loginLimit.fail(k);
+    return authError(reply, 400, result.reason);
+  }
+  app.log.info({ host: result.host.name }, 'new host signed up');
+  return signIn(req, reply, result.host, body.remember === true);
+});
+
+app.post('/api/host/logout', async (req, reply) => {
+  hosts?.endSession(readCookie(req.headers.cookie, SESSION_COOKIE));
+  reply.header('set-cookie', sessionCookie('', undefined, isHttps(req)));
+  return hostStatus(undefined);
+});
+
 if (existsSync(WEB_DIR)) {
   await app.register(fastifyStatic, { root: WEB_DIR, wildcard: false });
   // Single-page app: /tv, /join and friends all load index.html.
@@ -68,6 +155,11 @@ const couches = new Map<string, Couch>();
 /** What each live socket is: a TV or a phone, and in which room. */
 type Member = { screen: Screen; code: string };
 const members = new Map<string, Member>();
+
+/** TVs with no room yet, showing a claim code; and the mood each one brought, for when it is claimed. */
+const pairings = new Pairings();
+const waitingMoods = new Map<string, Mood | undefined>();
+type CouchSocket = Socket<ClientToServer, ServerToClient>;
 
 /** The game running in each room, plus question ids already played there (so the next game feels fresh). */
 const games = new Map<string, TriviaGame>();
@@ -120,45 +212,90 @@ function broadcastGame(code: string, only?: string) {
   }
 }
 
-io.on('connection', (socket) => {
-  socket.on('hello', ({ screen, code, name, colour, potato, token, mood }) => {
-    if (members.has(socket.id)) return; // one hello per connection
-    if (screen !== 'tv' && screen !== 'phone') return;
+/** A TV with no room: show a claim code until a host's phone claims it. */
+function waitForHost(socket: CouchSocket, mood?: Mood) {
+  waitingMoods.set(socket.id, mood);
+  const { code, renewsAt } = pairings.issue(socket.id);
+  socket.emit('tv:pairing', { code, renewsAt, serverNow: Date.now(), hostsRequired });
+}
 
-    let room = code ? rooms.get(code) : undefined;
-    if (screen === 'tv' && !room) {
-      room = rooms.create();
-      socket.emit('room:created', { code: room.code });
+/** Put a TV or a seated phone into its room and bring it up to date. */
+function enter(socket: CouchSocket, screen: Screen, room: Room, joined: { code: string; playerId?: string; token?: string }, mood?: Mood) {
+  rooms.join(room.code, socket.id);
+  members.set(socket.id, { screen, code: room.code });
+  socket.join(room.code);
+  // A TV brings its own mood (the one it used last time); phones follow the room.
+  if (screen === 'tv' && isMood(mood) && mood !== room.mood) {
+    room.mood = mood;
+    io.to(room.code).emit('room:mood', { mood });
+  }
+  socket.emit('room:joined', joined);
+  socket.emit('room:mood', { mood: room.mood });
+  socket.emit('lobby:setup', { settings: room.setup });
+  socket.emit('tap:count', { count: room.taps, lastBy: room.lastTapBy, lastById: null });
+  broadcastRoom(room.code);
+  broadcastGame(room.code, socket.id);
+}
+
+/** Wrong claim codes: 10 a minute per address, so nobody can guess their way onto a TV. */
+const claimLimit = new RateLimiter(10, 60 * 1000);
+
+io.on('connection', (socket) => {
+  const busy = () => members.has(socket.id) || pairings.has(socket.id); // one hello (or claim) per connection
+  const host = () => hostOf(socket.handshake.headers.cookie);
+
+  socket.on('hello', ({ screen, code, name, colour, potato, token, mood }) => {
+    if (busy()) return;
+    if (screen !== 'tv' && screen !== 'phone') return;
+    const room = code ? rooms.get(code) : undefined;
+
+    if (screen === 'tv') {
+      // Only the TV that was claimed gets back into its room; anything else waits for a host.
+      if (!room || !isToken(token) || token !== room.tvToken) return waitForHost(socket, isMood(mood) ? mood : undefined);
+      return enter(socket, 'tv', room, { code: room.code, token: room.tvToken }, mood);
     }
+
     if (!room) {
       socket.emit('room:error', { reason: code ? 'not-found' : 'bad-request', code: code ?? '' });
       return;
     }
+    const couch = couchFor(room.code);
+    const sat = couch.sit(token, socket.id, name?.trim().slice(0, 20) || 'Potato', colour, potato);
+    if (!sat.ok) {
+      socket.emit('room:error', { reason: 'full', code: room.code });
+      return;
+    }
+    // The host who claimed this TV gets the role back, even from a new seat.
+    if (room.hostId !== null && host()?.id === room.hostId) couch.crown(socket.id);
+    enter(socket, 'phone', room, { code: room.code, playerId: sat.player.id, token: sat.token });
+  });
 
-    let joined: { code: string; playerId?: string; token?: string } = { code: room.code };
-    if (screen === 'phone') {
-      const sat = couchFor(room.code).sit(token, socket.id, name?.trim().slice(0, 20) || 'Potato', colour, potato);
-      if (!sat.ok) {
-        socket.emit('room:error', { reason: 'full', code: room.code });
-        return;
-      }
-      joined = { code: room.code, playerId: sat.player.id, token: sat.token };
+  socket.on('room:claim', (payload) => {
+    if (busy()) return;
+    const fail = (reason: ClaimError) => socket.emit('room:claim-error', { reason });
+    const key = clientIp(socket.handshake.headers, socket.handshake.address);
+    if (claimLimit.wait(key)) return fail('slow-down');
+    const me = host();
+    if (hostsRequired && !me) return fail('sign-in');
+    const tvId = pairings.claim(payload?.pairing);
+    const tv = tvId ? io.sockets.sockets.get(tvId) : undefined;
+    if (!tv) {
+      claimLimit.fail(key);
+      return fail('expired');
     }
 
-    rooms.join(room.code, socket.id);
-    members.set(socket.id, { screen, code: room.code });
-    socket.join(room.code);
-    // A TV brings its own mood (the one it used last time); phones follow the room.
-    if (screen === 'tv' && isMood(mood) && mood !== room.mood) {
-      room.mood = mood;
-      io.to(room.code).emit('room:mood', { mood });
-    }
-    socket.emit('room:joined', joined);
-    socket.emit('room:mood', { mood: room.mood });
-    socket.emit('lobby:setup', { settings: room.setup });
-    socket.emit('tap:count', { count: room.taps, lastBy: room.lastTapBy, lastById: null });
-    broadcastRoom(room.code);
-    broadcastGame(room.code, socket.id);
+    const room = rooms.create(me?.id ?? null, newToken());
+    const name = cleanName(payload?.name) || me?.name || 'Head Spud';
+    const couch = couchFor(room.code);
+    const sat = couch.sit(undefined, socket.id, name, payload?.colour, payload?.potato);
+    if (!sat.ok) return fail('expired'); // an empty couch always has room; just in case
+    couch.crown(socket.id);
+    app.log.info({ room: room.code, host: me?.name ?? null }, 'TV claimed');
+
+    tv.emit('room:claimed', { code: room.code, by: name });
+    enter(tv, 'tv', room, { code: room.code, token: room.tvToken }, waitingMoods.get(tv.id));
+    waitingMoods.delete(tv.id);
+    enter(socket, 'phone', room, { code: room.code, playerId: sat.player.id, token: sat.token });
   });
 
   /** The TV and the Head Spud's phone may run the room; other phones only play. */
@@ -183,7 +320,7 @@ io.on('connection', (socket) => {
 
   socket.on('game:start', (raw) => {
     const me = members.get(socket.id);
-    if (!inCharge(me)) return; // Phase 3: only a signed-in host
+    if (!inCharge(me)) return;
     const settings = parseSettings(raw);
     const room = rooms.get(me.code);
     if (room) room.setup = settings;
@@ -252,6 +389,8 @@ io.on('connection', (socket) => {
   });
 
   socket.on('disconnect', () => {
+    pairings.drop(socket.id);
+    waitingMoods.delete(socket.id);
     const me = members.get(socket.id);
     if (!me) return;
     members.delete(socket.id);
@@ -279,6 +418,12 @@ setInterval(() => {
   }
 }, 200).unref();
 
+// Waiting TVs get a fresh claim code every minute.
+setInterval(() => {
+  const serverNow = Date.now();
+  for (const [tvId, { code, renewsAt }] of pairings.renew()) io.to(tvId).emit('tv:pairing', { code, renewsAt, serverNow, hostsRequired });
+}, 1000).unref();
+
 // Free seats whose phones have been gone too long, and clear out rooms nobody has used for 30 minutes.
 setInterval(() => {
   for (const [code, couch] of couches) if (couch.sweep()) broadcastRoom(code);
@@ -291,6 +436,9 @@ setInterval(() => {
     played.delete(code);
   }
   if (removed.length) app.log.info({ removed }, 'expired empty rooms');
+  hosts?.sweep();
+  loginLimit.sweep();
+  claimLimit.sweep();
 }, 60_000).unref();
 
 // Close the database cleanly when the container stops so the WAL is folded back into the file.

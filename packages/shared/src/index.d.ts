@@ -5,6 +5,14 @@ export type Screen = 'tv' | 'phone';
 
 export type RoomError = 'not-found' | 'full' | 'bad-request';
 
+/**
+ * Why a phone could not claim a TV.
+ * - `sign-in`: hosting needs a host account and this phone is not signed in (or the session ran out / was revoked).
+ * - `expired`: the claim code is wrong, already used, or too old; scan the TV again.
+ * - `slow-down`: too many wrong codes from this phone.
+ */
+export type ClaimError = 'sign-in' | 'expired' | 'slow-down';
+
 /** The room's colour mood. Set on the TV; every phone in the room follows it so tile colours always match. */
 export type Mood = 'lamp' | 'velvet' | 'midnight' | 'sunday';
 
@@ -15,8 +23,8 @@ export type CushionColour = 0 | 1 | 2 | 3;
 export type PotatoKind = 'boiled' | 'grilled' | 'chip' | 'fry' | 'mashed' | 'jacket' | 'hashbrown' | 'sweet';
 
 /**
- * Who runs the night. The Head Spud picks the game and starts it from their phone; everyone else is a potato.
- * Until host accounts exist, the first phone on the couch is the Head Spud and the role passes on when they leave.
+ * Who runs the night. The Head Spud claimed the TV and picks and starts the game from their phone; everyone else is
+ * a potato. If the Head Spud leaves the couch, the role passes to whoever has been sitting longest.
  */
 export type Role = 'head-spud' | 'potato';
 
@@ -35,11 +43,18 @@ export interface Player {
 
 /** Events the server sends to clients. */
 export interface ServerToClient {
-  /** A TV asked for a room; this is its code. */
-  'room:created': (payload: { code: string }) => void;
   /**
-   * A phone (or a reconnecting TV) is now in the room.
-   * Phones also get their public `playerId` and a private `token` to reclaim the seat after a refresh.
+   * A TV with no room: show this claim code as a QR (and as text) until a host claims it.
+   * A new code arrives every minute (`renewsAt`, server clock); `hostsRequired` is false when anyone may claim.
+   */
+  'tv:pairing': (payload: { code: string; renewsAt: number; serverNow: number; hostsRequired: boolean }) => void;
+  /** A host claimed this TV; `room:joined` follows. `by` is the Head Spud's name, for the TV's welcome. */
+  'room:claimed': (payload: { code: string; by: string }) => void;
+  /** Claiming a TV failed. */
+  'room:claim-error': (payload: { reason: ClaimError }) => void;
+  /**
+   * A phone or TV is now in the room. Each gets a private `token` to get back in after a refresh
+   * (phones their seat, the TV its room); phones also get their public `playerId`.
    */
   'room:joined': (payload: { code: string; playerId?: string; token?: string }) => void;
   /** Joining failed, e.g. a mistyped code. */
@@ -64,11 +79,18 @@ export interface ServerToClient {
 export interface ClientToServer {
   /**
    * A client announces itself right after connecting.
-   * - TV without `code`: create a new room.
-   * - TV with `code`: reconnect to its room (a new room is made if it expired).
+   * - TV without `code` (or whose room is gone): wait for a host, see `tv:pairing`.
+   * - TV with `code` and its `token`: reconnect to its room.
    * - Phone: must send the `code` it wants to join. A `potato` that is taken is swapped for a free one.
+   *   A signed-in host coming back to the room they claimed gets the Head Spud role back.
    */
   'hello': (payload: { screen: Screen; code?: string; name?: string; colour?: CushionColour; potato?: PotatoKind; token?: string; mood?: Mood }) => void;
+  /**
+   * A phone claims the TV showing `pairing` and opens a room on it, sitting down as the Head Spud.
+   * Needs a signed-in host (the `cp_host` cookie, sent with the socket handshake) unless hosting is open.
+   * Instead of `hello`; answered with `room:joined` or `room:claim-error`.
+   */
+  'room:claim': (payload: { pairing: string; name?: string; colour?: CushionColour; potato?: PotatoKind }) => void;
   /** The TV or the Head Spud changes the room's mood. */
   'room:mood': (payload: { mood: Mood }) => void;
   /** A phone swaps to another potato. Only in the lobby, and only to one nobody else is playing. */
@@ -89,6 +111,30 @@ export interface ClientToServer {
 
 /** The WebSocket path both sides use. Mirror of the literal '/ws' in server and web. */
 export type SocketPath = '/ws';
+
+// ---------------------------------------------------------------------------
+// Host accounts, over plain HTTP so the session can live in an httpOnly cookie (`cp_host`).
+//   GET  /api/host          → HostStatus
+//   POST /api/host/login    { name, password, remember }          → HostStatus | { error: HostAuthError }
+//   POST /api/host/signup   { invite, name, password, remember }  → HostStatus | { error: HostAuthError }
+//   POST /api/host/logout                                          → HostStatus
+// ---------------------------------------------------------------------------
+
+export interface HostStatus {
+  /** The signed-in host on this phone, or null. */
+  host: { name: string } | null;
+  /** False when anyone may claim a TV (storage is down, or the server runs with OPEN_HOSTING=1). */
+  required: boolean;
+}
+
+/**
+ * - `wrong`: name or password don't match (deliberately not saying which).
+ * - `slow-down`: too many wrong tries; `retryAfter` seconds comes with it.
+ * - `bad-invite`: unknown, used or expired invite code.
+ * - `name-taken`, `bad-name`, `weak-password` (under 8 characters): sign-up only.
+ * - `unavailable`: the server has no storage right now.
+ */
+export type HostAuthError = 'wrong' | 'slow-down' | 'bad-invite' | 'name-taken' | 'bad-name' | 'weak-password' | 'unavailable';
 
 // ---------------------------------------------------------------------------
 // Trivia packs. Documented for people (and future AI generation) in docs/PACKS.md.
