@@ -144,14 +144,14 @@
         {#key pairing.code}<div class="fade">{#if claimSvg}{@html claimSvg}{/if}</div>{/key}
       </div>
       <div class="pitch">
-        <h1>Head Spud, scan to open the room</h1>
+        <h1>Who's Head Spud tonight?</h1>
         <p class="or">
           {#if pairing.hostsRequired}Sign in on your phone. No account? Ask for an invite.
           {:else}Whoever scans first runs the night.{/if}
         </p>
         <div class="alt">
           <div class="code small" aria-label="Claim code {pairing.code.split('').join(' ')}">{pairing.code}</div>
-          <span class="or">at <span class="mono">{host}/claim</span></span>
+          <span class="hint">or visit <span class="mono">{host}/claim</span></span>
         </div>
         <div class="renew" aria-hidden="true"><span style:transform="scaleX({pairingLeft})"></span></div>
       </div>
@@ -237,7 +237,7 @@
     background: color-mix(in srgb, var(--surface-1) 90%, transparent); box-shadow: var(--morph-raised);
     animation: pop 600ms var(--ease-out);
   }
-  .qr.big { width: 196px; height: 196px; padding: 12px; flex-shrink: 0; }
+  .qr.big { width: 196px; height: 196px; padding: 12px; flex-shrink: 0; animation: qr-pulse 2.8s ease-in-out infinite; }
   .fade { width: 100%; height: 100%; animation: fade 500ms var(--ease-out); }
   .fade :global(svg) { width: 100%; height: 100%; display: block; }
   .pitch { display: flex; flex-direction: column; align-items: flex-start; gap: 12px; min-width: 0; }
@@ -248,14 +248,20 @@
   .code.small { font-size: 40px; padding: 8px 16px 8px 24px; }
   .renew { width: 100%; height: 6px; border-radius: var(--radius-pill); background: var(--surface-2); overflow: hidden; }
   .renew span { display: block; height: 100%; background: var(--spud); transform-origin: left; transition: transform 250ms linear; }
+  .hint { font-size: 24px; font-weight: 600; color: var(--ink-muted); opacity: 0.7; }
+  .hint .mono { font-family: var(--font-mono); font-weight: 500; color: var(--ink-muted); }
   .welcome { animation: pop 600ms var(--ease-out); }
+  @keyframes qr-pulse {
+    0%, 100% { box-shadow: 0 0 60px var(--glow), 6px 8px 18px var(--edge-dark); }
+    50% { box-shadow: 0 0 100px var(--glow), 6px 8px 18px var(--edge-dark), 0 0 36px color-mix(in srgb, var(--spud) 40%, transparent); }
+  }
   @keyframes pop {
     0% { transform: scale(0.9); opacity: 0; }
     60% { transform: scale(1.03); opacity: 1; }
   }
   @keyframes fade { from { opacity: 0; } }
   @media (prefers-reduced-motion: reduce) {
-    .claim, .welcome, .fade { animation: none; }
+    .claim, .welcome, .fade, .qr.big { animation: none; }
     .lights { transition: none; }
   }
   .chip.live { color: var(--ink); }
