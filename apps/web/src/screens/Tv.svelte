@@ -8,7 +8,8 @@
   import { connect } from '../lib/socket';
   import LivingRoom from '../lib/LivingRoom.svelte';
   import LivingRoom3D from '../lib/LivingRoom3D.svelte';
-  import { potatoName } from '../lib/potatoes';
+  import { POTATO_LOOKS, potatoName } from '../lib/potatoes';
+  import { seatColour } from '../lib/seats';
   import Logo from '../lib/Logo.svelte';
   import Ambient from '../lib/Ambient.svelte';
   import Stage from '../lib/Stage.svelte';
@@ -122,7 +123,25 @@
 {/if}
 <main>
   <header>
-    {#if game || pairing}<div class="brand"><Logo size={64} /><span>couch<br />potato</span></div>{:else}<span></span>{/if}
+    <!-- Left: brand (during game/claim) or lobby info card -->
+    {#if game || pairing}
+      <div class="brand"><Logo size={64} /><span>couch<br />potato</span></div>
+    {:else}
+      <div class="info-card">
+        {#if setup}
+          <svg class="info-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M21 6H3c-1.1 0-2 .9-2 2v8c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-10 7H8v3H6v-3H3v-2h3V8h2v3h3v2zm4.5 2c-.83 0-1.5-.67-1.5-1.5S14.67 12 15.5 12s1.5.67 1.5 1.5S16.33 15 15.5 15zm3-3c-.83 0-1.5-.67-1.5-1.5S17.67 10 18.5 10s1.5.67 1.5 1.5S19.33 12 18.5 12z"/></svg>
+          <div class="info-text">
+            <span class="info-title">Trivia</span>
+            <span class="info-sub">{LANGUAGE_NAMES[setup.language]} · {setup.rounds} questions</span>
+          </div>
+        {:else if headSpud}
+          <div class="info-text"><span class="info-title">{headSpud.name} is picking a game…</span></div>
+        {:else}
+          <div class="brand-sm"><Logo size={48} /><span>couch<br />potato</span></div>
+        {/if}
+      </div>
+    {/if}
+    <!-- Right: status / player count -->
     {#if !online}
       <div class="status" role="status">Reconnecting…</div>
     {:else if pairing}
@@ -130,10 +149,9 @@
     {:else if claimedBy}
       <div class="chip live welcome">{claimedBy} is the Head Spud!</div>
     {:else if !game}
-      <div class="chip" class:live={!!setup}>
-        {#if setup}Trivia · {LANGUAGE_NAMES[setup.language]} · {setup.rounds} questions
-        {:else if headSpud}{headSpud.name} is picking a game…
-        {:else}Scan in, potatoes{/if}
+      <div class="player-pill">
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
+        <span>{players.length} players</span>
       </div>
     {/if}
   </header>
@@ -160,22 +178,66 @@
     <TvGame view={game} {offset} {players} />
   {:else}
     <div class="lobby">
-      <!-- Low in the bottom-left corner, over the empty floor, so the sofa is never covered. -->
-      <section class="join" class:full={players.length >= seats} aria-label="How to join">
-        <div class="qr" role="img" aria-label="QR code to join this room">
-          {#if qrSvg}{@html qrSvg}{/if}
-        </div>
-        <span class="or">Join at <span class="mono">{host}</span></span>
-        <div class="code" aria-label="Room code {code.split('').join(' ')}">{code || '····'}</div>
-        <span class="count" role="status">{players.length >= seats ? 'The sofa’s full!' : `${players.length}/${seats} on the sofa`}</span>
-      </section>
-
       <ul class="sr" aria-label="On the sofa">
         {#each players as player (player.id)}
           <li>{player.name}, {potatoName(player.potato)}{player.role === 'head-spud' ? ', Head Spud' : ''}{player.away ? ', reconnecting' : ''}</li>
         {/each}
       </ul>
 
+      <!-- Bottom-left: join card -->
+      <section class="join" class:full={players.length >= seats} aria-label="How to join">
+        <div class="join-label">
+          <svg class="join-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17 1.01L7 1c-1.1 0-2 .9-2 2v18c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V3c0-1.1-.9-1.99-2-1.99zM17 19H7V5h10v14z"/></svg>
+          Scan to join
+        </div>
+        <div class="join-body">
+          <div class="qr" role="img" aria-label="QR code to join this room">
+            {#if qrSvg}{@html qrSvg}{/if}
+          </div>
+          <div class="code-block">
+            <div class="code" aria-label="Room code {code.split('').join(' ')}">{code || '····'}</div>
+            <span class="join-url"><span class="mono">{host}</span></span>
+          </div>
+        </div>
+        {#if players.length >= seats}
+          <span class="full-msg" role="status">The sofa's full! 🛋️</span>
+        {/if}
+      </section>
+
+      <!-- Bottom-centre: avatar strip -->
+      {#if players.length > 0}
+        <div class="avatar-strip" aria-label="Players on the sofa">
+          {#each players as player (player.id)}
+            <div class="avatar" class:head={player.role === 'head-spud'} class:away={player.away}
+                 style="--seat-c: {seatColour(player.colour).bg}" title="{player.name}">
+              <svg viewBox="0 0 100 100" aria-hidden="true">
+                <path d="{POTATO_LOOKS[player.potato].body}" fill="{POTATO_LOOKS[player.potato].fill}" />
+              </svg>
+              {#if player.role === 'head-spud'}<span class="crown" aria-label="Head Spud">👑</span>{/if}
+            </div>
+          {/each}
+        </div>
+      {/if}
+
+      <!-- Bottom-right: start zone (visible once a head spud is present) -->
+      {#if headSpud}
+        <div class="start-zone">
+          <div class="start-count">
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
+            <div class="start-count-text">
+              <span class="start-n">{players.length} players</span>
+              <span class="start-status">{players.every(p => !p.away) ? 'All ready!' : 'Waiting…'}</span>
+            </div>
+          </div>
+          <div class="start-btn">
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
+            <div class="start-btn-text">
+              <span class="start-label">Start game</span>
+              <span class="start-hint">Head Spud only</span>
+            </div>
+          </div>
+        </div>
+      {/if}
     </div>
   {/if}
 </main>
@@ -200,31 +262,107 @@
 
   .lobby { flex: 1; min-height: 0; position: relative; }
 
+  /* ── Join card (bottom-left) ── */
   .join {
-    position: absolute; left: 8px; bottom: 24px; box-sizing: border-box; padding: 16px 28px 16px 16px; border-radius: 28px;
-    background: color-mix(in srgb, var(--surface-1) 88%, transparent); box-shadow: var(--morph-raised);
-    display: grid; grid-template-columns: auto auto; column-gap: 22px; row-gap: 6px; align-items: center; justify-items: start;
+    position: absolute; left: 16px; bottom: 20px; border-radius: 24px;
+    background: color-mix(in srgb, #000 76%, transparent);
+    backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+    padding: 16px 20px; display: flex; flex-direction: column; gap: 10px; box-sizing: border-box;
   }
-  .join > .qr { grid-row: 1 / span 3; }
-  .join > :not(.qr) { grid-column: 2; }
-  /* Once the sofa is full there is nothing to scan: just the cheer. */
-  .join.full .qr, .join.full .or { display: none; }
-  .join.full > :not(.qr) { grid-column: 1; }
+  .join-label {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 24px; font-weight: 600; color: var(--ink-muted);
+  }
+  .join-icon { width: 22px; height: 22px; flex-shrink: 0; }
+  .join-body { display: flex; align-items: center; gap: 14px; }
+  .join.full .join-body { display: none; }
   .qr {
-    width: 156px; height: 156px; padding: 10px; box-sizing: border-box; border-radius: var(--radius-md);
-    background: #f2ede4; /* fixed light ground for the QR, see script */
-    box-shadow: 0 0 60px var(--glow), 6px 8px 18px var(--edge-dark);
+    width: 120px; height: 120px; padding: 8px; box-sizing: border-box; border-radius: var(--radius-md);
+    background: #f2ede4; flex-shrink: 0;
   }
   .qr :global(svg) { width: 100%; height: 100%; display: block; }
-  .or { font-size: 32px; font-weight: 700; color: var(--ink-muted); line-height: 1.15; overflow-wrap: anywhere; }
-  .join .or { white-space: nowrap; }
+  .code-block { display: flex; flex-direction: column; gap: 8px; }
   .code {
-    font-family: var(--font-mono); font-weight: 700; font-size: 48px; line-height: 1; letter-spacing: 0.16em;
-    color: var(--ink-on-spud); background: var(--spud); padding: 8px 16px 8px 24px;
-    border-radius: var(--radius-pill); box-shadow: 0 0 50px var(--glow), 6px 8px 18px var(--edge-dark);
+    font-family: var(--font-mono); font-weight: 800; font-size: 44px; line-height: 1; letter-spacing: 0.14em;
+    color: var(--ink-on-spud); background: var(--spud); padding: 8px 20px;
+    border-radius: var(--radius-pill);
+  }
+  .join-url { font-size: 24px; font-weight: 600; color: var(--ink-muted); }
+  .join-url .mono { font-family: var(--font-mono); font-weight: 500; }
+  .full-msg { font-size: 32px; font-weight: 700; color: var(--spud); }
+
+  /* ── Avatar strip (bottom-centre) ── */
+  .avatar-strip {
+    position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
+    display: flex; align-items: center; gap: 6px; padding: 10px 16px;
+    background: color-mix(in srgb, #000 72%, transparent);
+    backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+    border-radius: 48px;
+  }
+  .avatar {
+    width: 64px; height: 64px; border-radius: 50%; position: relative;
+    background: var(--seat-c, var(--surface-2));
+    border: 3px solid color-mix(in srgb, #fff 18%, transparent);
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    transition: opacity 0.3s ease;
+  }
+  .avatar.away { opacity: 0.45; }
+  .avatar.head { border-color: var(--spud); border-width: 3px; }
+  .avatar svg { width: 78%; height: 78%; display: block; }
+  .crown {
+    position: absolute; top: -16px; left: 50%; transform: translateX(-50%);
+    font-size: 18px; line-height: 1; pointer-events: none;
   }
 
-  .count { font-size: 32px; font-weight: 700; color: var(--spud); white-space: nowrap; font-variant-numeric: tabular-nums; }
+  /* ── Start zone (bottom-right) ── */
+  .start-zone {
+    position: absolute; right: 16px; bottom: 20px; display: flex; gap: 10px; align-items: center;
+    background: color-mix(in srgb, #000 76%, transparent);
+    backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+    border-radius: 24px; padding: 14px 18px;
+  }
+  .start-count {
+    display: flex; align-items: center; gap: 10px; color: var(--ink-muted);
+  }
+  .start-count > svg { width: 32px; height: 32px; flex-shrink: 0; }
+  .start-count-text { display: flex; flex-direction: column; }
+  .start-n { font-size: 28px; font-weight: 700; color: var(--ink); }
+  .start-status { font-size: 22px; font-weight: 600; color: var(--spud); }
+  .start-btn {
+    display: flex; align-items: center; gap: 10px;
+    background: var(--spud); color: var(--ink-on-spud);
+    padding: 12px 20px; border-radius: var(--radius-pill);
+  }
+  .start-btn > svg { width: 28px; height: 28px; flex-shrink: 0; }
+  .start-btn-text { display: flex; flex-direction: column; }
+  .start-label { font-size: 28px; font-weight: 800; line-height: 1.1; }
+  .start-hint { font-size: 20px; font-weight: 600; opacity: 0.7; }
+
+  /* ── Info card (top-left, lobby) ── */
+  .info-card {
+    display: flex; align-items: center; gap: 14px;
+    background: color-mix(in srgb, #000 72%, transparent);
+    backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+    padding: 10px 20px 10px 14px; border-radius: var(--radius-pill);
+  }
+  .info-icon { width: 40px; height: 40px; flex-shrink: 0; color: var(--spud); }
+  .info-text { display: flex; flex-direction: column; }
+  .info-title { font-size: 32px; font-weight: 800; color: var(--ink); line-height: 1.1; }
+  .info-sub { font-size: 24px; font-weight: 600; color: var(--ink-muted); }
+  .brand-sm { display: flex; align-items: center; gap: 10px; }
+  .brand-sm span { font-family: var(--font-display); font-weight: 600; font-size: 28px; line-height: 28px; letter-spacing: -0.03em; color: var(--ink); }
+
+  /* ── Player count pill (top-right, lobby) ── */
+  .player-pill {
+    display: flex; align-items: center; gap: 10px;
+    background: color-mix(in srgb, #000 72%, transparent);
+    backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+    padding: 10px 20px; border-radius: var(--radius-pill);
+    font-size: 32px; font-weight: 700; color: var(--ink);
+  }
+  .player-pill > svg { width: 32px; height: 32px; flex-shrink: 0; color: var(--ink-muted); }
+
+  .or { font-size: 32px; font-weight: 700; color: var(--ink-muted); line-height: 1.15; overflow-wrap: anywhere; }
 
   /* Before a host claims the TV the room sits in the dark; the lights come up when it opens. */
   .lights { position: absolute; inset: 0; transition: filter 1400ms var(--ease-out), opacity 1400ms var(--ease-out); }
