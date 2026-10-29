@@ -232,17 +232,17 @@
 
   /* Sized to its content and centred in the space under the header, so the dimmed room shows around it. */
   .claim {
-    margin: auto 0; align-self: center; display: flex; align-items: center; gap: 36px;
-    padding: 28px 40px 28px 28px; border-radius: 36px; box-sizing: border-box; max-width: 860px;
+    margin: auto 0; align-self: center; display: flex; align-items: center; gap: 28px;
+    padding: 20px 32px 20px 20px; border-radius: 28px; box-sizing: border-box; max-width: 720px;
     background: color-mix(in srgb, var(--surface-1) 90%, transparent); box-shadow: var(--morph-raised);
     animation: pop 600ms var(--ease-out);
   }
-  .qr.big { width: 248px; height: 248px; padding: 14px; flex-shrink: 0; }
+  .qr.big { width: 196px; height: 196px; padding: 12px; flex-shrink: 0; }
   .fade { width: 100%; height: 100%; animation: fade 500ms var(--ease-out); }
   .fade :global(svg) { width: 100%; height: 100%; display: block; }
-  .pitch { display: flex; flex-direction: column; align-items: flex-start; gap: 16px; min-width: 0; }
+  .pitch { display: flex; flex-direction: column; align-items: flex-start; gap: 12px; min-width: 0; }
   /* One scale for the card: a 48px title, the 40px code, and 32px (the TV minimum) for everything else. */
-  .pitch h1 { margin: 0; font: 600 48px/1.08 var(--font-display); letter-spacing: -0.02em; text-wrap: balance; }
+  .pitch h1 { margin: 0; font: 600 40px/1.08 var(--font-display); letter-spacing: -0.02em; text-wrap: balance; }
   .pitch .or { margin: 0; text-align: left; font-weight: 600; }
   .alt { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; min-width: 0; }
   .code.small { font-size: 40px; padding: 8px 16px 8px 24px; }
