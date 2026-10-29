@@ -4,7 +4,7 @@ import { Server, type Socket } from 'socket.io';
 import { existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
-import type { ClaimError, ClientToServer, HostAuthError, HostStatus, Mood, ServerToClient, Screen } from '@couchpotato/shared';
+import type { AdminView, ClaimError, ClientToServer, HostAuthError, HostStatus, Mood, ServerToClient, Screen } from '@couchpotato/shared';
 import type { FastifyReply, FastifyRequest } from 'fastify';
 import { MAX_SEATS, RoomStore, isMood, type Room } from './rooms.js';
 import { Couch, isToken, newToken } from './couch.js';
@@ -69,7 +69,10 @@ function hostOf(cookieHeader: string | undefined): Host | undefined {
     return undefined;
   }
 }
-const hostStatus = (host: Host | undefined): HostStatus => ({ host: host ? { name: host.name } : null, required: hostsRequired });
+const hostStatus = (host: Host | undefined): HostStatus => ({
+  host: host ? { name: host.name, role: host.role } : null,
+  required: hostsRequired,
+});
 const isHttps = (req: FastifyRequest) => req.protocol === 'https' || req.headers['x-forwarded-proto'] === 'https';
 
 /** Wrong passwords: 5 per 15 minutes, counted both per address and per host name. Wrong invites count per address. */
@@ -127,6 +130,47 @@ app.post('/api/host/logout', async (req, reply) => {
   hosts?.endSession(readCookie(req.headers.cookie, SESSION_COOKIE));
   reply.header('set-cookie', sessionCookie('', undefined, isHttps(req)));
   return hostStatus(undefined);
+});
+
+// ---- God Potato: the one host per server who also makes invites and revokes hosts (cli.js god-potato makes them). ----
+const ADMIN_INVITE_DAYS = { min: 1, max: 90, default: 7 };
+const day = 24 * 60 * 60 * 1000;
+
+/** The signed-in God Potato, or a 403 already sent. */
+function godPotatoOf(req: FastifyRequest, reply: FastifyReply): Host | undefined {
+  const me = hostOf(req.headers.cookie);
+  if (me?.role === 'god') return me;
+  reply.code(403).send({ error: 'forbidden' });
+  return undefined;
+}
+
+const adminView = (): AdminView => ({
+  invites: hosts!.openInvites().map((i) => ({ code: i.code, expiresAt: i.expiresAt })),
+  hosts: hosts!.list().map((h) => ({ name: h.name, role: h.role, createdAt: h.createdAt, revoked: h.revoked })),
+});
+
+app.get('/api/admin', async (req, reply) => (godPotatoOf(req, reply) ? adminView() : reply));
+
+app.post('/api/admin/invite', async (req, reply) => {
+  const me = godPotatoOf(req, reply);
+  if (!me) return reply;
+  const asked = Number(((req.body ?? {}) as Record<string, unknown>).days) || ADMIN_INVITE_DAYS.default;
+  const days = Math.min(Math.max(Math.round(asked), ADMIN_INVITE_DAYS.min), ADMIN_INVITE_DAYS.max);
+  const invite = hosts!.createInvite(days * day);
+  app.log.info({ by: me.name, days }, 'God Potato made an invite');
+  return { code: invite.code, expiresAt: invite.expiresAt };
+});
+
+app.post('/api/admin/revoke', async (req, reply) => {
+  const me = godPotatoOf(req, reply);
+  if (!me) return reply;
+  const name = cleanName(((req.body ?? {}) as Record<string, unknown>).name);
+  // The God Potato can't revoke themselves from a phone; stepping down is a shell job.
+  const target = hosts!.list().find((h) => h.name.toLowerCase() === name.toLowerCase());
+  if (!target || target.id === me.id) return reply.code(404).send({ error: 'not-found' });
+  hosts!.revoke(target.name);
+  app.log.info({ by: me.name, host: target.name }, 'God Potato revoked a host');
+  return adminView();
 });
 
 if (existsSync(WEB_DIR)) {

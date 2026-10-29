@@ -4,6 +4,7 @@
   import { onMount } from 'svelte';
   import type { HostAuthError, HostStatus, PotatoKind } from '@couchpotato/shared';
   import PotatoPicker from '../../lib/PotatoPicker.svelte';
+  import GodPotato from './GodPotato.svelte';
 
   let {
     pairing = $bindable(),
@@ -26,10 +27,13 @@
 
   let status = $state<HostStatus | null>(null);
   let offline = $state(false);
-  let mode = $state<'sign-in' | 'invite'>('sign-in');
+  // An invite link (/claim?invite=SPUD-…) opens straight on the sign-up form with the code filled in.
+  const linkedInvite = new URLSearchParams(location.search).get('invite') ?? '';
+  let mode = $state<'sign-in' | 'invite'>(linkedInvite ? 'invite' : 'sign-in');
   let hostName = $state(localStorage.getItem('cp:host-name') ?? '');
   let password = $state('');
-  let invite = $state('');
+  let invite = $state(linkedInvite);
+  let tools = $state(false);
   let remember = $state(true);
   let authError = $state('');
   let working = $state(false);
@@ -134,9 +138,11 @@
     </button>
     <button class="link" type="button" onclick={onJoinInstead}>Just playing? Join with the room code</button>
   </form>
+{:else if tools && status.host?.role === 'god'}
+  <GodPotato onBack={() => (tools = false)} />
 {:else}
   <form onsubmit={claim}>
-    <span class="crown">HEAD SPUD</span>
+    <span class="crown">{status.host?.role === 'god' ? 'GOD POTATO' : 'HEAD SPUD'}</span>
     <h1>{status.host ? `Ready to host, ${status.host.name}?` : 'Ready to host?'}</h1>
     <p class="hint">Opening the room puts you on the sofa with the remote: you pick the game and press Start.</p>
     <label for="pairing">CODE ON THE TV</label>
@@ -157,6 +163,7 @@
     <input id="seat-name" bind:value={name} maxlength="20" autocomplete="nickname" placeholder="Nickname" />
     <PotatoPicker value={potato} onPick={(k) => (potato = k)} />
     <button class="primary" type="submit" disabled={busy || pairing.trim().length < 6}>{busy ? 'Opening…' : 'Open the room'}</button>
+    {#if status.host?.role === 'god'}<button class="ghost" type="button" onclick={() => (tools = true)}>Invites and hosts</button>{/if}
     {#if status.host}<button class="link" type="button" onclick={signOut}>Not {status.host.name}? Sign out</button>{/if}
   </form>
 {/if}
