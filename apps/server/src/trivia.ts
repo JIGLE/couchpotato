@@ -12,6 +12,8 @@ export const MIN_POINTS = 500;
 /** From the third right answer in a row, each right answer earns this on top. */
 export const STREAK_BONUS = 200;
 export const STREAK_FROM = 3;
+/** What "+10 s" on the Head Spud's remote adds. */
+export const EXTRA_TIME_MS = 10_000;
 /** With no timer, speed is measured against this. */
 const UNTIMED_REFERENCE_MS = 20_000;
 
@@ -37,6 +39,8 @@ export class TriviaGame {
   private endsAt: number | null;
   private seats = new Map<string, Seat>();
   private present = new Set<string>();
+  /** Set while the Head Spud has paused: when, and how long was left on the clock (null = no limit). */
+  private paused: { at: number; left: number | null } | null = null;
 
   constructor(
     private questions: PlayableQuestion[],
@@ -97,16 +101,84 @@ export class TriviaGame {
     this.maybeEndEarly(now);
   }
 
-  /** A phone picks an answer. Returns false if it doesn't count (too late, twice, not their round…). */
+  /** The Head Spud took this player off the couch: they leave the game and the leaderboard. */
+  removePlayer(id: string, now: number): boolean {
+    if (!this.seats.delete(id)) return false;
+    this.present.delete(id);
+    this.rerank(false);
+    this.maybeEndEarly(now);
+    return true;
+  }
+
+  /** A phone picks an answer. Returns false if it doesn't count (too late, twice, paused, not their round…). */
   answer(id: string, choice: number, now: number): boolean {
     const seat = this.seats.get(id);
     const q = this.questions[this.round];
-    if (this.phase !== 'question' || !seat || seat.fromRound > this.round) return false;
+    if (this.phase !== 'question' || this.paused || !seat || seat.fromRound > this.round) return false;
     if (this.endsAt !== null && now > this.endsAt) return false;
     if (!Number.isInteger(choice) || choice < 0 || choice >= q.answers.length) return false;
     if (seat.picks.has(this.round)) return false;
     seat.picks.set(this.round, { choice, at: now });
     this.maybeEndEarly(now);
+    return true;
+  }
+
+  // ---- The Head Spud's remote. Each returns true when screens need an update. ----
+
+  /** Freeze the clock. Nobody can answer until it resumes. */
+  pause(now: number): boolean {
+    if (this.paused || this.phase === 'podium') return false;
+    this.paused = { at: now, left: this.endsAt === null ? null : Math.max(0, this.endsAt - now) };
+    this.endsAt = null;
+    return true;
+  }
+
+  /** Start the clock again where it stopped. The pause doesn't count against anyone's answer speed. */
+  resume(now: number): boolean {
+    if (!this.paused) return false;
+    const { at, left } = this.paused;
+    this.paused = null;
+    if (this.phase === 'question') this.startedAt += now - at;
+    this.endsAt = left === null ? null : now + left;
+    this.maybeEndEarly(now);
+    return true;
+  }
+
+  /** Ten more seconds on a timed question that is still open. */
+  addTime(now: number): boolean {
+    if (this.phase !== 'question' || this.settings.seconds <= 0) return false;
+    if (this.paused) {
+      if (this.paused.left === null) return false;
+      this.paused.left += EXTRA_TIME_MS;
+      return true;
+    }
+    if (this.endsAt === null || this.endsAt <= now) return false; // already over (or everyone answered)
+    this.endsAt += EXTRA_TIME_MS;
+    return true;
+  }
+
+  /** Don't wait for the clock: reveal now, or move on from the reveal or leaderboard. Also ends a pause. */
+  next(now: number): boolean {
+    if (this.phase === 'podium') return false;
+    if (this.paused && this.phase === 'question') this.startedAt += now - this.paused.at;
+    this.paused = null;
+    this.endsAt = now;
+    return this.advance(now);
+  }
+
+  /** Drop the current question: nobody scores, streaks stay as they were, and the next one starts. */
+  skip(now: number): boolean {
+    if (this.phase !== 'question') return false;
+    this.paused = null;
+    for (const s of this.seats.values()) s.picks.delete(this.round);
+    if (this.round >= this.questions.length - 1) {
+      this.phase = 'podium';
+      this.endsAt = null;
+    } else {
+      this.round += 1;
+      this.startedAt = now;
+      this.endsAt = this.questionDeadline(now);
+    }
     return true;
   }
 
@@ -174,7 +246,7 @@ export class TriviaGame {
    * so players who left never stall the game, even with no time limit.
    */
   private maybeEndEarly(now: number): void {
-    if (this.phase !== 'question') return;
+    if (this.phase !== 'question' || this.paused) return;
     const expected = [...this.present].filter((id) => this.seats.get(id)!.fromRound <= this.round);
     const answered = expected.filter((id) => this.seats.get(id)!.picks.has(this.round));
     const waiting = this.present.size > expected.length;
@@ -213,7 +285,13 @@ export class TriviaGame {
   private view(now: number, phoneId: string | null): GameView {
     const q = this.questions[this.round];
     const tv = phoneId === null;
-    const base = { endsAt: this.endsAt, serverNow: now, round: this.round + 1, rounds: this.rounds };
+    const base = {
+      endsAt: this.endsAt,
+      serverNow: now,
+      round: this.round + 1,
+      rounds: this.rounds,
+      ...(this.paused ? { paused: true, left: this.paused.left } : {}),
+    };
     switch (this.phase) {
       case 'question': {
         // Someone who answered and then left still counts, so the TV never shows "3 of 2 locked in".

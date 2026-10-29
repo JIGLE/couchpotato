@@ -109,6 +109,28 @@ export class Couch {
     return true;
   }
 
+  /**
+   * The Head Spud takes someone off the couch: the seat and its token are gone, so a refresh won't sit them back down.
+   * Returns their socket (null if they were away), or undefined if there is nobody to kick. Nobody kicks themselves.
+   */
+  kick(bySocketId: string, playerId: unknown): { socketId: string | null } | undefined {
+    const p = this.byId(playerId);
+    if (!p || p.socketId === bySocketId) return undefined;
+    this.byToken.delete(p.token);
+    return { socketId: p.socketId };
+  }
+
+  /**
+   * Pass the Head Spud role to someone else who is connected right now. Returns their socket, or undefined if they
+   * can't take it (unknown, away, or already the Head Spud).
+   */
+  handOver(playerId: unknown): string | undefined {
+    const p = this.byId(playerId);
+    if (!p || p.socketId === null || p === this.headSpud()) return undefined;
+    this.crowned = p.token;
+    return p.socketId;
+  }
+
   /** Free seats whose phones have been away longer than HOLD_MS. Returns true if anything changed. */
   sweep(): boolean {
     let changed = false;
@@ -163,6 +185,12 @@ export class Couch {
 
   private takenPotatoes(): PotatoKind[] {
     return [...this.byToken.values()].map((p) => p.potato);
+  }
+
+  private byId(id: unknown): Seated | undefined {
+    if (typeof id !== 'string') return undefined;
+    for (const p of this.byToken.values()) if (p.id === id) return p;
+    return undefined;
   }
 
   private bySocket(socketId: string): Seated | undefined {

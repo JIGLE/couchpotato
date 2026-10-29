@@ -34,16 +34,26 @@
 </script>
 
 <section class="game">
+  {#if view.phase === 'question' && view.paused}
+    <!-- Paused by the Head Spud: hide the question so nobody gets a head start. -->
+    <div class="paused" role="status">
+      <span class="pause-mark" aria-hidden="true">❚❚</span>
+      <h1>Paused</h1>
+      <p class="muted">Snack break. The Head Spud will start it again.</p>
+    </div>
+  {:else if view.phase !== 'podium' && view.paused}
+    <span class="paused-pill" role="status">❚❚ Paused</span>
+  {/if}
   {#if view.phase === 'question'}
     <header class="bar">
       <span class="mono muted">ROUND {view.round} / {view.rounds} · {view.category.toUpperCase()}</span>
       <div class="right">
         <span class="muted">{view.answered} of {view.players} locked in</span>
-        {#if view.endsAt}<Timer endsAt={view.endsAt} {offset} />{/if}
+        {#if view.endsAt || typeof view.left === 'number'}<Timer endsAt={view.endsAt} {offset} frozen={view.left} />{/if}
       </div>
     </header>
-    <h1 class="question">{view.text}</h1>
-    <div class="tiles">
+    <h1 class="question" class:hidden={view.paused}>{view.text}</h1>
+    <div class="tiles" class:hidden={view.paused}>
       {#each view.answers ?? [] as answer, i (i)}
         {@const t = tile(i)}
         <div class="tile" style:background={t.bg} style:color={t.fg}>
@@ -191,6 +201,22 @@
   }
   .place { font: 700 56px var(--font-display); color: var(--spud); }
   .actions { width: 100%; display: flex; justify-content: space-between; align-items: center; font-size: 32px; font-weight: 600; padding-top: 16px; }
+
+  .hidden { visibility: hidden; }
+  .paused {
+    position: absolute; inset: 96px 0 0; z-index: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 16px; border-radius: var(--radius-md); background: var(--surface-0); animation: rise 280ms var(--ease-out) both;
+  }
+  .paused h1 { margin: 0; font: 700 72px var(--font-display); letter-spacing: -0.03em; }
+  .paused p { margin: 0; font-size: 32px; font-weight: 600; }
+  .paused-pill {
+    position: absolute; right: 72px; bottom: 0; z-index: 1; padding: 10px 24px; border-radius: var(--radius-pill);
+    font: 700 32px var(--font-display); color: var(--ink-on-spud); background: var(--spud); box-shadow: 0 0 40px var(--glow);
+  }
+  .pause-mark {
+    width: 140px; height: 140px; border-radius: 50%; display: grid; place-items: center; font-size: 48px; letter-spacing: -0.1em;
+    color: var(--ink-on-spud); background: var(--spud); box-shadow: 0 0 70px var(--glow), var(--morph-raised);
+  }
 
   @keyframes rise { from { opacity: 0; transform: translateY(24px); } }
   @keyframes pop { from { transform: scale(0.4); opacity: 0; } 70% { transform: scale(1.08); } }

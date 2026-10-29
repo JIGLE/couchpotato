@@ -405,6 +405,58 @@ io.on('connection', (socket) => {
     endGame(me.code);
   });
 
+  // ---- The Head Spud's remote. Only their phone can use it; the TV has no buttons. ----
+  const headSpud = (me: Member | undefined): me is Member => me?.screen === 'phone' && couchFor(me.code).isHeadSpud(socket.id);
+
+  socket.on('game:control', (payload) => {
+    const me = members.get(socket.id);
+    const game = me && games.get(me.code);
+    if (!headSpud(me) || !game) return;
+    const now = Date.now();
+    const action = payload?.action;
+    const changed =
+      action === 'pause' ? game.pause(now)
+      : action === 'resume' ? game.resume(now)
+      : action === 'add-time' ? game.addTime(now)
+      : action === 'next' ? game.next(now)
+      : action === 'skip' ? game.skip(now)
+      : false;
+    if (!changed) return;
+    app.log.info({ room: me.code, action }, 'Head Spud remote');
+    broadcastGame(me.code);
+    if (game.over) for (const id of game.playedIds) played.get(me.code)?.add(id);
+  });
+
+  socket.on('room:kick', (payload) => {
+    const me = members.get(socket.id);
+    if (!headSpud(me)) return;
+    const playerId = payload?.playerId;
+    const kicked = couchFor(me.code).kick(socket.id, playerId);
+    if (!kicked) return;
+    games.get(me.code)?.removePlayer(String(playerId), Date.now());
+    const phone = kicked.socketId ? io.sockets.sockets.get(kicked.socketId) : undefined;
+    if (phone) {
+      phone.emit('room:kicked');
+      members.delete(phone.id);
+      rooms.leave(me.code, phone.id);
+      phone.leave(me.code);
+    }
+    app.log.info({ room: me.code }, 'Head Spud kicked a player');
+    broadcastRoom(me.code);
+  });
+
+  socket.on('room:hand-over', (payload) => {
+    const me = members.get(socket.id);
+    const room = me && rooms.get(me.code);
+    if (!headSpud(me) || !room) return;
+    const to = couchFor(me.code).handOver(payload?.playerId);
+    if (!to) return;
+    // Whoever holds the role now is the one who gets it back after a refresh; the old host doesn't take it back.
+    room.hostId = hostOf(io.sockets.sockets.get(to)?.handshake.headers.cookie)?.id ?? null;
+    app.log.info({ room: me.code }, 'Head Spud handed over');
+    broadcastRoom(me.code);
+  });
+
   socket.on('tap', () => {
     const me = members.get(socket.id);
     if (me?.screen !== 'phone') return;
