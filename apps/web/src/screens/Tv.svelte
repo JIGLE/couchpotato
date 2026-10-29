@@ -7,6 +7,7 @@
   import TvGame from './tv/TvGame.svelte';
   import { connect } from '../lib/socket';
   import LivingRoom from '../lib/LivingRoom.svelte';
+  import LivingRoom3D from '../lib/LivingRoom3D.svelte';
   import { potatoName } from '../lib/potatoes';
   import Logo from '../lib/Logo.svelte';
   import Ambient from '../lib/Ambient.svelte';
@@ -32,6 +33,8 @@
   /** What the Head Spud is choosing on their phone, shown as a preview chip. */
   let setup = $state<GameSettings | null>(null);
   let mood = $state<Mood>(currentMood());
+  /** The 3D living room, until it reports it can't run here (no WebGL2); then the 2D sofa. */
+  let room3d = $state(true);
 
   const socket = connect();
   socket.on('connect', () => {
@@ -111,9 +114,10 @@
 </script>
 
 <Ambient />
+<!-- Lights off until a host claims the TV; they come up as the room opens. -->
+{#if !game && room3d}<LivingRoom3D {players} {mood} {wiggle} dim={!!pairing || !code} onfail={() => (room3d = false)} />{/if}
 <Stage>
-{#if !game}
-  <!-- Lights off until a host claims the TV; they come up as the room opens. -->
+{#if !game && !room3d}
   <div class="lights" class:off={!!pairing || !code}><LivingRoom {players} {seats} {wiggle} /></div>
 {/if}
 <main>
@@ -155,14 +159,14 @@
     <TvGame view={game} {offset} {players} />
   {:else}
     <div class="lobby">
-      <section class="join" aria-label="How to join">
-        <span class="label">SCAN TO JOIN</span>
+      <!-- Low in the bottom-left corner, over the empty floor, so the sofa is never covered. -->
+      <section class="join" class:full={players.length >= seats} aria-label="How to join">
         <div class="qr" role="img" aria-label="QR code to join this room">
           {#if qrSvg}{@html qrSvg}{/if}
         </div>
-        <span class="or">or go to <span class="mono">{host}</span></span>
+        <span class="or">Join at <span class="mono">{host}</span></span>
         <div class="code" aria-label="Room code {code.split('').join(' ')}">{code || '····'}</div>
-        <span class="count" role="status">{players.length}/{seats} on the sofa</span>
+        <span class="count" role="status">{players.length >= seats ? 'The sofa’s full!' : `${players.length}/${seats} on the sofa`}</span>
       </section>
 
       <ul class="sr" aria-label="On the sofa">
@@ -197,24 +201,29 @@
   .lobby { flex: 1; min-height: 0; position: relative; }
 
   .join {
-    position: absolute; left: 0; top: 0; bottom: 0; width: 320px; box-sizing: border-box; padding: 22px 24px; border-radius: 32px;
-    background: color-mix(in srgb, var(--surface-1) 92%, transparent); box-shadow: var(--morph-raised);
-    display: flex; flex-direction: column; align-items: center; justify-content: space-between;
+    position: absolute; left: 8px; bottom: 24px; box-sizing: border-box; padding: 16px 28px 16px 16px; border-radius: 28px;
+    background: color-mix(in srgb, var(--surface-1) 88%, transparent); box-shadow: var(--morph-raised);
+    display: grid; grid-template-columns: auto auto; column-gap: 22px; row-gap: 6px; align-items: center; justify-items: start;
   }
+  .join > .qr { grid-row: 1 / span 3; }
+  .join > :not(.qr) { grid-column: 2; }
+  /* Once the sofa is full there is nothing to scan: just the cheer. */
+  .join.full .qr, .join.full .or { display: none; }
+  .join.full > :not(.qr) { grid-column: 1; }
   .qr {
-    width: 216px; height: 216px; padding: 14px; box-sizing: border-box; border-radius: var(--radius-md);
+    width: 156px; height: 156px; padding: 10px; box-sizing: border-box; border-radius: var(--radius-md);
     background: #f2ede4; /* fixed light ground for the QR, see script */
     box-shadow: 0 0 60px var(--glow), 6px 8px 18px var(--edge-dark);
   }
   .qr :global(svg) { width: 100%; height: 100%; display: block; }
-  .or { font-size: 32px; font-weight: 600; color: var(--ink-muted); text-align: center; overflow-wrap: anywhere; line-height: 1.15; }
+  .or { font-size: 32px; font-weight: 700; color: var(--ink-muted); white-space: nowrap; line-height: 1.15; }
   .code {
-    font-family: var(--font-mono); font-weight: 700; font-size: 56px; line-height: 1; letter-spacing: 0.16em;
-    color: var(--ink-on-spud); background: var(--spud); padding: 14px 22px 14px 32px;
+    font-family: var(--font-mono); font-weight: 700; font-size: 48px; line-height: 1; letter-spacing: 0.16em;
+    color: var(--ink-on-spud); background: var(--spud); padding: 8px 16px 8px 24px;
     border-radius: var(--radius-pill); box-shadow: 0 0 50px var(--glow), 6px 8px 18px var(--edge-dark);
   }
 
-  .count { font-size: 32px; font-weight: 700; color: var(--spud); }
+  .count { font-size: 32px; font-weight: 700; color: var(--spud); white-space: nowrap; font-variant-numeric: tabular-nums; }
 
   /* Before a host claims the TV the room sits in the dark; the lights come up when it opens. */
   .lights { position: absolute; inset: 0; transition: filter 1400ms var(--ease-out), opacity 1400ms var(--ease-out); }
