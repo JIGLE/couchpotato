@@ -68,6 +68,18 @@ Players never need an account.
   sudo docker exec couchpotato node apps/server/dist/cli.js hosts
   sudo docker exec couchpotato node apps/server/dist/cli.js revoke <name>
   ```
+- **God Potato (the server owner).** One host per server can also make invites and revoke hosts from
+  their phone. Make yourself the God Potato from the app's shell (TrueNAS **Apps → couchpotato → Shell**,
+  or `sudo docker exec -it couchpotato sh` from **System → Shell**):
+  ```
+  node apps/server/dist/cli.js god-potato            # prints a one-use invite, valid 1 hour
+  node apps/server/dist/cli.js god-potato <name>     # or: make your existing host account the God Potato
+  node apps/server/dist/cli.js god-potato --step-down
+  ```
+  Open `/claim?invite=<code>` on your phone and pick a name and password (set `PUBLIC_URL` in the compose
+  `environment` to get the full link printed). Signed in, the claim screen shows **Invites and hosts**:
+  make Head Spud invites (1, 7 or 30 days, one use each), share them, and revoke hosts. There is only ever
+  one God Potato; to hand the role on, step down first. Only someone with shell access can make one.
 - `OPEN_HOSTING: "1"` in the compose `environment` lets any phone claim a TV (no sign-in). If `/data` is
   not writable the server falls back to this too, so a game night still works.
 

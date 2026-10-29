@@ -118,11 +118,22 @@ export type SocketPath = '/ws';
 //   POST /api/host/login    { name, password, remember }          → HostStatus | { error: HostAuthError }
 //   POST /api/host/signup   { invite, name, password, remember }  → HostStatus | { error: HostAuthError }
 //   POST /api/host/logout                                          → HostStatus
+// God Potato only (403 `{ error: 'forbidden' }` for anyone else):
+//   GET  /api/admin                                                → AdminView
+//   POST /api/admin/invite  { days }                               → AdminInvite (a new Head Spud invite)
+//   POST /api/admin/revoke  { name }                               → AdminView | { error: 'not-found' }
 // ---------------------------------------------------------------------------
+
+/**
+ * - `host`: a Head Spud. Claims TVs and runs the game from their phone.
+ * - `god`: the God Potato. A Head Spud who also runs the server: makes invites and revokes hosts.
+ *   One per server, made from the server's shell with `cli.js god-potato` (docs/DEPLOY.md).
+ */
+export type HostRole = 'host' | 'god';
 
 export interface HostStatus {
   /** The signed-in host on this phone, or null. */
-  host: { name: string } | null;
+  host: { name: string; role: HostRole } | null;
   /** False when anyone may claim a TV (storage is down, or the server runs with OPEN_HOSTING=1). */
   required: boolean;
 }
@@ -135,6 +146,18 @@ export interface HostStatus {
  * - `unavailable`: the server has no storage right now.
  */
 export type HostAuthError = 'wrong' | 'slow-down' | 'bad-invite' | 'name-taken' | 'bad-name' | 'weak-password' | 'unavailable';
+
+/** An unused Head Spud invite. `expiresAt` is ms since the epoch. */
+export interface AdminInvite {
+  code: string;
+  expiresAt: number;
+}
+
+/** What the God Potato's admin screen shows. */
+export interface AdminView {
+  invites: AdminInvite[];
+  hosts: { name: string; role: HostRole; createdAt: number; revoked: boolean }[];
+}
 
 // ---------------------------------------------------------------------------
 // Trivia packs. Documented for people (and future AI generation) in docs/PACKS.md.

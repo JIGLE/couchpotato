@@ -42,6 +42,11 @@ export const MIGRATIONS: readonly string[] = [
      expires_at INTEGER NOT NULL
    ) STRICT;
    CREATE INDEX sessions_by_host ON sessions (host_id);`,
+  // 3 · Roles. A host is a Head Spud; the God Potato also runs the server (invites, revoking hosts). At most one
+  //     God Potato per server, enforced by the partial unique index. Invites say which role they make.
+  `ALTER TABLE hosts ADD COLUMN role TEXT NOT NULL DEFAULT 'host' CHECK (role IN ('host', 'god'));
+   CREATE UNIQUE INDEX one_god_potato ON hosts (role) WHERE role = 'god';
+   ALTER TABLE invites ADD COLUMN role TEXT NOT NULL DEFAULT 'host' CHECK (role IN ('host', 'god'));`,
 ];
 
 export function schemaVersion(db: DatabaseSync): number {

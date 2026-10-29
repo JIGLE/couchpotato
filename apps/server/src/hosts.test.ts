@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { openDatabase } from './storage.ts';
 import {
-  Hosts, RateLimiter, REMEMBER_MS, SHORT_SESSION_MS, INVITE_TTL_MS,
+  Hosts, RateLimiter, REMEMBER_MS, SHORT_SESSION_MS, INVITE_TTL_MS, GOD_INVITE_TTL_MS,
   hashPassword, normaliseInvite, readCookie, sessionCookie, verifyPassword,
 } from './hosts.ts';
 
@@ -100,6 +100,49 @@ test('revoking a host signs them out and blocks login; logout ends one session',
   assert.equal(await hosts.login('Jose', 'potatoes!'), undefined);
   assert.equal(hosts.count(), 0);
   assert.equal(hosts.revoke('Nobody'), false);
+});
+
+test('a God Potato invite makes the one God Potato and is never listed', async () => {
+  const { hosts, tick } = setup();
+  const stale = hosts.createGodInvite()!;
+  const invite = hosts.createGodInvite()!;
+  assert.deepEqual(hosts.openInvites(), [], 'God Potato invites stay off the list');
+  assert.deepEqual(await hosts.signUp(stale.code, 'Jose', 'potatoes!'), { ok: false, reason: 'bad-invite' }, 'only the latest works');
+  const god = await hosts.signUp(invite.code, 'Jose', 'potatoes!');
+  assert.ok(god.ok);
+  assert.equal(god.host.role, 'god');
+  assert.equal(hosts.godPotato()?.name, 'Jose');
+  assert.equal((await hosts.login('jose', 'potatoes!'))?.role, 'god');
+  assert.equal(hosts.session(hosts.startSession(god.host.id, false).token)?.role, 'god');
+  assert.equal(hosts.createGodInvite(), undefined, 'one per server');
+
+  const head = await hosts.signUp(hosts.createInvite().code, 'Maya', 'potatoes!');
+  assert.ok(head.ok);
+  assert.equal(head.host.role, 'host');
+
+  const expired = (() => { hosts.demote(); return hosts.createGodInvite()!; })();
+  tick(GOD_INVITE_TTL_MS);
+  assert.deepEqual(await hosts.signUp(expired.code, 'Ana', 'potatoes!'), { ok: false, reason: 'bad-invite' }, 'an hour only');
+});
+
+test('only one God Potato: promote refuses while one exists, step down and revoke free the role', async () => {
+  const { db, hosts } = setup();
+  await hosts.signUp(hosts.createInvite().code, 'Jose', 'potatoes!');
+  await hosts.signUp(hosts.createInvite().code, 'Maya', 'potatoes!');
+  const pending = hosts.createGodInvite()!;
+  assert.equal(hosts.promote('nobody').ok, false);
+  const jose = hosts.promote('jose');
+  assert.ok(jose.ok && jose.host.role === 'god');
+  assert.deepEqual(await hosts.signUp(pending.code, 'Ana', 'potatoes!'), { ok: false, reason: 'bad-invite' }, 'promoting cancels the invite');
+  assert.deepEqual(hosts.promote('Maya'), { ok: false, reason: 'taken', current: 'Jose' });
+  assert.throws(() => db.prepare("UPDATE hosts SET role = 'god' WHERE name = 'Maya'").run(), 'the database refuses a second one too');
+
+  assert.equal(hosts.demote()?.name, 'Jose');
+  assert.equal(hosts.godPotato(), undefined);
+  assert.ok(hosts.promote('Maya').ok);
+  hosts.revoke('Maya');
+  assert.equal(hosts.godPotato(), undefined, 'a revoked God Potato loses the role');
+  assert.equal(hosts.promote('Maya').ok, false, 'revoked hosts cannot be promoted');
 });
 
 test('the rate limiter blocks after too many failures until the window passes', () => {

@@ -33,7 +33,8 @@ Design reference for every screen: the *Couch Potato — Lobby & Join* canvas.
 - [x] Host accounts: hashed passwords, rate-limited login, 30-day remember-me (invites from the log on first start, then `cli.js invite`)
 - [x] TV "ready to host" screen + screen-code unlock (claim QR / typed code, renews every minute)
 - [ ] Host remote: pause, +10 s, skip, kick, hand over, end
-- [ ] Admin page: invite codes, revoke hosts, live rooms
+- [x] God Potato: one superadmin per server, made with `cli.js god-potato`; invites and revoking hosts from their phone
+- [ ] Admin page: live rooms (invites and revoking are on the God Potato's phone)
 - [ ] **Done when:** only invited hosts can open a lobby; players still need no account
 
 ## Phase 4 · Game modules + Liar's Dice — *2–3 weeks*
