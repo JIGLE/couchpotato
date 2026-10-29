@@ -152,6 +152,7 @@
   const isHost = $derived(me?.role === 'head-spud');
   const headSpud = $derived(players.find((p) => p.role === 'head-spud'));
   let settings = $state<GameSettings>(loadSettings());
+  let setupStep = $state<'pick' | 'setup'>('pick');
   let notice = $state('');
   socket.on('game:error', (p) => {
     notice = p.reason === 'no-players' ? 'Nobody on the couch yet.' : 'No questions match these settings. Try another language or age.';
@@ -224,7 +225,8 @@
   }
 </script>
 
-<main>
+<!-- The host's docked Start button sits over the bottom of the page: leave room to scroll past it. -->
+<main class:docked={joined && isHost && !game && !swapping && setupStep === 'setup'}>
   <div class="brand"><Logo iconOnly size={34} /><span>couch potato</span></div>
 
   {#if rejoining}
@@ -289,6 +291,32 @@
         {/if}
       </div>
     {/if}
+  {:else if isHost}
+    <!-- The Head Spud's lobby is a remote first: a slim "who am I" row, then the setup steps. -->
+    <div class="who">
+      {#if me}
+        {@const c = seatColour(me.colour)}
+        {#key me.potato}
+          <div class="avatar small" style:background={c.bg}><Potato kind={me.potato} size={60} /></div>
+        {/key}
+      {/if}
+      <div class="who-text">
+        <span class="crown">HEAD SPUD</span>
+        <strong>{online ? `You run tonight, ${name}.` : 'Lost the couch for a sec…'}</strong>
+        <span class="mono">Room {code}</span>
+      </div>
+    </div>
+    {#if swapping}
+      <PotatoPicker value={potato} {taken} legend="SWAP YOUR POTATO" onPick={swap} />
+      <button class="leave" onclick={() => (swapping = false)}>Keep this potato</button>
+    {:else}
+      <HostSetup bind:settings bind:step={setupStep} {players} {mood} {notice} onMood={changeMood} onStart={startGame} />
+      <div class="extras">
+        <button class="leave" onclick={tap} disabled={!online}>Bounce your potato</button>
+        <button class="leave" onclick={() => (swapping = true)} disabled={!online}>Swap potato</button>
+        <button class="leave" onclick={leave}>Leave the couch</button>
+      </div>
+    {/if}
   {:else}
     <div class="me">
       {#if me}
@@ -297,18 +325,13 @@
           <div class="avatar" style:background={c.bg}><Potato kind={me.potato} size={150} /></div>
         {/key}
       {/if}
-      {#if isHost}<span class="crown">HEAD SPUD</span>{/if}
       <h1>{online ? `You're in, ${name}.` : 'Lost the couch for a sec…'}</h1>
       <p class="hint">
         {#if !online}Reconnecting…
-        {:else if isHost}You run tonight. Pick the game below and start when everyone's comfy.
         {:else if headSpud}{headSpud.name} is the Head Spud and starts the game.
         {:else}Look at the TV.{/if}
       </p>
     </div>
-    {#if isHost && !swapping}
-      <HostSetup bind:settings players={players.length} {mood} {notice} onMood={changeMood} onStart={startGame} />
-    {/if}
     {#if swapping}
       <PotatoPicker value={potato} {taken} legend="SWAP YOUR POTATO" onPick={swap} />
     {:else}
@@ -325,6 +348,7 @@
     min-height: 100dvh; padding: 48px var(--space-2) 32px; max-width: 480px; margin: 0 auto;
     display: flex; flex-direction: column; gap: 24px;
   }
+  main.docked { padding-bottom: 136px; }
   .brand { display: flex; align-items: center; gap: 10px; font-family: var(--font-display); font-weight: 600; font-size: 18px; letter-spacing: -0.03em; }
   form { display: flex; flex-direction: column; gap: 10px; flex: 1; }
   h1 { font-family: var(--font-display); font-weight: 600; font-size: 28px; margin: 0 0 18px; }
@@ -376,6 +400,12 @@
     padding: 6px 14px; border-radius: var(--radius-pill); background: var(--spud); color: var(--ink-on-spud);
     font: 700 13px var(--font-display); letter-spacing: 0.08em; box-shadow: 0 0 24px var(--glow);
   }
+  .who { display: flex; align-items: center; gap: 16px; }
+  .avatar.small { width: 72px; height: 72px; flex-shrink: 0; box-shadow: var(--morph-raised); }
+  .who-text { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; min-width: 0; }
+  .who-text strong { font: 600 20px var(--font-display); }
+  .who-text .mono { font-size: 14px; }
+  .extras { display: flex; flex-wrap: wrap; justify-content: center; gap: 0 8px; }
   .remote { display: flex; gap: 12px; }
   .remote button { flex: 1; min-height: 56px; border-radius: var(--radius-pill); }
   .ghost { background: var(--surface-1); color: var(--ink); box-shadow: var(--morph-raised); }
