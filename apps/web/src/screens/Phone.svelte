@@ -10,6 +10,7 @@
   import type { GameSettings, GameView, Mood } from '@couchpotato/shared';
   import PhoneGame from './phone/PhoneGame.svelte';
   import HostSetup from './phone/HostSetup.svelte';
+  import Claim from './phone/Claim.svelte';
   import { applyMood, loadSettings, saveSettings } from '../lib/game';
 
   /** The seat this phone last sat in. The token lets the server give it back after a refresh. */
@@ -27,12 +28,21 @@
     else localStorage.removeItem('cp:seat');
   }
 
-  const urlCode = (new URLSearchParams(location.search).get('code') ?? '').toUpperCase();
+  const params = new URLSearchParams(location.search);
+  const urlCode = (params.get('code') ?? '').toUpperCase();
+  // The TV's claim QR opens /claim?tv=ABC123: this phone wants to open a room, not join one.
+  const claimLink = location.pathname.startsWith('/claim');
+  let claiming = $state(claimLink);
+  let pairing = $state((params.get('tv') ?? '').toUpperCase());
+  let claimError = $state('');
+  let claimBusy = $state(false);
+  let claimScreen = $state<ReturnType<typeof Claim>>();
   let seatInfo = loadSeat();
-  let name = $state(localStorage.getItem('cp:name') ?? '');
+  const savedName = localStorage.getItem('cp:name') ?? '';
+  let name = $state(savedName);
   let code = $state(urlCode || seatInfo?.code || '');
   // Same room as last time (or no room in the link) and we know who we are: sit straight back down.
-  let rejoining = $state(!!seatInfo && !!name && (!urlCode || urlCode === seatInfo.code));
+  let rejoining = $state(!claimLink && !!seatInfo && !!savedName && (!urlCode || urlCode === seatInfo.code));
   let joined = $state(false);
   let online = $state(false);
   let count = $state(0);
@@ -70,6 +80,12 @@
   socket.on('room:joined', (p) => {
     code = p.code;
     joined = true;
+    if (claiming) {
+      // From here on this is an ordinary seat: a refresh should rejoin the room, not try to claim again.
+      claiming = false;
+      claimBusy = false;
+      history.replaceState(null, '', `/?code=${p.code}`);
+    }
     rejoining = false;
     error = '';
     playerId = p.playerId ?? null;
@@ -96,6 +112,17 @@
       p.reason === 'not-found' ? `No room called ${p.code}. Check the code on the TV.`
       : p.reason === 'full' ? 'The couch is full — all 12 seats are taken.'
       : 'Enter the code shown on the TV.';
+  });
+  socket.on('room:claim-error', (p) => {
+    claimBusy = false;
+    if (p.reason === 'sign-in') {
+      claimError = '';
+      void claimScreen?.refresh(); // signed out or revoked meanwhile: show the sign-in form
+      return;
+    }
+    claimError =
+      p.reason === 'expired' ? 'That code has changed or was used. Type the one on the TV now, or scan it again.'
+      : 'Too many wrong codes. Wait a minute and try again.';
   });
   socket.on('room:players', (p) => {
     players = p.players;
@@ -156,6 +183,24 @@
     socket.once('connect', hello);
   }
 
+  function claim() {
+    claimError = '';
+    claimBusy = true;
+    name = name.trim() || 'Head Spud';
+    localStorage.setItem('cp:name', name);
+    savePotato(potato);
+    // A fresh connection so the handshake carries the sign-in cookie we may have just been given.
+    socket.disconnect().connect();
+    socket.once('connect', () => socket.emit('room:claim', { pairing, name, colour, potato }));
+  }
+
+  function switchTo(claim: boolean) {
+    claiming = claim;
+    error = '';
+    claimError = '';
+    history.replaceState(null, '', claim ? '/claim' : '/');
+  }
+
   function leave() {
     socket.emit('leave');
     seatInfo = null;
@@ -187,6 +232,17 @@
       <h1>Finding your seat…</h1>
       <p class="hint">Room {code}</p>
     </div>
+  {:else if !joined && claiming}
+    <Claim
+      bind:this={claimScreen}
+      bind:pairing
+      bind:name
+      bind:potato
+      error={claimError}
+      busy={claimBusy}
+      onClaim={claim}
+      onJoinInstead={() => switchTo(false)}
+    />
   {:else if !joined}
     <form onsubmit={join}>
       <h1>Pull up a seat.</h1>
@@ -219,6 +275,7 @@
         </div>
       </fieldset>
       <button class="primary" type="submit">Join</button>
+      <button class="leave" type="button" onclick={() => switchTo(true)}>Hosting tonight? Open a room on the TV</button>
     </form>
   {:else if game}
     <PhoneGame view={game} {offset} {playerId} onAnswer={(choice) => socket.emit('game:answer', { choice })} />

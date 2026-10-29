@@ -12,7 +12,7 @@ services:
       - "3000:3000"       # point your Cloudflare tunnel at http://<truenas-ip>:3000
     environment:
       LOG_LEVEL: info
-      # ADMIN_PASSWORD: change-me   # used from Phase 3 (host sign-in)
+      # OPEN_HOSTING: "1"           # let any phone open a room, no host sign-in (see docs/DEPLOY.md)
     volumes:
       - couchpotato-data:/data      # couchpotato.db (SQLite): hosts, invites, settings — back this up
 

@@ -71,6 +71,10 @@ export interface Room {
   mood: Mood;
   /** The settings the Head Spud is choosing, shown on the TV before the game starts. */
   setup: GameSettings | null;
+  /** The host account that claimed the TV; null when hosting is open (no storage, or OPEN_HOSTING=1). */
+  hostId: number | null;
+  /** Private: lets the TV that was claimed back into this room after a refresh. Never sent to phones. */
+  tvToken: string;
 }
 
 export type Rng = () => number;
@@ -94,9 +98,12 @@ export class RoomStore {
 
   constructor(private now: () => number = Date.now, private rng: Rng = Math.random) {}
 
-  create(): Room {
+  create(hostId: number | null = null, tvToken = ''): Room {
     const code = generateCode((c) => this.rooms.has(c), this.rng);
-    const room: Room = { code, createdAt: this.now(), members: new Set(), emptySince: this.now(), taps: 0, lastTapBy: null, mood: 'lamp', setup: null };
+    const room: Room = {
+      code, createdAt: this.now(), members: new Set(), emptySince: this.now(), taps: 0, lastTapBy: null, mood: 'lamp', setup: null,
+      hostId, tvToken,
+    };
     this.rooms.set(code, room);
     return room;
   }

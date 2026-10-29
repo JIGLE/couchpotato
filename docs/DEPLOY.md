@@ -55,6 +55,22 @@ point the app's metadata at an image. TrueNAS can reset it when you **Edit** the
 If the icon disappears after editing the app's YAML, run step 2 again. If `grep` shows two `icon:`
 lines, open the file with `sudo nano /mnt/.ix-apps/metadata.yaml` and delete one.
 
+### Host accounts
+
+Only hosts can open a room: the TV shows a claim QR, a host scans it with their phone and signs in.
+Players never need an account.
+
+- **First host.** On the first start the log prints an invite: look for `no hosts yet` and the
+  `invite` value (`SPUD-XXXX-XXXX`). On your phone open `/claim`, tap **I have an invite**, and choose a name and password.
+- **More invites, listing and revoking** (until the admin page exists), from **System → Shell**:
+  ```
+  sudo docker exec couchpotato node apps/server/dist/cli.js invite      # valid 7 days; add a number for more days
+  sudo docker exec couchpotato node apps/server/dist/cli.js hosts
+  sudo docker exec couchpotato node apps/server/dist/cli.js revoke <name>
+  ```
+- `OPEN_HOSTING: "1"` in the compose `environment` lets any phone claim a TV (no sign-in). If `/data` is
+  not writable the server falls back to this too, so a game night still works.
+
 ## 2. The tunnel
 
 In the Cloudflare Zero Trust dashboard → **Networks → Tunnels → your tunnel → Public hostnames**:

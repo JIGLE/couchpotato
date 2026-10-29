@@ -39,6 +39,8 @@ export type SitResult = { ok: true; player: Player; token: string; rejoined: boo
 export class Couch {
   private byToken = new Map<string, Seated>();
   private arrivals = 0;
+  /** Token of the phone that claimed the TV (or was handed the role). Null until someone has. */
+  private crowned: string | null = null;
 
   constructor(
     private now: () => number = Date.now,
@@ -129,9 +131,17 @@ export class Couch {
     return [...this.byToken.values()].map((p) => this.toPlayer(p)).sort((a, b) => a.seat - b.seat);
   }
 
+  /** Make this phone the Head Spud: the host who claimed the TV, or a host coming back to their room. */
+  crown(socketId: string): boolean {
+    const p = this.bySocket(socketId);
+    if (!p) return false;
+    this.crowned = p.token;
+    return true;
+  }
+
   /**
-   * The Head Spud: the phone that has been on the couch longest. A dropped Head Spud keeps the role
-   * while their seat is held; leaving (or being swept) hands it to the next in line.
+   * The Head Spud: the phone that claimed the TV. A dropped Head Spud keeps the role while their seat is held;
+   * once they leave (or are swept) it passes to whoever has been on the couch longest, so the night goes on.
    */
   isHeadSpud(socketId: string): boolean {
     const p = this.bySocket(socketId);
@@ -139,6 +149,8 @@ export class Couch {
   }
 
   private headSpud(): Seated | undefined {
+    const crowned = this.crowned ? this.byToken.get(this.crowned) : undefined;
+    if (crowned) return crowned;
     let first: Seated | undefined;
     for (const p of this.byToken.values()) if (!first || p.arrived < first.arrived) first = p;
     return first;
