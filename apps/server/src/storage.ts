@@ -19,6 +19,29 @@ export const MIGRATIONS: readonly string[] = [
      value      TEXT NOT NULL,
      updated_at INTEGER NOT NULL
    ) STRICT`,
+  // 2 · Host accounts. Only hosts can open a room (claim a TV); players never sign in.
+  //     Sessions keep a hash of the remember-me token, never the token itself.
+  `CREATE TABLE hosts (
+     id            INTEGER PRIMARY KEY,
+     name          TEXT NOT NULL UNIQUE COLLATE NOCASE,
+     password_hash TEXT NOT NULL,
+     created_at    INTEGER NOT NULL,
+     revoked_at    INTEGER
+   ) STRICT;
+   CREATE TABLE invites (
+     code       TEXT PRIMARY KEY,
+     created_at INTEGER NOT NULL,
+     expires_at INTEGER NOT NULL,
+     used_by    INTEGER REFERENCES hosts (id) ON DELETE SET NULL,
+     used_at    INTEGER
+   ) STRICT;
+   CREATE TABLE sessions (
+     token_hash TEXT PRIMARY KEY,
+     host_id    INTEGER NOT NULL REFERENCES hosts (id) ON DELETE CASCADE,
+     created_at INTEGER NOT NULL,
+     expires_at INTEGER NOT NULL
+   ) STRICT;
+   CREATE INDEX sessions_by_host ON sessions (host_id);`,
 ];
 
 export function schemaVersion(db: DatabaseSync): number {

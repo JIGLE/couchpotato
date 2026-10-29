@@ -30,8 +30,8 @@ Design reference for every screen: the *Couch Potato — Lobby & Join* canvas.
 
 ## Phase 3 · Host & admin — *1–2 weeks*
 - [x] Persistent storage in `/data` (SQLite)
-- [ ] Host accounts: hashed passwords, rate-limited login, 30-day remember-me
-- [ ] TV "ready to host" screen + screen-code unlock
+- [x] Host accounts: hashed passwords, rate-limited login, 30-day remember-me (invites from the log on first start, then `cli.js invite`)
+- [x] TV "ready to host" screen + screen-code unlock (claim QR / typed code, renews every minute)
 - [ ] Host remote: pause, +10 s, skip, kick, hand over, end
 - [ ] Admin page: invite codes, revoke hosts, live rooms
 - [ ] **Done when:** only invited hosts can open a lobby; players still need no account
@@ -53,5 +53,5 @@ Design reference for every screen: the *Couch Potato — Lobby & Join* canvas.
   - [x] Living room scene: front-on room, one twelve-seat sofa (was eight), neon logo sign, cushions in each player's colour; slim join panel on the left
   - [x] Landing physics: soft-body potatoes (shape matching), spring-chain cushions, squash faces, dust, idle hops
   - [x] Head Spud (interim): first phone in gets setup, Start and the in-game remote; the TV is display-only
-  - [ ] Head Spud claim QR (with Phase 3 host accounts)
+  - [x] Head Spud claim QR (with Phase 3 host accounts); game picker on the Head Spud's phone
   - [ ] One living room per mood, sound, snack throw
