@@ -144,14 +144,15 @@
         {#key pairing.code}<div class="fade">{#if claimSvg}{@html claimSvg}{/if}</div>{/key}
       </div>
       <div class="pitch">
-        <span class="label">READY TO HOST</span>
-        <h1>Head Spud, scan to open the room.</h1>
+        <h1>Head Spud, scan to open the room</h1>
         <p class="or">
-          {#if pairing.hostsRequired}Hosts sign in on their phone. No account? Ask for an invite.
+          {#if pairing.hostsRequired}Sign in on your phone. No account? Ask for an invite.
           {:else}Whoever scans first runs the night.{/if}
         </p>
-        <p class="or">or go to <span class="mono">{host}/claim</span></p>
-        <div class="code small" aria-label="Claim code {pairing.code.split('').join(' ')}">{pairing.code}</div>
+        <div class="alt">
+          <div class="code small" aria-label="Claim code {pairing.code.split('').join(' ')}">{pairing.code}</div>
+          <span class="or">at <span class="mono">{host}/claim</span></span>
+        </div>
         <div class="renew" aria-hidden="true"><span style:transform="scaleX({pairingLeft})"></span></div>
       </div>
     </section>
@@ -195,7 +196,6 @@
     background: var(--surface-1); box-shadow: var(--morph-inset);
   }
   .mono { font-family: var(--font-mono); font-weight: 500; color: var(--ink); }
-  .label { font-size: 32px; font-weight: 700; letter-spacing: 0.08em; color: var(--ink-muted); }
   .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 
   .lobby { flex: 1; min-height: 0; position: relative; }
@@ -237,14 +237,16 @@
     background: color-mix(in srgb, var(--surface-1) 90%, transparent); box-shadow: var(--morph-raised);
     animation: pop 600ms var(--ease-out);
   }
-  .qr.big { width: 236px; height: 236px; padding: 14px; flex-shrink: 0; }
+  .qr.big { width: 248px; height: 248px; padding: 14px; flex-shrink: 0; }
   .fade { width: 100%; height: 100%; animation: fade 500ms var(--ease-out); }
   .fade :global(svg) { width: 100%; height: 100%; display: block; }
-  .pitch { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; min-width: 0; }
-  .pitch h1 { margin: 0; font: 600 36px/1.12 var(--font-display); letter-spacing: -0.02em; text-wrap: balance; }
-  .pitch .or { margin: 0; text-align: left; }
-  .code.small { font-size: 40px; padding: 8px 16px 8px 24px; margin-top: 4px; }
-  .renew { width: 100%; height: 8px; border-radius: var(--radius-pill); background: var(--surface-2); overflow: hidden; }
+  .pitch { display: flex; flex-direction: column; align-items: flex-start; gap: 16px; min-width: 0; }
+  /* One scale for the card: a 48px title, the 40px code, and 32px (the TV minimum) for everything else. */
+  .pitch h1 { margin: 0; font: 600 48px/1.08 var(--font-display); letter-spacing: -0.02em; text-wrap: balance; }
+  .pitch .or { margin: 0; text-align: left; font-weight: 600; }
+  .alt { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; min-width: 0; }
+  .code.small { font-size: 40px; padding: 8px 16px 8px 24px; }
+  .renew { width: 100%; height: 6px; border-radius: var(--radius-pill); background: var(--surface-2); overflow: hidden; }
   .renew span { display: block; height: 100%; background: var(--spud); transform-origin: left; transition: transform 250ms linear; }
   .welcome { animation: pop 600ms var(--ease-out); }
   @keyframes pop {
