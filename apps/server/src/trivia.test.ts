@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import type { GameView } from '@couchpotato/shared';
 import type { PlayableQuestion } from './packs.ts';
-import { LEADERBOARD_MS, MAX_POINTS, MIN_POINTS, REVEAL_MS, STREAK_BONUS, TriviaGame } from './trivia.ts';
+import { EXTRA_TIME_MS, LEADERBOARD_MS, MAX_POINTS, MIN_POINTS, REVEAL_MS, STREAK_BONUS, TriviaGame } from './trivia.ts';
 
 const Q = (id: string, correct = 1): PlayableQuestion => ({
   id,
@@ -284,4 +284,61 @@ test('settings from the TV are cleaned up', async () => {
     rounds: 10,
     seconds: 20,
   });
+});
+
+test('pausing freezes the clock and answers, and the pause does not cost answer speed', () => {
+  const t = game(2, 20);
+  t.at(5_000);
+  assert.equal(t.g.pause(t.now), true);
+  assert.equal(t.g.pause(t.now), false, 'already paused');
+  const v = t.g.tvView(t.now);
+  assert.ok(v.phase === 'question' && v.paused && v.left === 15_000 && v.endsAt === null);
+  assert.equal(t.g.answer('maya', 1, t.at(1_000)), false, 'no answers while paused');
+  assert.equal(t.g.advance(t.at(60_000)), false, 'the clock is frozen');
+
+  assert.equal(t.g.resume(t.now), true);
+  const after = t.g.tvView(t.now);
+  assert.ok(after.phase === 'question' && !after.paused && after.endsAt === t.now + 15_000);
+  // Maya answers right away after the pause: 5 s in, not 66 s.
+  assert.ok(t.g.answer('maya', 1, t.now));
+  t.g.next(t.now);
+  const maya = t.g.standings().find((s) => s.id === 'maya')!;
+  assert.equal(maya.lastPoints, Math.round(MAX_POINTS - (MAX_POINTS - MIN_POINTS) * (5 / 20)));
+});
+
+test('+10 s extends an open timed question, also while paused, but not an untimed one', () => {
+  const t = game(2, 20);
+  assert.equal(t.g.addTime(t.now), true);
+  const v = t.g.tvView(t.now);
+  assert.ok(v.phase === 'question' && v.endsAt === t.now + 20_000 + EXTRA_TIME_MS);
+  t.g.pause(t.now);
+  t.g.addTime(t.now);
+  const p = t.g.tvView(t.now);
+  assert.ok(p.phase === 'question' && p.left === 20_000 + 2 * EXTRA_TIME_MS);
+  assert.equal(game(2, 0).g.addTime(1_000_000), false);
+});
+
+test('next reveals now; skip drops the question without scoring', () => {
+  const t = game(2, 20);
+  t.g.answer('maya', 1, t.at(1_000));
+  assert.equal(t.g.next(t.now), true);
+  assert.equal(phase(t.g.tvView(t.now)), 'reveal');
+  assert.equal(t.g.next(t.now), true);
+  assert.equal(phase(t.g.tvView(t.now)), 'leaderboard');
+  t.g.next(t.now);
+  const before = t.g.standings().find((s) => s.id === 'maya')!.score;
+  t.g.answer('maya', 1, t.at(1_000));
+  assert.equal(t.g.skip(t.now), true);
+  assert.equal(phase(t.g.tvView(t.now)), 'podium', 'skipping the last question ends the game');
+  assert.equal(t.g.standings().find((s) => s.id === 'maya')!.score, before, 'nobody scores a skipped question');
+  assert.equal(t.g.next(t.now), false);
+});
+
+test('a kicked player leaves the game and the leaderboard', () => {
+  const t = game(2, 20);
+  t.g.answer('maya', 1, t.at(1_000));
+  assert.equal(t.g.removePlayer('jose', t.now), true);
+  assert.deepEqual(t.g.standings().map((s) => s.id), ['maya']);
+  t.g.advance(t.now);
+  assert.equal(phase(t.g.tvView(t.now)), 'reveal', 'everyone left has answered');
 });

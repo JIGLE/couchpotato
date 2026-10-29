@@ -73,6 +73,8 @@ export interface ServerToClient {
   'lobby:setup': (payload: { settings: GameSettings | null }) => void;
   /** Starting a game failed. */
   'game:error': (payload: { reason: 'no-questions' | 'no-players' }) => void;
+  /** The Head Spud took this phone off the couch. Its seat and rejoin token are gone; it can join again from the form. */
+  'room:kicked': () => void;
 }
 
 /** Events clients send to the server. */
@@ -107,7 +109,21 @@ export interface ClientToServer {
   'game:answer': (payload: { choice: number }) => void;
   /** The Head Spud sends everyone back to the lobby. */
   'game:end': () => void;
+  /** The Head Spud's remote during a game: pause, add time, move on. See `GameControl`. */
+  'game:control': (payload: { action: GameControl }) => void;
+  /** The Head Spud takes a phone off the couch (not themselves). Works in the lobby and mid-game. */
+  'room:kick': (payload: { playerId: string }) => void;
+  /** The Head Spud passes the role to someone else on the couch who is connected. */
+  'room:hand-over': (payload: { playerId: string }) => void;
 }
+
+/**
+ * - `pause` / `resume`: freeze the clock (answers wait too; the TV hides the question while paused).
+ * - `add-time`: ten more seconds on a timed question.
+ * - `next`: don't wait for the clock: reveal the answer now, or move on from the reveal or leaderboard.
+ * - `skip`: drop the current question; nobody scores and the next one starts (the podium after the last).
+ */
+export type GameControl = 'pause' | 'resume' | 'add-time' | 'next' | 'skip';
 
 /** The WebSocket path both sides use. Mirror of the literal '/ws' in server and web. */
 export type SocketPath = '/ws';
@@ -257,6 +273,10 @@ export interface Standing {
 interface Timed {
   endsAt: number | null;
   serverNow: number;
+  /** The Head Spud paused the game: `endsAt` is null until they resume. */
+  paused?: boolean;
+  /** While paused: milliseconds left on the frozen clock, or null when the question has no time limit. */
+  left?: number | null;
 }
 
 export type GameView =

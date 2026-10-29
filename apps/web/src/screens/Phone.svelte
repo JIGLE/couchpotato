@@ -11,6 +11,8 @@
   import PhoneGame from './phone/PhoneGame.svelte';
   import HostSetup from './phone/HostSetup.svelte';
   import Claim from './phone/Claim.svelte';
+  import HostRemote from './phone/HostRemote.svelte';
+  import CouchSheet from './phone/CouchSheet.svelte';
   import { applyMood, loadSettings, saveSettings } from '../lib/game';
 
   /** The seat this phone last sat in. The token lets the server give it back after a refresh. */
@@ -169,6 +171,20 @@
     socket.emit('game:start', $state.snapshot(settings));
   }
   const endGame = () => socket.emit('game:end');
+  const kick = (id: string) => socket.emit('room:kick', { playerId: id });
+  const handOver = (id: string) => socket.emit('room:hand-over', { playerId: id });
+  let couchSheet = $state(false);
+  // Taken off the couch by the Head Spud: forget the seat and show the join form again.
+  socket.on('room:kicked', () => {
+    seatInfo = null;
+    saveSeat(null);
+    joined = false;
+    me = null;
+    playerId = null;
+    game = null;
+    couchSheet = false;
+    error = 'The Head Spud took you off the couch.';
+  });
   const changeMood = (m: Mood) => socket.emit('room:mood', { mood: m });
   onDestroy(() => socket.disconnect());
 
@@ -281,15 +297,21 @@
     </form>
   {:else if game}
     <PhoneGame view={game} {offset} {playerId} onAnswer={(choice) => socket.emit('game:answer', { choice })} />
-    {#if isHost}
+    {#if isHost && game.phase === 'podium'}
       <div class="remote" aria-label="Head Spud remote">
-        {#if game.phase === 'podium'}
-          <button class="ghost" onclick={endGame}>Back to lobby</button>
-          <button class="primary" onclick={startGame}>Play again</button>
-        {:else}
-          <button class="leave" onclick={endGame}>End game for everyone</button>
-        {/if}
+        <button class="ghost" onclick={endGame}>Back to lobby</button>
+        <button class="primary" onclick={startGame}>Play again</button>
       </div>
+    {:else if isHost}
+      <HostRemote
+        view={game}
+        {players}
+        myId={playerId}
+        onControl={(action) => socket.emit('game:control', { action })}
+        onKick={kick}
+        onHandOver={handOver}
+        onEnd={endGame}
+      />
     {/if}
   {:else if isHost}
     <!-- The Head Spud's lobby is a remote first: a slim "who am I" row, then the setup steps. -->
@@ -338,6 +360,10 @@
       <button class="tap" onclick={tap} disabled={!online}>Bounce your potato</button>
     {/if}
     <button class="leave" onclick={() => (swapping = !swapping)} disabled={!online}>{swapping ? 'Keep this potato' : 'Swap potato'}</button>
+    {#if isHost}
+      <button class="leave" onclick={() => (couchSheet = true)} aria-haspopup="dialog">Who's on the couch ({players.length})</button>
+      <CouchSheet bind:open={couchSheet} {players} myId={playerId} onKick={kick} onHandOver={handOver} />
+    {/if}
     <p class="mono">Room {code} · {count} waves</p>
     <button class="leave" onclick={leave}>Leave the couch</button>
   {/if}

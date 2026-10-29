@@ -208,3 +208,31 @@ test('when the crowned phone leaves, the longest-seated phone becomes Head Spud'
   couch.leave('s3');
   assert.equal(couch.isHeadSpud('s1'), true);
 });
+
+test('the Head Spud can kick someone else, but not themselves', () => {
+  const { couch } = setup();
+  couch.sit(undefined, 's1', 'Maya', 0);
+  const jose = couch.sit(undefined, 's2', 'Jose', 1);
+  assert.ok(jose.ok);
+  const me = couch.player('s1')!;
+  assert.equal(couch.kick('s1', me.id), undefined);
+  assert.deepEqual(couch.kick('s1', jose.player.id), { socketId: 's2' });
+  assert.equal(couch.list().length, 1);
+  const again = couch.sit(jose.token, 's3', 'Jose', 1);
+  assert.ok(again.ok && !again.rejoined, 'the old token no longer gets the seat back');
+});
+
+test('handing over passes the role to a connected player only', () => {
+  const { couch } = setup();
+  couch.sit(undefined, 's1', 'Maya', 0);
+  const jose = couch.sit(undefined, 's2', 'Jose', 1);
+  const ana = couch.sit(undefined, 's3', 'Ana', 2);
+  assert.ok(jose.ok && ana.ok);
+  couch.crown('s1');
+  couch.drop('s3');
+  assert.equal(couch.handOver(ana.player.id), undefined, 'away players cannot take it');
+  assert.equal(couch.handOver(jose.player.id), 's2');
+  assert.equal(couch.isHeadSpud('s2'), true);
+  assert.equal(couch.isHeadSpud('s1'), false);
+  assert.equal(couch.handOver(jose.player.id), undefined, 'already the Head Spud');
+});

@@ -19,7 +19,7 @@
   );
 
   function pick(i: number) {
-    if (view.phase !== 'question' || myChoice !== null || !view.canAnswer) return;
+    if (view.phase !== 'question' || myChoice !== null || !view.canAnswer || view.paused) return;
     local = { round: view.round, choice: i };
     navigator.vibrate?.(15);
     onAnswer(i);
@@ -48,13 +48,15 @@
   {#if view.phase === 'question'}
     <div class="top">
       <span class="mono">ROUND {view.round} / {view.rounds}</span>
-      {#if view.endsAt}<Timer endsAt={view.endsAt} {offset} size={56} />{/if}
+      {#if view.endsAt || typeof view.left === 'number'}<Timer endsAt={view.endsAt} {offset} frozen={view.left} size={56} />{/if}
     </div>
     {#if waiting}
       {@render nextRound()}
     {:else}
-      <p class="status" role="status">{myChoice === null ? 'Read the question on the TV, then tap.' : 'Locked in. Fingers crossed.'}</p>
-      <div class="pad" class:two={view.choices === 2}>
+      <p class="status" role="status">
+        {view.paused ? 'Paused. Hang on a sec.' : myChoice === null ? 'Read the question on the TV, then tap.' : 'Locked in. Fingers crossed.'}
+      </p>
+      <div class="pad" class:two={view.choices === 2} class:paused={view.paused}>
         {#each Array(view.choices) as _, i (i)}
           {@const t = tile(i)}
           <button
@@ -65,7 +67,7 @@
             style:color={t.fg}
             aria-label="Answer {i + 1}, {t.name}"
             aria-pressed={myChoice === i}
-            disabled={myChoice !== null}
+            disabled={myChoice !== null || view.paused}
             onclick={() => pick(i)}
           >
             <span class="shape">{t.shape}</span>
@@ -151,6 +153,7 @@
   .answer:disabled { cursor: default; }
   .answer.picked { box-shadow: var(--morph-inset); outline: 3px solid var(--ink); outline-offset: 4px; }
   .answer.dim { opacity: 0.3; }
+  .pad.paused .answer:not(.picked) { opacity: 0.45; }
   .shape { font-size: 64px; line-height: 1; }
 
   .result .badge {
