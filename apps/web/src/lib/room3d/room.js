@@ -1155,6 +1155,7 @@ export function createRoom(canvas, tagsEl, opts) {
     var foot = add(footGeo2, footMat, feet, false); foot.position.set(0, -0.04, 0.1); foot.scale.x = Math.min(1.2, sx / 0.9);
     g.userData.feet = feet;
     g.userData.top = sy * (k.peak ? 2.05 : k.flat ? 1.8 : 2); g.userData.halfW = sx;
+    g.userData.faceY = faceY; g.userData.sz = sz;
     return g;
   }
 
@@ -1172,6 +1173,103 @@ export function createRoom(canvas, tagsEl, opts) {
     return c;
   }
 
+  function accessoryMesh(kindName, udat) {
+    var top = udat.top, faceY = udat.faceY, hw = udat.halfW, sz = udat.sz;
+    var g = new T.Group();
+    if (kindName === 'boiled') {
+      var capMat = phys({ color: '#d42020', roughness: 0.55 });
+      var dome = new T.Mesh(new T.SphereGeometry(hw * 0.52, 24, 14, 0, Math.PI * 2, 0, Math.PI * 0.56), capMat);
+      dome.position.y = top - 0.05; g.add(dome);
+      var brim = new T.Mesh(new T.CylinderGeometry(hw * 0.68, hw * 0.68, 0.06, 40, 1, false, -0.55, Math.PI * 1.1), capMat);
+      brim.position.set(hw * 0.08, top - 0.14, 0); g.add(brim);
+      var btn = new T.Mesh(new T.CylinderGeometry(0.034, 0.034, 0.03, 10), new T.MeshStandardMaterial({ color: '#111111', roughness: 0.4 }));
+      btn.position.y = top + hw * 0.44; g.add(btn);
+    } else if (kindName === 'grilled') {
+      var fMat = new T.MeshStandardMaterial({ color: '#111111', roughness: 0.2, metalness: 0.9 });
+      var lMat = phys({ color: '#0a0a0a', roughness: 0.05, transparent: true, opacity: 0.78 });
+      var eyeX = Math.min(0.3, hw * 0.38);
+      [-1, 1].forEach(function (s) {
+        var lx = s * (eyeX + 0.12);
+        var frame = new T.Mesh(new T.TorusGeometry(0.115, 0.02, 8, 30), fMat);
+        frame.position.set(lx, faceY + 0.02, sz + 0.01); g.add(frame);
+        var lens = new T.Mesh(new T.CircleGeometry(0.095, 24), lMat);
+        lens.position.set(lx, faceY + 0.02, sz + 0.012); g.add(lens);
+      });
+      var bridge = new T.Mesh(new T.CylinderGeometry(0.012, 0.012, eyeX * 2 + 0.24, 6), fMat);
+      bridge.rotation.z = Math.PI / 2; bridge.position.set(0, faceY + 0.02, sz + 0.01); g.add(bridge);
+      [-1, 1].forEach(function (s) {
+        var arm = new T.Mesh(new T.BoxGeometry(0.012, 0.012, sz * 1.5), fMat);
+        arm.position.set(s * (eyeX + 0.235), faceY + 0.02, sz * 0.25); g.add(arm);
+      });
+    } else if (kindName === 'chip') {
+      var hMat = phys({ color: '#1c1c1c', roughness: 0.3, metalness: 0.5 });
+      var pMat = phys({ color: '#2a2a2a', roughness: 0.85, sheen: 0.5, sheenColor: new T.Color('#555555') });
+      var earY = faceY * 0.84, arcR = hw * 1.08;
+      var arcPts = [];
+      for (var ai = 0; ai <= 24; ai++) { var aa = Math.PI - ai / 24 * Math.PI; arcPts.push(new T.Vector3(Math.cos(aa) * arcR, earY + Math.sin(aa) * arcR, 0)); }
+      g.add(new T.Mesh(new T.TubeGeometry(new T.CatmullRomCurve3(arcPts), 40, 0.038, 8), hMat));
+      [-1, 1].forEach(function (s) {
+        var cup = new T.Mesh(new T.CylinderGeometry(0.155, 0.155, 0.09, 24), pMat);
+        cup.rotation.z = Math.PI / 2; cup.position.set(s * arcR, earY, 0); g.add(cup);
+        var outer = new T.Mesh(new T.CylinderGeometry(0.165, 0.165, 0.02, 24), hMat);
+        outer.rotation.z = Math.PI / 2; outer.position.set(s * (arcR + 0.055), earY, 0); g.add(outer);
+      });
+    } else if (kindName === 'fry') {
+      var swMat = phys({ color: '#32b8e0', roughness: 0.6 });
+      var band1 = new T.Mesh(new T.TorusGeometry(hw * 1.12, 0.055, 8, 40), swMat);
+      band1.rotation.x = Math.PI / 2; band1.position.y = top * 0.78; g.add(band1);
+      var band2 = new T.Mesh(new T.TorusGeometry(hw * 1.08, 0.032, 8, 40), phys({ color: '#1a8aaa', roughness: 0.6 }));
+      band2.rotation.x = Math.PI / 2; band2.position.y = top * 0.78; g.add(band2);
+    } else if (kindName === 'mashed') {
+      var tMat = new T.MeshStandardMaterial({ color: '#f8f4ee', roughness: 0.65 });
+      var base = new T.Mesh(new T.CylinderGeometry(hw * 0.48, hw * 0.52, 0.16, 30), tMat);
+      base.position.y = top + 0.02; g.add(base);
+      var puff = new T.Mesh(new T.SphereGeometry(hw * 0.5, 26, 18), tMat);
+      puff.scale.y = 1.35; puff.position.y = top + 0.28; g.add(puff);
+      var bnd = new T.Mesh(new T.CylinderGeometry(hw * 0.5, hw * 0.5, 0.05, 30, 1, true), new T.MeshStandardMaterial({ color: '#e0d8cc', roughness: 0.65 }));
+      bnd.position.y = top + 0.04; g.add(bnd);
+    } else if (kindName === 'jacket') {
+      var hatMat = phys({ color: '#6e3a1a', roughness: 0.78 });
+      var hCrown = new T.Mesh(new T.CylinderGeometry(hw * 0.4, hw * 0.42, 0.44, 30), hatMat);
+      hCrown.position.y = top + 0.2; g.add(hCrown);
+      var hBrim = new T.Mesh(new T.CylinderGeometry(hw * 0.9, hw * 0.92, 0.055, 48), hatMat);
+      hBrim.position.y = top + 0.01; g.add(hBrim);
+      var hBand = new T.Mesh(new T.CylinderGeometry(hw * 0.43, hw * 0.43, 0.06, 30, 1, true), new T.MeshStandardMaterial({ color: '#2a1208', roughness: 0.5 }));
+      hBand.position.y = top + 0.05; g.add(hBand);
+      [-1, 1].forEach(function (s) {
+        var curl = new T.Mesh(new T.TorusGeometry(hw * 0.9, 0.03, 6, 20, Math.PI * 0.55), hatMat);
+        curl.rotation.set(Math.PI / 2, 0, s * Math.PI / 2); curl.position.set(s * hw * 0.44, top + 0.03, 0); g.add(curl);
+      });
+    } else if (kindName === 'hash') {
+      var bMat = phys({ color: '#e06820', roughness: 0.92, sheen: 0.65, sheenRoughness: 0.6, sheenColor: new T.Color('#ff9848'), normalMap: knitN, normalScale: new T.Vector2(1.0, 1.0) });
+      var cap3 = new T.Mesh(new T.SphereGeometry(hw * 0.58, 26, 14, 0, Math.PI * 2, 0, Math.PI * 0.62), bMat);
+      cap3.position.y = top - 0.04; g.add(cap3);
+      var cuff3 = new T.Mesh(new T.CylinderGeometry(hw * 0.59, hw * 0.57, 0.14, 30), bMat);
+      cuff3.position.y = top - 0.13; g.add(cuff3);
+      var pom3 = new T.Mesh(new T.SphereGeometry(0.09, 12, 8), new T.MeshPhysicalMaterial({ color: '#f8f4ee', roughness: 0.9, sheen: 0.8 }));
+      pom3.position.y = top + hw * 0.45; g.add(pom3);
+    } else if (kindName === 'sweet') {
+      var stemM = new T.MeshStandardMaterial({ color: '#3e8a2e', roughness: 0.7 });
+      var ringR2 = hw * 0.88, ry2 = top * 0.87;
+      var ring3 = new T.Mesh(new T.TorusGeometry(ringR2, 0.025, 7, 44), stemM);
+      ring3.rotation.x = Math.PI / 2; ring3.position.y = ry2; g.add(ring3);
+      var pColors = ['#ff88bb', '#ffffff', '#ffaacc', '#f8f0ff', '#ff6699'];
+      for (var fi = 0; fi < 5; fi++) {
+        var fa2 = fi / 5 * Math.PI * 2, fx2 = Math.cos(fa2) * ringR2, fz2 = Math.sin(fa2) * ringR2;
+        var pMat2 = new T.MeshStandardMaterial({ color: pColors[fi % pColors.length], roughness: 0.45 });
+        var cMat2 = new T.MeshStandardMaterial({ color: '#f8e020', roughness: 0.3 });
+        for (var pe2 = 0; pe2 < 5; pe2++) {
+          var pa2 = pe2 / 5 * Math.PI * 2;
+          var pet = new T.Mesh(new T.SphereGeometry(0.055, 7, 5), pMat2);
+          pet.scale.set(1, 0.45, 0.65); pet.position.set(fx2 + Math.cos(pa2) * 0.085, ry2 + 0.058, fz2 + Math.sin(pa2) * 0.085); g.add(pet);
+        }
+        var ctr = new T.Mesh(new T.SphereGeometry(0.045, 9, 7), cMat2);
+        ctr.position.set(fx2, ry2 + 0.075, fz2); g.add(ctr);
+      }
+    }
+    return g.children.length ? g : null;
+  }
+
   var SCALE = 0.25;
   var players = [];
   // The app calls the hash brown 'hashbrown'.
@@ -1180,13 +1278,16 @@ export function createRoom(canvas, tagsEl, opts) {
     if (on && !p.crown) {
       var cr = crownMesh(); mergeStatic(cr, function () { return false; }); cr.position.set(0.05, p.body.userData.top + 0.08, 0);
       cr.traverse(function (o) { o.layers.set(LAYER_SPUDS); }); p.body.add(cr); p.crown = cr;
-    } else if (!on && p.crown) { p.body.remove(p.crown); p.crown = null; }
+      if (p.acc) p.acc.visible = false;
+    } else if (!on && p.crown) { p.body.remove(p.crown); p.crown = null; if (p.acc) p.acc.visible = true; }
     p.head = on; p.tagUntil = on ? Infinity : Math.min(p.tagUntil, clockT + 2);
     p.tag.firstChild.textContent = (on ? '\u265b ' : '') + p.name; p.tagW = 0;
   }
   function addPlayer(info, delay) {
     var kind = kindOf(info.kind), seatIdx = FILL[((info.seat % SEATS) + SEATS) % SEATS], name = info.name, head = !!info.head;
     var g = potatoMesh(kind, seatIdx * 31 + 7);
+    var _acc = accessoryMesh(kind, g.userData);
+    if (_acc) { _acc.traverse(function (o) { o.layers.set(LAYER_SPUDS); }); g.add(_acc); }
     var holder = new T.Group(); holder.add(g); world.add(holder);
     holder.traverse(function (o) { o.layers.set(LAYER_SPUDS); });
     g.traverse(function (o) { if (o.material && 'envMapIntensity' in o.material) { o.material.envMapIntensity = LIGHTS[mood].env; if (envMats.indexOf(o.material) < 0) envMats.push(o.material); } });
@@ -1194,7 +1295,7 @@ export function createRoom(canvas, tagsEl, opts) {
     var key = 'abcd'[((info.colour % 4) + 4) % 4];
     tag.style.setProperty('--c', 'var(--tile-' + key + ')'); tag.style.setProperty('--ci', 'var(--tile-' + key + '-ink)'); tagsEl.appendChild(tag);
     var p = {
-      id: info.id, name: name, kind: kind, seat: seatIdx, holder: holder, body: g, tag: tag, head: false, crown: null, away: false, leaving: 0,
+      id: info.id, name: name, kind: kind, seat: seatIdx, holder: holder, body: g, tag: tag, head: false, crown: null, acc: _acc || null, away: false, leaving: 0,
       run: SEAT_LIST[seatIdx].run, lx: SEAT_LIST[seatIdx].lx, lz: 0.05, x: 0, z: 0, y: reduced ? SEAT_TOP : SEAT_TOP + 4 + Math.random() * 0.6, vy: 0,
       sq: 1, sqv: 0, tilt: 0, tiltv: 0, dent: 0, wait: reduced ? 0 : delay, landed: reduced, tagUntil: head ? Infinity : 0,
       hopIn: 5 + Math.random() * 7, moveIn: 6 + Math.random() * 10, move: null, squintUntil: 0, blinkIn: 1 + Math.random() * 4, ouchUntil: 0, look: Math.random() * 6,
