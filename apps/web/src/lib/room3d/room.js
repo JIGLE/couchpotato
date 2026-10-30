@@ -352,8 +352,8 @@ export function createRoom(canvas, tagsEl, opts) {
   // ================= materials =================
   var M = {};
   function phys(o) { return new T.MeshPhysicalMaterial(o); }
-  M.velvet = phys({ color: '#1d655c', roughness: 0.82, sheen: 0.75, sheenRoughness: 0.42, sheenColor: new T.Color('#5fae9f'), normalMap: velvetN, normalScale: new T.Vector2(0.35, 0.35), map: velvetC });
-  M.velvetDeep = phys({ color: '#164f48', roughness: 0.85, sheen: 1, sheenRoughness: 0.4, sheenColor: new T.Color('#5fb3a5'), normalMap: velvetN, normalScale: new T.Vector2(0.35, 0.35), map: velvetC });
+  M.velvet = phys({ color: '#155c36', roughness: 0.82, sheen: 0.75, sheenRoughness: 0.42, sheenColor: new T.Color('#4aad72'), normalMap: velvetN, normalScale: new T.Vector2(0.35, 0.35), map: velvetC });
+  M.velvetDeep = phys({ color: '#0f4226', roughness: 0.85, sheen: 1, sheenRoughness: 0.4, sheenColor: new T.Color('#3e9a61'), normalMap: velvetN, normalScale: new T.Vector2(0.35, 0.35), map: velvetC });
   // Undersides and wall-facing backs are not modelled, so shadows are drawn from both sides.
   M.velvet.shadowSide = T.DoubleSide;
   M.velvetDeep.shadowSide = T.DoubleSide;
@@ -933,7 +933,7 @@ export function createRoom(canvas, tagsEl, opts) {
   scene.traverse(function (o) { if (o.material && o.material !== glassMat && envMats.indexOf(o.material) < 0) envMats.push(o.material); });
   var LIGHTS = {
     // The app's four moods. Sofa colours follow the --sofa token of each mood in tokens.css.
-    lamp: { sofa: '#2f6f6a', cover: ['#1d655c', '#164f48', '#5fae9f'], bg: '#0d0806', key: ['#ffc890', 0.4], hemi: ['#ffcf9e', '#3a2418', 0.16], moon: ['#9db0e6', 1.1], lamp: 3.2, pic: 1.4, shade: 1.0, candle: 0.9, fairy: 1, sky: skyNight, env: 0.08, exposure: 0.82, shaft: 0, wall: '#857a68', floor: '#a08a78', curtain: '#7f6a43' },
+    lamp: { sofa: '#1e7a48', cover: ['#155c36', '#0f4226', '#4aad72'], bg: '#0d0806', key: ['#ffc890', 0.4], hemi: ['#ffcf9e', '#3a2418', 0.16], moon: ['#9db0e6', 1.1], lamp: 3.2, pic: 1.4, shade: 1.0, candle: 0.9, fairy: 1, sky: skyNight, env: 0.08, exposure: 0.82, shaft: 0, wall: '#857a68', floor: '#a08a78', curtain: '#7f6a43' },
     velvet: { sofa: '#8e2f45', cover: ['#4e1220', '#360a15', '#a8566a'], bg: '#100807', key: ['#ffcaa8', 0.38], hemi: ['#ffd0b8', '#2e1a16', 0.15], moon: ['#c4a6ec', 0.9], lamp: 2.8, pic: 1.4, shade: 0.95, candle: 1.0, fairy: 1, sky: skyNight, env: 0.08, exposure: 0.82, shaft: 0, wall: '#8a7466', floor: '#9c8678', curtain: '#6e5a36' },
     midnight: { sofa: '#2b5da8', cover: ['#243656', '#18243c', '#7088b8'], bg: '#05080f', key: ['#a8c0ff', 0.3], hemi: ['#9fb8ff', '#141c2c', 0.14], moon: ['#9db6ff', 2.2], lamp: 1.6, pic: 0.9, shade: 0.6, candle: 0.7, fairy: 0.8, sky: skyNight, env: 0.08, exposure: 0.86, shaft: 0, wall: '#6f7c96', floor: '#7c8496', curtain: '#3f4a66' },
     sunday: { sofa: '#4f7a63', bg: '#f3e6d0', key: ['#fff2e0', 0.6], hemi: ['#fff0dc', '#7a5a40', 0.45], moon: ['#ffd9a6', 6.5], lamp: 0.25, pic: 0.5, shade: 0.12, candle: 0.35, fairy: 0.12, sky: skyDay, env: 0.85, exposure: 0.95, shaft: 0.22, wall: '#ffffff', floor: '#ffffff', curtain: '#c9a25a' }
