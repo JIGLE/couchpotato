@@ -10,6 +10,7 @@ import { Pass } from 'three/examples/jsm/postprocessing/Pass.js';
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
 import { GammaCorrectionShader } from 'three/examples/jsm/shaders/GammaCorrectionShader.js';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 
 const T = Object.assign({}, THREE, {
   RoomEnvironment, EffectComposer, Pass, ShaderPass, UnrealBloomPass, GammaCorrectionShader,
@@ -1068,7 +1069,12 @@ export function createRoom(canvas, tagsEl, opts) {
     return T.BufferGeometryUtils ? T.BufferGeometryUtils.mergeBufferGeometries([a, b]) : a;
   })();
 
-  function potatoMesh(kindName, seed) {
+  // The Blender-made characters (apps/web/public/models, built by tools/blender). Until they load,
+  // or if they can't, every potato is the procedural one below; ?spuds=classic forces that.
+  var MODELS = {};
+  function potatoMesh(kindName, seed) { return MODELS[kindName] ? modelMesh(kindName) : proceduralMesh(kindName, seed); }
+
+  function proceduralMesh(kindName, seed) {
     var k = KINDS[kindName], g = new T.Group(), geo, sx, sy, sz;
     if (k.box) {
       sx = k.box[0] / 2; sy = k.box[1] / 2; sz = k.box[2] / 2;
@@ -1155,7 +1161,77 @@ export function createRoom(canvas, tagsEl, opts) {
     var foot = add(footGeo2, footMat, feet, false); foot.position.set(0, -0.04, 0.1); foot.scale.x = Math.min(1.2, sx / 0.9);
     g.userData.feet = feet;
     g.userData.top = sy * (k.peak ? 2.05 : k.flat ? 1.8 : 2); g.userData.halfW = sx;
+    g.userData.look = function (x, y) { g.userData.iris.position.set(x * 0.047, y * 0.042, 0); };
+    g.userData.lids = function (t, snap, dt) { eyes.forEach(function (e) { var ld = e.userData.lid; ld.rotation.x += (t - ld.rotation.x) * (snap ? 1 : Math.min(1, dt * 14)); }); };
     return g;
+  }
+
+  // A Blender potato, wired to the same hooks as the procedural one. Geometry and materials are
+  // shared by every copy of a kind (drop() leaves them alone); only the node tree is cloned.
+  function modelMesh(kindName) {
+    var g = new T.Group(), m = MODELS[kindName].clone(true);
+    g.add(m); g.updateMatrixWorld(true);
+    var by = {}; m.traverse(function (o) { by[o.name] = o; });
+    // Eyes: pupil and glints move together to look around; the happy arcs stand in for squints.
+    var eyes = ['L', 'R'].map(function (s) {
+      var eye = by['Eye_' + s], look = new T.Group(); eye.add(look); eye.updateMatrixWorld(true);
+      ['Pupil_', 'Glint_', 'Glint2_'].forEach(function (n) { if (by[n + s]) look.attach(by[n + s]); });
+      var happy = by['Happy_' + s]; if (happy) happy.visible = false;
+      return { look: look, happy: happy, open: 1 };
+    });
+    g.userData.look = function (x, y) { eyes.forEach(function (e) { e.look.position.set(x * 0.03, y * 0.025, 0); }); };
+    g.userData.lids = function (t, snap, dt) {
+      // t follows the procedural lid angle: past ~1.3 the eye is shut, ~1 is a squint or wince.
+      var happy = t > 0.8 && t < 1.3, shut = t >= 1.3;
+      eyes.forEach(function (e) {
+        var want = shut ? 0.08 : 1; e.open += (want - e.open) * (snap ? 1 : Math.min(1, dt * 16));
+        e.look.scale.set(1, e.open, 1); e.look.visible = !happy;
+        if (e.happy) e.happy.visible = happy;
+      });
+    };
+    // The mouth is carved into the body, so it stays; there is no separate "ouch" shape.
+    g.userData.smile = new T.Object3D(); g.userData.ouch = new T.Object3D();
+    g.userData.brows = []; g.userData.eyes = [];
+    // Legs swing from a pivot at the hip, like the procedural feet.
+    var feet = new T.Group(), legs = ['Leg_L', 'Leg_R'].map(function (n) { return by[n]; }).filter(Boolean);
+    var lb = new T.Box3(); legs.forEach(function (l) { lb.expandByObject(l); });
+    var hip = new T.Vector3((lb.min.x + lb.max.x) / 2, (lb.min.y + lb.max.y) / 2, lb.min.z + 0.08);
+    m.add(feet); feet.position.copy(m.worldToLocal(hip.clone())); feet.updateMatrixWorld(true);
+    legs.forEach(function (l) { feet.attach(l); });
+    g.userData.feet = feet;
+    var bb = new T.Box3().setFromObject(m), body = new T.Box3().setFromObject(by.Body || m);
+    g.userData.top = bb.max.y; g.userData.halfW = (body.max.x - body.min.x) / 2;
+    return g;
+  }
+
+  // Load all eight in the background; potatoes already on the sofa swap to theirs as they arrive.
+  var MODEL_FILES = { boiled: 'boiled', grilled: 'grilled', chip: 'chip', fry: 'fry', mashed: 'mashed', jacket: 'jacket', hash: 'hashbrown', sweet: 'sweet' };
+  if (!/[?&]spuds=classic\b/.test(location.search)) {
+    var gltf = new GLTFLoader(), base = (import.meta.env && import.meta.env.BASE_URL) || '/';
+    Object.keys(MODEL_FILES).forEach(function (kind) {
+      gltf.load(base + 'models/potato-' + MODEL_FILES[kind] + '.glb', function (res) {
+        if (!alive) return;
+        res.scene.traverse(function (o) {
+          o.userData.shared = true;
+          if (o.isMesh && o.name === 'Body') rimmed(o.material);
+        });
+        MODELS[kind] = res.scene;
+        renderer.compile(MODELS[kind], camera);
+        players.filter(function (p) { return p.kind === kind; }).forEach(upgrade);
+      }, undefined, function () { /* keep the procedural potato */ });
+    });
+  }
+  function upgrade(p) {
+    var old = p.body, g = potatoMesh(p.kind, 0);
+    p.holder.remove(old); p.holder.add(g); p.body = g;
+    g.traverse(function (o) { o.layers.set(LAYER_SPUDS); if (o.material && 'envMapIntensity' in o.material) { o.material.envMapIntensity = LIGHTS[mood].env; if (envMats.indexOf(o.material) < 0) envMats.push(o.material); } });
+    if (p.crown) { old.remove(p.crown); p.crown.position.set(0.05, g.userData.top + 0.08, 0); g.add(p.crown); }
+    disposeTree(old);
+  }
+  function disposeTree(root) {
+    var mats = new Set();
+    root.traverse(function (o) { if (o.userData.shared) return; if (o.geometry) o.geometry.dispose(); if (o.material) mats.add(o.material); });
+    mats.forEach(function (mm) { var i = envMats.indexOf(mm); if (i >= 0) envMats.splice(i, 1); mm.dispose(); });
   }
 
   function crownMesh() {
@@ -1209,9 +1285,7 @@ export function createRoom(canvas, tagsEl, opts) {
   function leave(p) { if (p.leaving) return; p.leaving = 1e-6; p.vy = Math.max(p.vy, 2.6); p.tag.classList.remove('in', 'on'); p.dent = 0; }
   function drop(p) {
     players.splice(players.indexOf(p), 1); world.remove(p.holder); p.tag.remove();
-    var mats = new Set();
-    p.holder.traverse(function (o) { if (o.geometry) o.geometry.dispose(); if (o.material) mats.add(o.material); });
-    mats.forEach(function (m) { var i = envMats.indexOf(m); if (i >= 0) envMats.splice(i, 1); m.dispose(); });
+    disposeTree(p.holder); // a Blender potato's geometry and materials are shared, and stay
   }
 
   // The app shows its own "Maya sat down" as each potato lands.
@@ -1632,7 +1706,7 @@ export function createRoom(canvas, tagsEl, opts) {
       if (!reduced && clockT > p.sacAt) { p.sacX = (Math.random() - 0.5) * 0.3; p.sacY = (Math.random() - 0.5) * 0.25; p.sacAt = clockT + 0.4 + Math.random() * 1.6; }
       lookV.set(tgt.x - p.x, tgt.y - (p.y + 0.18), tgt.z - p.z).applyAxisAngle(yAxis, -p.yaw).normalize();
       var ex = clamp(lookV.x * 1.6 + p.sacX, -1, 1), ey = clamp(lookV.y * 1.6 + p.sacY, -1, 1);
-      p.body.userData.iris.position.set(ex * 0.047, ey * 0.042, 0);
+      p.body.userData.look(ex, ey);
       // Feet: a lazy swing on the seat, a quick kick in the air.
       var air = p.y > SEAT_TOP + 0.03;
       var fk = reduced ? 0 : air ? Math.sin(clockT * 22 + p.look) * 0.5 - 0.4 : Math.sin(clockT * 1.7 + p.look * 2) * 0.18;
@@ -1643,7 +1717,7 @@ export function createRoom(canvas, tagsEl, opts) {
       var hurt = clockT < p.ouchUntil;
       // Real eyelids: relaxed just over the top of the eye, sliding shut to blink, squeezed when hurt.
       var lidT = blinking || p.away ? Math.PI / 2 + 0.08 : hurt ? 0.95 : clockT < p.squintUntil ? 1.05 : -0.62 + (p.lookAt && clockT < p.lookUntil ? -0.15 : 0);
-      p.body.userData.eyes.forEach(function (e) { var ld = e.userData.lid; ld.rotation.x += (lidT - ld.rotation.x) * (blinking ? 1 : Math.min(1, dt * 14)); });
+      p.body.userData.lids(lidT, blinking, dt);
       p.body.userData.brows.forEach(function (b) { b.rotation.z = b.userData.base + (hurt ? -b.userData.side * 0.5 : 0); b.position.y += 0; });
       p.body.userData.smile.visible = !hurt; p.body.userData.ouch.visible = hurt;
       // Tags hang from where the head sits at rest, plus any real height (a hop), but ignore squash,
