@@ -32,7 +32,11 @@ def bake_body(body, flat_color, size=1024):
         img = bpy.data.images.new(f'{name}_{kind}', size, size, alpha=False, float_buffer=False)
         if kind == 'normal': img.colorspace_settings.name = 'Non-Color'
         imgs[kind] = img
-    node = nt.nodes.new('ShaderNodeTexImage'); node.name = '_bake'
+    # every material on the body (skin, and the mouth cavity from the boolean) needs the bake target
+    mats = [m for m in me.materials if m]
+    nodes = []
+    for mm in mats:
+        n_ = mm.node_tree.nodes.new('ShaderNodeTexImage'); n_.name = '_bake'; nodes.append((mm, n_))
     prev_engine = sc.render.engine
     sc.render.engine = 'CYCLES'
     sc.cycles.samples = 4
@@ -40,12 +44,13 @@ def bake_body(body, flat_color, size=1024):
     bk = sc.render.bake
     bk.margin = 8
     for kind, typ in (('color', 'DIFFUSE'), ('normal', 'NORMAL')):
-        node.image = imgs[kind]; nt.nodes.active = node
+        for mm, n_ in nodes:
+            n_.image = imgs[kind]; mm.node_tree.nodes.active = n_
         if typ == 'DIFFUSE':
             bk.use_pass_direct = False; bk.use_pass_indirect = False; bk.use_pass_color = True
         bpy.ops.object.bake(type=typ)
         imgs[kind].pack()
-    nt.nodes.remove(node)
+    for mm, n_ in nodes: mm.node_tree.nodes.remove(n_)
     sc.render.engine = prev_engine
 
     # the export material: image textures only, which glTF understands
@@ -60,7 +65,11 @@ def bake_body(body, flat_color, size=1024):
     L.new(ci.outputs['Color'], pb.inputs['Base Color'])
     L.new(ni.outputs['Color'], nm.inputs['Color']); L.new(nm.outputs['Normal'], pb.inputs['Normal'])
     pb.inputs['Roughness'].default_value = rough
-    me.materials[0] = m
+    me.materials.clear(); me.materials.append(m)
+    for p_ in me.polygons: p_.material_index = 0
+    # the mouth cutter has been applied by now; it must not ship in the model
+    for o in [o for o in bpy.data.objects if o.name.startswith('MouthCutter')]:
+        bpy.data.objects.remove(o, do_unlink=True)
     return m
 
 
@@ -90,3 +99,14 @@ def export_glb(root, path):
                               export_yup=True, export_image_format='JPEG', export_jpeg_quality=90, use_active_scene=True, export_texcoords=True,
                               export_normals=True, export_materials='EXPORT', export_cameras=False, export_lights=False)
     return os.path.getsize(path)
+
+
+def skin_average(img):
+    """Average colour of a baked skin texture (linear), ignoring the dark mouth and empty margins."""
+    import numpy as np
+    px = np.array(img.pixels[:], dtype=np.float32).reshape(-1, 4)[:, :3]
+    lum = px.mean(axis=1)
+    px = px[(lum > 0.12) & (lum < 0.95)]
+    c = px.mean(axis=0) if len(px) else np.array([0.5, 0.3, 0.15])
+    lin = [x / 12.92 if x <= 0.04045 else ((x + 0.055) / 1.055) ** 2.4 for x in c]
+    return (*lin, 1.0)
